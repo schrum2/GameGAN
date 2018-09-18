@@ -1,0 +1,5 @@
+
+*.class
+
+bin/
+my_python_path.txt
