@@ -243,7 +243,7 @@ public class MarioReader {
         int[][] level = flip(readLevel(new Scanner(new FileInputStream(inputFile))));
         level = border(level);
         if (show) {
-            LevelView levelView = new LevelView(level).setColorMap(tileColors).setCellSize(15);
+            LevelView levelView = new LevelView(level).setColorMap(tileColors).setCellSize(10);
             JScrollPane scrollPane = new JScrollPane(levelView, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
             scrollPane.setPreferredSize(new Dimension(500,200));
             new JEasyFrame(scrollPane, inputFile);
