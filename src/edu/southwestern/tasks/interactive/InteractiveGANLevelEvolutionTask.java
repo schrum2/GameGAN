@@ -23,6 +23,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import distance.convolution.ConvNTuple;
+import distance.kl.KLDiv;
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype;
 import edu.southwestern.evolution.genotypes.Genotype;
@@ -41,6 +43,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 	public static final int PLAY_BUTTON_INDEX = -20; 
 	private static final int FILE_LOADER_BUTTON_INDEX = -21;
 	private static final int VECTOR_EXPLORER_BUTTON_INDEX = -22;
+	private static final int KL_DIV_BUTTON_INDEX = -23;
 	
 	private static final int SLIDER_RANGE = 100; // Latent vector sliders (divide by this to get vector value)
 
@@ -68,10 +71,16 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		vectorExplorerButton.setText("ExploreLatentSpace");
 		vectorExplorerButton.setName("" + VECTOR_EXPLORER_BUTTON_INDEX);
 		vectorExplorerButton.addActionListener(this);
+
+		JButton klDivButton = new JButton();
+		klDivButton.setText("KLDiv");
+		klDivButton.setName("" + KL_DIV_BUTTON_INDEX);
+		klDivButton.addActionListener(this);
 		
 		if(!Parameters.parameters.booleanParameter("simplifiedInteractiveInterface")) {
 			top.add(fileLoadButton);
 			top.add(vectorExplorerButton);
+			top.add(klDivButton);
 		}
 
 		//Construction of button that lets user plays the level
@@ -150,6 +159,32 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			}
 			resetButtons(true);
 		}
+		if(itemID == KL_DIV_BUTTON_INDEX) {
+			// Compare every selected level with every other selected level
+			for(Integer i : selectedItems) {
+				for(Integer j : selectedItems) {
+					Genotype<ArrayList<Double>> genotype1 = scores.get(i).individual;
+					Genotype<ArrayList<Double>> genotype2 = scores.get(j).individual;
+					
+					ArrayList<Double> phenotype1 = genotype1.getPhenotype();
+					ArrayList<Double> phenotype2 = genotype2.getPhenotype();
+					
+					int[][] level1 = getArrayLevel(phenotype1);
+			        int[][] level2 = getArrayLevel(phenotype2);
+			        
+			        // TODO: Make these parameters that can be configured elsewhere
+			        int filterWidth = 5;
+			        int filterHeight = 10;
+			        int stride = 1;
+			        
+			        ConvNTuple c1 = getConvNTuple(level1, filterWidth, filterHeight, stride);
+			        ConvNTuple c2 = getConvNTuple(level2, filterWidth, filterHeight, stride);
+
+			        double klDiv = KLDiv.klDiv(c1.sampleDis, c2.sampleDis);
+					System.out.println("KL Div: " + genotype1.getId() + " to " + genotype2.getId() + ": " + klDiv);
+				}
+			}
+		}
 		if(itemID == VECTOR_EXPLORER_BUTTON_INDEX) {
 			final int populationIndex = selectedItems.get(selectedItems.size() - 1);
 			ArrayList<Double> phenotype = scores.get(populationIndex).individual.getPhenotype();
@@ -225,6 +260,26 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 
 		return false; // no undo: every thing is fine
 	}
+
+	/**
+	 * Convert tile representation of level into convolutional n-tuple for
+	 * KL divergence comparison.
+	 * 
+	 * @param level 2D tile representation
+	 * @param filterWidth 
+	 * @param filterHeight
+	 * @param stride
+	 * @return A convolutional N-tuple
+	 */
+	public abstract ConvNTuple getConvNTuple(int[][] level, int filterWidth, int filterHeight, int stride);
+
+	/**
+	 * Return a representation of the level as a 2D array of ints where each int represents
+	 * a different tile type.
+	 * @param phenotype GAN latent vector
+	 * @return 2D int tile representation
+	 */
+	public abstract int[][] getArrayLevel(ArrayList<Double> phenotype);
 
 	/**
 	 * Given the name of the GAN to load, terminate the current GAN and reconfigure before

@@ -1,27 +1,28 @@
 package distance.util;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonWriter;
-import distance.view.LevelView;
-import utilities.JEasyFrame;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+import javax.imageio.ImageIO;
+import javax.swing.JScrollPane;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import distance.view.LevelView;
+import utilities.JEasyFrame;
+
 public class MarioReader {
 
-    public static Map<Character, Integer> tiles = new HashMap();
+    public static Map<Character, Integer> tiles = new HashMap<>();
 
     static {
         tiles.put('X', 0);
@@ -38,9 +39,9 @@ public class MarioReader {
         // tiles.put('-', 11);
     }
 
-    public static HashMap<Integer, Color> tileColors = new HashMap();
+    public static HashMap<Integer, Color> tileColors = new HashMap<>();
 
-    public static HashMap<Integer,BufferedImage> icons = new HashMap();
+    public static HashMap<Integer,BufferedImage> icons = new HashMap<>();
     static {
         readIcons();
     }
@@ -97,7 +98,7 @@ public class MarioReader {
 
         String inputDirectory = "data/mario/levels/";
 
-        String outputFile = "data/mario/example.json";
+        //String outputFile = "data/mario/example.json";
 
         // need to iterate over all the files in a directory
 

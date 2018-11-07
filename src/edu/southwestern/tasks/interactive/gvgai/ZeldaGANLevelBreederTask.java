@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
+import distance.convolution.ConvNTuple;
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.gvgai.GVGAIUtil;
@@ -116,6 +117,16 @@ public class ZeldaGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 		} catch (FileNotFoundException | NoSuchMethodException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public ConvNTuple getConvNTuple(int[][] level, int filterWidth, int filterHeight, int stride) {
+		throw new UnsupportedOperationException("Need to implement this");
+	}
+
+	@Override
+	public int[][] getArrayLevel(ArrayList<Double> phenotype) {
+		throw new UnsupportedOperationException("Need to implement this");
 	}
 
 

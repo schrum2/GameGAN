@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import javax.swing.JLabel;
 import javax.swing.JSlider;
@@ -15,6 +16,8 @@ import javax.swing.event.ChangeListener;
 import ch.idsia.ai.agents.Agent;
 import ch.idsia.ai.agents.human.HumanKeyboardAgent;
 import ch.idsia.mario.engine.level.Level;
+import distance.convolution.ConvNTuple;
+import distance.test.KLDivTest;
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.interactive.InteractiveGANLevelEvolutionTask;
@@ -156,5 +159,28 @@ public class MarioGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 		} catch (FileNotFoundException | NoSuchMethodException e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Simply call the code that Simon Lucas wrote
+	 */
+	@Override
+	public ConvNTuple getConvNTuple(int[][] level, int filterWidth, int filterHeight, int stride) {
+		return KLDivTest.getConvNTuple(level, filterWidth, filterHeight, stride);
+	}
+
+	@Override
+	public int[][] getArrayLevel(ArrayList<Double> phenotype) {
+		double[] doubleArray = ArrayUtil.doubleArrayFromList(phenotype);
+		ArrayList<List<Integer>> oneLevel = MarioGANUtil.generateLevelListRepresentationFromGAN(doubleArray);
+		int[][] level = new int[oneLevel.size()][oneLevel.get(0).size()];
+		// Convert form lists to 2D array
+		for(int row = 0; row < oneLevel.size(); row++) {
+			//System.out.println(oneLevel.get(row));
+			for(int col = 0; col < oneLevel.get(0).size(); col++) {
+				level[row][col] = oneLevel.get(row).get(col);
+			}
+		}
+		return level;
 	}
 }
