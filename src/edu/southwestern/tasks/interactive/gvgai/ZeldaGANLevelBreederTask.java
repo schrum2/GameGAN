@@ -5,8 +5,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.List;
 
-import distance.convolution.ConvNTuple;
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.gvgai.GVGAIUtil;
@@ -120,14 +120,11 @@ public class ZeldaGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 	}
 
 	@Override
-	public ConvNTuple getConvNTuple(int[][] level, int filterWidth, int filterHeight, int stride) {
-		throw new UnsupportedOperationException("Need to implement this");
+	public List<List<Integer>> levelListRepresentation(double[] latentVector) {
+		return ZeldaGANUtil.generateRoomListRepresentationFromGAN(latentVector);
 	}
 
-	@Override
-	public int[][] getArrayLevel(ArrayList<Double> phenotype) {
-		throw new UnsupportedOperationException("Need to implement this");
-	}
+
 
 
 }

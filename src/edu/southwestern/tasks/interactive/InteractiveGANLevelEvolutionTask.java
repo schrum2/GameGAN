@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -25,11 +26,13 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import distance.convolution.ConvNTuple;
 import distance.kl.KLDiv;
+import distance.test.KLDivTest;
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype;
 import edu.southwestern.evolution.genotypes.Genotype;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.scores.Score;
+import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.datastructures.Pair;
 
 /**
@@ -177,8 +180,8 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			        int filterHeight = 10;
 			        int stride = 1;
 			        
-			        ConvNTuple c1 = getConvNTuple(level1, filterWidth, filterHeight, stride);
-			        ConvNTuple c2 = getConvNTuple(level2, filterWidth, filterHeight, stride);
+			        ConvNTuple c1 = KLDivTest.getConvNTuple(level1, filterWidth, filterHeight, stride);
+			        ConvNTuple c2 = KLDivTest.getConvNTuple(level2, filterWidth, filterHeight, stride);
 
 			        double klDiv = KLDiv.klDiv(c1.sampleDis, c2.sampleDis);
 					System.out.println("KL Div: " + genotype1.getId() + " to " + genotype2.getId() + ": " + klDiv);
@@ -262,24 +265,33 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 	}
 
 	/**
-	 * Convert tile representation of level into convolutional n-tuple for
-	 * KL divergence comparison.
-	 * 
-	 * @param level 2D tile representation
-	 * @param filterWidth 
-	 * @param filterHeight
-	 * @param stride
-	 * @return A convolutional N-tuple
-	 */
-	public abstract ConvNTuple getConvNTuple(int[][] level, int filterWidth, int filterHeight, int stride);
-
-	/**
 	 * Return a representation of the level as a 2D array of ints where each int represents
 	 * a different tile type.
 	 * @param phenotype GAN latent vector
 	 * @return 2D int tile representation
 	 */
-	public abstract int[][] getArrayLevel(ArrayList<Double> phenotype);
+	public int[][] getArrayLevel(ArrayList<Double> phenotype) {
+		double[] doubleArray = ArrayUtil.doubleArrayFromList(phenotype);
+		List<List<Integer>> oneLevel = levelListRepresentation(doubleArray);
+		int[][] level = new int[oneLevel.size()][oneLevel.get(0).size()];
+		// Convert form lists to 2D array
+		for(int row = 0; row < oneLevel.size(); row++) {
+			//System.out.println(oneLevel.get(row));
+			for(int col = 0; col < oneLevel.get(0).size(); col++) {
+				level[row][col] = oneLevel.get(row).get(col);
+			}
+		}
+		return level;
+	}
+
+	/**
+	 * Use GAN to take latent vector and create a 2D list of lists that represents
+	 * the layout of the level. Importantly, the list representation uses unique
+	 * integers for each tile type in a range of 0 to max
+	 * @param latentVector
+	 * @return
+	 */
+	public abstract List<List<Integer>> levelListRepresentation(double[] latentVector);
 
 	/**
 	 * Given the name of the GAN to load, terminate the current GAN and reconfigure before
