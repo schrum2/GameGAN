@@ -203,6 +203,15 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		return false; // no undo: every thing is fine
 	}
 
+	/**
+	 * Adds a view of a level and all sliders for tweaking it to a given JFrame. Might
+	 * behave weirdly if called more than twice on any frame, but works for one or two.
+	 * 
+	 * @param itemToExplore Index in the population
+	 * @param explorer The Frame to add to
+	 * @param compareTwo Whether or not the last two members of the group of selected items
+	 * 					are being compared in terms of KL Div
+	 */
 	public void addLevelToExploreToFrame(int itemToExplore, JFrame explorer, boolean compareTwo) {
 		final int populationIndex = selectedItems.get(itemToExplore);
 		final boolean compare = compareTwo;
@@ -302,6 +311,12 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		explorer.setVisible(true);
 	}
 
+	/**
+	 * Return antisymmetric KL Div results in a String
+	 * @param popIndex1 First index in population
+	 * @param popIndex2 Second index in population
+	 * @return String with results of KL div comparison
+	 */
 	public String klDivResults(int popIndex1, int popIndex2) {
 		Genotype<ArrayList<Double>> genotype1 = scores.get(popIndex1).individual;
 		Genotype<ArrayList<Double>> genotype2 = scores.get(popIndex2).individual;
@@ -321,6 +336,12 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		return result;
 	}
 
+	/**
+	 * Return symmetric KL Div results in a String
+	 * @param popIndex1 First index in population
+	 * @param popIndex2 Second index in population
+	 * @return String with results of KL div comparison
+	 */
 	public String klDivSymmetricResults(int popIndex1, int popIndex2) {
 		Genotype<ArrayList<Double>> genotype1 = scores.get(popIndex1).individual;
 		Genotype<ArrayList<Double>> genotype2 = scores.get(popIndex2).individual;
@@ -334,7 +355,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		ConvNTuple c1 = KLDivTest.getConvNTuple(level1, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
 		ConvNTuple c2 = KLDivTest.getConvNTuple(level2, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
 
-		DecimalFormat df = new DecimalFormat("#.######");
+		DecimalFormat df = new DecimalFormat("##.######");
 		double klDiv = KLDiv.klDivSymmetric(c1.sampleDis, c2.sampleDis);
 		String result = "Symmetric KL Div: " + genotype1.getId() + " to " + genotype2.getId() + ": " + df.format(klDiv);
 		return result;
