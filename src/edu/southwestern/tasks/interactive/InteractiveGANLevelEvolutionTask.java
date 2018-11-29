@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -50,6 +51,15 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 	
 	private static final int SLIDER_RANGE = 100; // Latent vector sliders (divide by this to get vector value)
 
+    // TODO: Make these parameters that can be configured elsewhere
+    public static final int KL_FILTER_WIDTH = 5;
+    public static final int KL_FILTER_HEIGHT = 10;
+    public static final int KL_STRIDE = 1;
+	
+    JLabel globalKLDivLabel1;
+    JLabel globalKLDivLabel2;
+    JLabel globalKLDivSymLabel;
+    
 	/**
 	 * Do domain specific GAN settings
 	 */
@@ -166,102 +176,168 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			// Compare every selected level with every other selected level
 			for(Integer i : selectedItems) {
 				for(Integer j : selectedItems) {
-					Genotype<ArrayList<Double>> genotype1 = scores.get(i).individual;
-					Genotype<ArrayList<Double>> genotype2 = scores.get(j).individual;
-					
-					ArrayList<Double> phenotype1 = genotype1.getPhenotype();
-					ArrayList<Double> phenotype2 = genotype2.getPhenotype();
-					
-					int[][] level1 = getArrayLevel(phenotype1);
-			        int[][] level2 = getArrayLevel(phenotype2);
-			        
-			        // TODO: Make these parameters that can be configured elsewhere
-			        int filterWidth = 5;
-			        int filterHeight = 10;
-			        int stride = 1;
-			        
-			        ConvNTuple c1 = KLDivTest.getConvNTuple(level1, filterWidth, filterHeight, stride);
-			        ConvNTuple c2 = KLDivTest.getConvNTuple(level2, filterWidth, filterHeight, stride);
-
-			        double klDiv = KLDiv.klDiv(c1.sampleDis, c2.sampleDis);
-					System.out.println("KL Div: " + genotype1.getId() + " to " + genotype2.getId() + ": " + klDiv);
+					System.out.println(klDivResults(i, j));
+					System.out.println(klDivSymmetricResults(i,j));
 				}
 			}
 		}
 		if(itemID == VECTOR_EXPLORER_BUTTON_INDEX) {
-			final int populationIndex = selectedItems.get(selectedItems.size() - 1);
-			ArrayList<Double> phenotype = scores.get(populationIndex).individual.getPhenotype();
-			JFrame explorer = new JFrame("Explore Latent Space");
-			// Image of level
-			BufferedImage level = getButtonImage(false, phenotype, 2*picSize,2*picSize, inputMultipliers);
-			ImageIcon img = new ImageIcon(level.getScaledInstance(2*picSize,2*picSize,Image.SCALE_DEFAULT));
-			final JLabel imageLabel = new JLabel(img);
-			JPanel vectorSliders = new JPanel();
-			vectorSliders.setLayout(new GridLayout(10, phenotype.size() / 10));
-			// Add a slider for each latent vector variable
-			for(int i = 0; i < phenotype.size(); i++) {
-				JSlider vectorValue = new JSlider(JSlider.HORIZONTAL, 0, SLIDER_RANGE, (int)(SLIDER_RANGE*phenotype.get(i)));
-				vectorValue.setMinorTickSpacing(1);
-				vectorValue.setPaintTicks(true);
-				Hashtable<Integer,JLabel> labels = new Hashtable<>();
-				labels.put(0, new JLabel("0.0"));
-				labels.put(SLIDER_RANGE, new JLabel("1.0"));
-				vectorValue.setLabelTable(labels);
-				vectorValue.setPaintLabels(true);
-				vectorValue.setPreferredSize(new Dimension(200, 40));
-
-				/**
-				 * Changed level width picture previews
-				 */
-				final int latentVariableIndex = i;
-				vectorValue.addChangeListener(new ChangeListener() {
-					@Override
-					public void stateChanged(ChangeEvent e) {
-						// get value
-						JSlider source = (JSlider)e.getSource();
-						if(!source.getValueIsAdjusting()) {
-							int newValue = (int) source.getValue();
-							double scaledValue = (1.0 * newValue) / SLIDER_RANGE;
-							// Actually change the value of the phenotype in the population
-							phenotype.set(latentVariableIndex, scaledValue);
-							// Update image
-							BufferedImage level = getButtonImage(false, phenotype, 2*picSize,2*picSize, inputMultipliers);
-							ImageIcon img = new ImageIcon(level.getScaledInstance(2*picSize,2*picSize,Image.SCALE_DEFAULT));
-							imageLabel.setIcon(img);
-							// Genotype references the phenotype, so it is changed by the modifications above
-							resetButton(scores.get(populationIndex).individual, populationIndex);
-						}
-					}
-				});
-
-				vectorSliders.add(vectorValue);
-			}
-
-			// Play the modified level
-			JButton play = new JButton("Play");
-			// Population index of last clicked level
-			play.setName(""+populationIndex);
-			play.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					String name = ((JButton) e.getSource()).getName();
-					int populationIndex = Integer.parseInt(name);
-					ArrayList<Double> phenotype = scores.get(populationIndex).individual.getPhenotype();
-					playLevel(phenotype);
-				}
-			});
-
-			JPanel main = new JPanel();
-			main.add(vectorSliders);
-			main.add(imageLabel);
-			main.add(play);
-			explorer.getContentPane().add(main);
+			if(selectedItems.size() == 0) return false; // Nothing to explore
 			
-			explorer.pack();
-			explorer.setVisible(true);
+			JFrame explorer = new JFrame("Explore Latent Space");
+			
+			int itemToExplore = selectedItems.size() - 1;
+			boolean compareTwo = selectedItems.size() > 1;
+			// In case two levels are being compared, stack them:
+			// There are three rows: one for each level, and one for KL Div info.
+			if(compareTwo) explorer.getContentPane().setLayout(new GridLayout(2,1));
+			
+			addLevelToExploreToFrame(itemToExplore, explorer, compareTwo);
+			
+			// If there are at least two items, compare the last two:
+			if(compareTwo) {
+				addLevelToExploreToFrame(selectedItems.size() - 2, explorer, compareTwo);
+			}
 		}
 
 		return false; // no undo: every thing is fine
+	}
+
+	public void addLevelToExploreToFrame(int itemToExplore, JFrame explorer, boolean compareTwo) {
+		final int populationIndex = selectedItems.get(itemToExplore);
+		final boolean compare = compareTwo;
+		ArrayList<Double> phenotype = scores.get(populationIndex).individual.getPhenotype();
+		// Image of level
+		BufferedImage level = getButtonImage(false, phenotype, 2*picSize,2*picSize, inputMultipliers);
+		ImageIcon img = new ImageIcon(level.getScaledInstance(2*picSize,2*picSize,Image.SCALE_DEFAULT));
+		final JLabel imageLabel = new JLabel(img);
+		
+		JPanel bothKLDivStrings = new JPanel();
+		bothKLDivStrings.setLayout(new GridLayout(3,1));
+		
+		// Only allow one copy of each label to be visible
+		if(globalKLDivLabel1 != null) globalKLDivLabel1.setText("");
+		if(globalKLDivLabel2 != null) globalKLDivLabel2.setText("");
+		if(globalKLDivSymLabel != null) globalKLDivSymLabel.setText("");
+		// The hard-coded assumption here is that we always compare the last two items selected
+		// Compare in both orders since KL Div not symmetric
+		globalKLDivLabel1 = new JLabel(compare ? klDivResults(selectedItems.get(selectedItems.size() - 1), selectedItems.get(selectedItems.size() - 2)) : "");
+		globalKLDivLabel2 = new JLabel(compare ? klDivResults(selectedItems.get(selectedItems.size() - 2), selectedItems.get(selectedItems.size() - 1)) : "");
+		globalKLDivSymLabel = new JLabel(compare ? klDivSymmetricResults(selectedItems.get(selectedItems.size() - 2), selectedItems.get(selectedItems.size() - 1)) : "");
+		bothKLDivStrings.add(globalKLDivLabel1);
+		bothKLDivStrings.add(globalKLDivLabel2);
+		bothKLDivStrings.add(globalKLDivSymLabel);
+		
+		JPanel vectorSliders = new JPanel();
+		vectorSliders.setLayout(new GridLayout(10, phenotype.size() / 10));
+		// Add a slider for each latent vector variable
+		for(int i = 0; i < phenotype.size(); i++) {
+			JSlider vectorValue = new JSlider(JSlider.HORIZONTAL, 0, SLIDER_RANGE, (int)(SLIDER_RANGE*phenotype.get(i)));
+			vectorValue.setMinorTickSpacing(1);
+			vectorValue.setPaintTicks(true);
+			Hashtable<Integer,JLabel> labels = new Hashtable<>();
+			labels.put(0, new JLabel("0.0"));
+			labels.put(SLIDER_RANGE, new JLabel("1.0"));
+			vectorValue.setLabelTable(labels);
+			vectorValue.setPaintLabels(true);
+			vectorValue.setPreferredSize(new Dimension(200, 40));
+
+			/**
+			 * Changed level width picture previews
+			 */
+			final int latentVariableIndex = i;
+			vectorValue.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					// get value
+					JSlider source = (JSlider)e.getSource();
+					if(!source.getValueIsAdjusting()) {
+						int newValue = (int) source.getValue();
+						double scaledValue = (1.0 * newValue) / SLIDER_RANGE;
+						// Actually change the value of the phenotype in the population
+						phenotype.set(latentVariableIndex, scaledValue);
+						// Update image
+						BufferedImage level = getButtonImage(false, phenotype, 2*picSize,2*picSize, inputMultipliers);
+						ImageIcon img = new ImageIcon(level.getScaledInstance(2*picSize,2*picSize,Image.SCALE_DEFAULT));
+						imageLabel.setIcon(img);
+						// Genotype references the phenotype, so it is changed by the modifications above
+						resetButton(scores.get(populationIndex).individual, populationIndex);
+						
+						// If there is another level in the frame to compare against, then update KL Div calculations
+						if(compare) {
+							// Do both comparisons since KL Div is not symmetric
+							globalKLDivLabel1.setText(klDivResults(selectedItems.get(selectedItems.size() - 1), selectedItems.get(selectedItems.size() - 2)));
+							globalKLDivLabel2.setText(klDivResults(selectedItems.get(selectedItems.size() - 2), selectedItems.get(selectedItems.size() - 1)));
+							globalKLDivSymLabel.setText(klDivSymmetricResults(selectedItems.get(selectedItems.size() - 2), selectedItems.get(selectedItems.size() - 1)));
+						}
+					}
+				}
+			});
+
+			vectorSliders.add(vectorValue);
+		}
+
+		// Play the modified level
+		JButton play = new JButton("Play");
+		// Population index of last clicked level
+		play.setName(""+populationIndex);
+		play.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String name = ((JButton) e.getSource()).getName();
+				int populationIndex = Integer.parseInt(name);
+				ArrayList<Double> phenotype = scores.get(populationIndex).individual.getPhenotype();
+				playLevel(phenotype);
+			}
+		});
+
+		JPanel main = new JPanel();
+		main.add(vectorSliders);
+		main.add(imageLabel);
+		main.add(play);
+		main.add(bothKLDivStrings);
+		explorer.getContentPane().add(main);
+		
+		explorer.pack();
+		explorer.setVisible(true);
+	}
+
+	public String klDivResults(int popIndex1, int popIndex2) {
+		Genotype<ArrayList<Double>> genotype1 = scores.get(popIndex1).individual;
+		Genotype<ArrayList<Double>> genotype2 = scores.get(popIndex2).individual;
+		
+		ArrayList<Double> phenotype1 = genotype1.getPhenotype();
+		ArrayList<Double> phenotype2 = genotype2.getPhenotype();
+		
+		int[][] level1 = getArrayLevel(phenotype1);
+		int[][] level2 = getArrayLevel(phenotype2);
+		
+		ConvNTuple c1 = KLDivTest.getConvNTuple(level1, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
+		ConvNTuple c2 = KLDivTest.getConvNTuple(level2, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
+
+		DecimalFormat df = new DecimalFormat("#.######");
+		double klDiv = KLDiv.klDiv(c1.sampleDis, c2.sampleDis);
+		String result = "KL Div: " + genotype1.getId() + " to " + genotype2.getId() + ": " + df.format(klDiv);
+		return result;
+	}
+
+	public String klDivSymmetricResults(int popIndex1, int popIndex2) {
+		Genotype<ArrayList<Double>> genotype1 = scores.get(popIndex1).individual;
+		Genotype<ArrayList<Double>> genotype2 = scores.get(popIndex2).individual;
+		
+		ArrayList<Double> phenotype1 = genotype1.getPhenotype();
+		ArrayList<Double> phenotype2 = genotype2.getPhenotype();
+		
+		int[][] level1 = getArrayLevel(phenotype1);
+		int[][] level2 = getArrayLevel(phenotype2);
+		
+		ConvNTuple c1 = KLDivTest.getConvNTuple(level1, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
+		ConvNTuple c2 = KLDivTest.getConvNTuple(level2, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
+
+		DecimalFormat df = new DecimalFormat("#.######");
+		double klDiv = KLDiv.klDivSymmetric(c1.sampleDis, c2.sampleDis);
+		String result = "Symmetric KL Div: " + genotype1.getId() + " to " + genotype2.getId() + ": " + df.format(klDiv);
+		return result;
 	}
 
 	/**
