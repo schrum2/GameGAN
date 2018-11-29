@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import javax.swing.JLabel;
 import javax.swing.JSlider;
@@ -157,4 +158,10 @@ public class MarioGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 			e.printStackTrace();
 		}
 	}
+
+	@Override
+	public List<List<Integer>> levelListRepresentation(double[] latentVector) {
+		return MarioGANUtil.generateLevelListRepresentationFromGAN(latentVector);
+	}
+
 }

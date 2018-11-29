@@ -27,19 +27,19 @@ public class AccessTest {
         // getConstructor(Sub.class);
 
         // now how the hell is the assignment done????
-        Constructor subCons = forceDefaultConstructor(Sub.class);
-
-        Sub ob = (Sub) subCons.newInstance(new Object[]{});
-
-        System.out.println("Sub: " + ob);
+//        Constructor subCons = forceDefaultConstructor(Sub.class);
+//
+//        Sub ob = (Sub) subCons.newInstance(new Object[]{});
+//
+//        System.out.println("Sub: " + ob);
 
     }
 
 
     /** reflection factory for forcing default constructors */
-    private static final ReflectionFactory reflFactory = (ReflectionFactory)
-            AccessController.doPrivileged(
-                    new ReflectionFactory.GetReflectionFactoryAction());
+//    private static final ReflectionFactory reflFactory = (ReflectionFactory)
+//            AccessController.doPrivileged(
+//                    new ReflectionFactory.GetReflectionFactoryAction());
 
 
     public static class Sub extends Super {
@@ -81,7 +81,7 @@ public class AccessTest {
      */
     private static Constructor forceDefaultConstructor(Class cl) throws Exception {
         Constructor cons = Object.class.getDeclaredConstructor(new Class[0]);
-        cons = reflFactory.newConstructorForSerialization(cl, cons);
+        // cons = reflFactory.newConstructorForSerialization(cl, cons);
         cons.setAccessible(true);
         System.out.println("Cons: " + cons);
         return cons;
@@ -103,7 +103,7 @@ public class AccessTest {
 //                    !packageEquals(cl, initCl))) {
 //                return null;
 //            }
-            cons = reflFactory.newConstructorForSerialization(cl, cons);
+            // cons = reflFactory.newConstructorForSerialization(cl, cons);
             cons.setAccessible(true);
             System.out.println("Cons: " + cons);
             return cons;
