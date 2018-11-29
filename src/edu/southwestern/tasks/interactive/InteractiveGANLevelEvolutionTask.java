@@ -196,6 +196,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			
 			// If there are at least two items, compare the last two:
 			if(compareTwo) {
+				System.out.println("Will compare two levels in explorer");
 				addLevelToExploreToFrame(selectedItems.size() - 2, explorer, compareTwo);
 			}
 		}
@@ -330,9 +331,8 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		ConvNTuple c1 = KLDivTest.getConvNTuple(level1, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
 		ConvNTuple c2 = KLDivTest.getConvNTuple(level2, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
 
-		DecimalFormat df = new DecimalFormat("#.######");
 		double klDiv = KLDiv.klDiv(c1.sampleDis, c2.sampleDis);
-		String result = "KL Div: " + genotype1.getId() + " to " + genotype2.getId() + ": " + df.format(klDiv);
+		String result = "KL Div: " + genotype1.getId() + " to " + genotype2.getId() + ": " + String.format("%10.6f", klDiv);
 		return result;
 	}
 
@@ -355,9 +355,8 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		ConvNTuple c1 = KLDivTest.getConvNTuple(level1, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
 		ConvNTuple c2 = KLDivTest.getConvNTuple(level2, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
 
-		DecimalFormat df = new DecimalFormat("##.######");
 		double klDiv = KLDiv.klDivSymmetric(c1.sampleDis, c2.sampleDis);
-		String result = "Symmetric KL Div: " + genotype1.getId() + " to " + genotype2.getId() + ": " + df.format(klDiv);
+		String result = "Symmetric KL Div: " + genotype1.getId() + " to " + genotype2.getId() + ": " + String.format("%10.6f", klDiv);
 		return result;
 	}
 
