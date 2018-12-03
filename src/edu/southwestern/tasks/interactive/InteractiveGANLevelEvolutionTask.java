@@ -49,11 +49,6 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 	private static final int KL_DIV_BUTTON_INDEX = -23;
 	
 	private static final int SLIDER_RANGE = 100; // Latent vector sliders (divide by this to get vector value)
-
-    // TODO: Make these parameters that can be configured elsewhere
-    public static final int KL_FILTER_WIDTH = 5;
-    public static final int KL_FILTER_HEIGHT = 10;
-    public static final int KL_STRIDE = 1;
 	
     JLabel globalKLDivLabel1;
     JLabel globalKLDivLabel2;
@@ -327,8 +322,8 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		int[][] level1 = getArrayLevel(phenotype1);
 		int[][] level2 = getArrayLevel(phenotype2);
 		
-		ConvNTuple c1 = KLDivTest.getConvNTuple(level1, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
-		ConvNTuple c2 = KLDivTest.getConvNTuple(level2, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
+		ConvNTuple c1 = KLDivTest.getConvNTuple(level1, Parameters.parameters.integerParameter("receptiveFieldWidth"), Parameters.parameters.integerParameter("receptiveFieldHeight"), Parameters.parameters.integerParameter("stride"));
+		ConvNTuple c2 = KLDivTest.getConvNTuple(level2, Parameters.parameters.integerParameter("receptiveFieldWidth"), Parameters.parameters.integerParameter("receptiveFieldHeight"), Parameters.parameters.integerParameter("stride"));
 
 		double klDiv = KLDiv.klDiv(c1.sampleDis, c2.sampleDis);
 		String result = "KL Div: " + genotype1.getId() + " to " + genotype2.getId() + ": " + String.format("%10.6f", klDiv);
@@ -351,8 +346,8 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		int[][] level1 = getArrayLevel(phenotype1);
 		int[][] level2 = getArrayLevel(phenotype2);
 		
-		ConvNTuple c1 = KLDivTest.getConvNTuple(level1, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
-		ConvNTuple c2 = KLDivTest.getConvNTuple(level2, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
+		ConvNTuple c1 = KLDivTest.getConvNTuple(level1, Parameters.parameters.integerParameter("receptiveFieldWidth"), Parameters.parameters.integerParameter("receptiveFieldHeight"), Parameters.parameters.integerParameter("stride"));
+		ConvNTuple c2 = KLDivTest.getConvNTuple(level2, Parameters.parameters.integerParameter("receptiveFieldWidth"), Parameters.parameters.integerParameter("receptiveFieldHeight"), Parameters.parameters.integerParameter("stride"));
 
 		double klDiv = KLDiv.klDivSymmetric(c1.sampleDis, c2.sampleDis);
 		String result = "Symmetric KL Div: " + genotype1.getId() + " to " + genotype2.getId() + ": " + String.format("%10.6f", klDiv);
