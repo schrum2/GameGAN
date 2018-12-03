@@ -70,8 +70,8 @@ public class ZeldaKLDivTest {
 		int[][] level2 = getArrayLevel(phenotype2);
 		printLevel(level2);
 		
-	    final int KL_FILTER_WIDTH = 5;
-	    final int KL_FILTER_HEIGHT = 10;
+	    final int KL_FILTER_WIDTH = 2;
+	    final int KL_FILTER_HEIGHT = 2;
 	    final int KL_STRIDE = 1;
 		
 		ConvNTuple c1 = KLDivTest.getConvNTuple(level1, KL_FILTER_WIDTH, KL_FILTER_HEIGHT, KL_STRIDE);
