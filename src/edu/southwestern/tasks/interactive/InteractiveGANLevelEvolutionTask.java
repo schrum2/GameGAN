@@ -30,6 +30,7 @@ import distance.test.KLDivTest;
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype;
 import edu.southwestern.evolution.genotypes.Genotype;
+import edu.southwestern.evolution.selectiveBreeding.SelectiveBreedingEA;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.scores.Score;
 import edu.southwestern.util.datastructures.ArrayUtil;
@@ -84,10 +85,23 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		klDivButton.setName("" + KL_DIV_BUTTON_INDEX);
 		klDivButton.addActionListener(this);
 		
+		JSlider widthFilterSlider = klDivSlider("receptiveFieldWidth",1,6,"KL filter width");
+		JSlider heightFilterSlider = klDivSlider("receptiveFieldHeight",1,6,"KL filter height");
+		JSlider strideFilterSlider = klDivSlider("stride",1,6,"KL filter stride");
+		
 		if(!Parameters.parameters.booleanParameter("simplifiedInteractiveInterface")) {
 			top.add(fileLoadButton);
 			top.add(vectorExplorerButton);
 			top.add(klDivButton);
+			
+			JPanel klSliders = new JPanel();
+			klSliders.setLayout(new GridLayout(3,1));
+			
+			klSliders.add(widthFilterSlider);
+			klSliders.add(heightFilterSlider);
+			klSliders.add(strideFilterSlider);
+			
+			top.add(klSliders);
 		}
 
 		//Construction of button that lets user plays the level
@@ -96,6 +110,34 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		play.setName("" + PLAY_BUTTON_INDEX);
 		play.addActionListener(this);
 		top.add(play);
+	}
+
+	/**
+	 * @param paramLabel
+	 * @return
+	 */
+	private JSlider klDivSlider(String paramLabel, int min, int max, String name) {
+		JSlider filterSlider = new JSlider(JSlider.HORIZONTAL, min, max, Parameters.parameters.integerParameter(paramLabel));
+
+		Hashtable<Integer,JLabel> labels = new Hashtable<>();
+
+		filterSlider.setMinorTickSpacing(1);
+		filterSlider.setPaintTicks(true);
+		labels.put((min+max)/2, new JLabel(name));
+		filterSlider.setLabelTable(labels);
+		filterSlider.setPaintLabels(true);
+		filterSlider.setPreferredSize(new Dimension(200, 40));
+
+		filterSlider.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				JSlider source = (JSlider)e.getSource();
+				Parameters.parameters.setInteger(paramLabel, source.getValue());
+			}
+			
+		});
+		return filterSlider;
 	}
 
 	@Override
