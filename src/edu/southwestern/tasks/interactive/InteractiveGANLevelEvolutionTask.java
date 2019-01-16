@@ -30,7 +30,6 @@ import distance.test.KLDivTest;
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype;
 import edu.southwestern.evolution.genotypes.Genotype;
-import edu.southwestern.evolution.selectiveBreeding.SelectiveBreedingEA;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.scores.Score;
 import edu.southwestern.util.datastructures.ArrayUtil;
@@ -80,10 +79,15 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		vectorExplorerButton.setName("" + VECTOR_EXPLORER_BUTTON_INDEX);
 		vectorExplorerButton.addActionListener(this);
 
+		// Jacob: 2019-01-15
+		// I'm removing the KL Div button because the latent space explorer already provides
+		// this information in a better interface
+		/**
 		JButton klDivButton = new JButton();
 		klDivButton.setText("KLDiv");
 		klDivButton.setName("" + KL_DIV_BUTTON_INDEX);
 		klDivButton.addActionListener(this);
+		*/
 		
 		JSlider widthFilterSlider = klDivSlider("receptiveFieldWidth",1,6,"KL filter width");
 		JSlider heightFilterSlider = klDivSlider("receptiveFieldHeight",1,6,"KL filter height");
@@ -92,7 +96,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		if(!Parameters.parameters.booleanParameter("simplifiedInteractiveInterface")) {
 			top.add(fileLoadButton);
 			top.add(vectorExplorerButton);
-			top.add(klDivButton);
+			//top.add(klDivButton);
 			
 			JPanel klSliders = new JPanel();
 			klSliders.setLayout(new GridLayout(3,1));
