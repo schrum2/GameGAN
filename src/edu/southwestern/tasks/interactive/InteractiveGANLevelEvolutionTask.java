@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -47,12 +48,16 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 	private static final int FILE_LOADER_BUTTON_INDEX = -21;
 	private static final int VECTOR_EXPLORER_BUTTON_INDEX = -22;
 	private static final int KL_DIV_BUTTON_INDEX = -23;
+	private static final int INTERPOLATE_BUTTON_INDEX = -24;
 	
 	private static final int SLIDER_RANGE = 100; // Latent vector sliders (divide by this to get vector value)
 	
     JLabel globalKLDivLabel1;
     JLabel globalKLDivLabel2;
     JLabel globalKLDivSymLabel;
+    
+    // Used by the interpolate button
+    private ArrayList<Double> interpolatedPhenotype = null;
     
 	/**
 	 * Do domain specific GAN settings
@@ -79,6 +84,12 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		vectorExplorerButton.setName("" + VECTOR_EXPLORER_BUTTON_INDEX);
 		vectorExplorerButton.addActionListener(this);
 
+		JButton interpolationButton = new JButton();
+		interpolationButton.setText("Interpolate");
+		interpolationButton.setName("" + INTERPOLATE_BUTTON_INDEX);
+		interpolationButton.addActionListener(this);
+
+		
 		// Jacob: 2019-01-15
 		// I'm removing the KL Div button because the latent space explorer already provides
 		// this information in a better interface
@@ -97,6 +108,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			top.add(fileLoadButton);
 			top.add(vectorExplorerButton);
 			//top.add(klDivButton);
+			top.add(interpolationButton);
 			
 			JPanel klSliders = new JPanel();
 			klSliders.setLayout(new GridLayout(3,1));
@@ -188,6 +200,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 	/**
 	 * Responds to a button to actually play a selected level
 	 */
+	@SuppressWarnings("unchecked")
 	protected boolean respondToClick(int itemID) {
 		boolean undo = super.respondToClick(itemID);
 		if(undo) return true; // Click must have been a bad activation checkbox choice. Skip rest
@@ -240,8 +253,125 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 				addLevelToExploreToFrame(selectedItems.size() - 2, explorer, compareTwo);
 			}
 		}
+		if(itemID == INTERPOLATE_BUTTON_INDEX) {
+			if(selectedItems.size() != 2) {
+				System.out.println("Select exactly two items to interpolate between");
+				return false; // Can only interpolate between two
+			}
+			
+			JFrame explorer = new JFrame("Interpolate Between Vectors");
+			explorer.getContentPane().setLayout(new GridLayout(1,3));
+			
+			int leftItem = selectedItems.size() - 1;
+			int rightItem = selectedItems.size() - 2;
+			
+			final ArrayList<Double> leftPhenotype = scores.get(selectedItems.get(leftItem)).individual.getPhenotype();
+			final ArrayList<Double> rightPhenotype = scores.get(selectedItems.get(rightItem)).individual.getPhenotype();
+			
+			// The interpolated result starts as the left level/vector
+			interpolatedPhenotype = (ArrayList<Double>) leftPhenotype.clone();
+			
+			BufferedImage interpolatedLevelImage = getButtonImage(false, interpolatedPhenotype, picSize,picSize, inputMultipliers);
+			ImageIcon img = new ImageIcon(interpolatedLevelImage.getScaledInstance(2*picSize,2*picSize,Image.SCALE_DEFAULT));
+			final JLabel interpolatedImageLabel = new JLabel(img);			
+			
+			// Show one level on the left
+			JLabel leftImageLabel = getLevelImageLabel(leftItem);
+			explorer.getContentPane().add(leftImageLabel);
+			
+			// In between is the level interpolated between
+			JPanel interpolatedLevel = new JPanel();
+			interpolatedLevel.setLayout(new BoxLayout(interpolatedLevel, BoxLayout.Y_AXIS));
+			
+			// Slider starts at 0 which is the left vector
+			JSlider slider = new JSlider(JSlider.HORIZONTAL, 0, SLIDER_RANGE, 0);
+			slider.setMinorTickSpacing(1);
+			slider.setPaintTicks(true);
+			Hashtable<Integer,JLabel> labels = new Hashtable<>();
+			labels.put(0, new JLabel("Left"));
+			labels.put(SLIDER_RANGE, new JLabel("Right"));
+			slider.setLabelTable(labels);
+			slider.setPaintLabels(true);
+			slider.setPreferredSize(new Dimension(200, 40));
+
+			/**
+			 * Changed level with picture previews
+			 */
+			slider.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					// get value
+					JSlider source = (JSlider)e.getSource();
+					if(!source.getValueIsAdjusting()) {
+						int newValue = (int) source.getValue();
+						double scaledValue = (1.0 * newValue) / SLIDER_RANGE;
+
+						// Loop through the interpolated phenotype and set each position basd on slider
+						for(int i = 0; i < interpolatedPhenotype.size(); i++) {
+							double left = leftPhenotype.get(i);
+							double right = rightPhenotype.get(i);
+							// Value between left and right
+							double interpolated = left + scaledValue*(right - left);
+							interpolatedPhenotype.set(i, interpolated);
+						}
+						
+						// Update image
+						BufferedImage interpolatedLevelImage = getButtonImage(false, interpolatedPhenotype, picSize,picSize, inputMultipliers);
+						ImageIcon img = new ImageIcon(interpolatedLevelImage.getScaledInstance(2*picSize,2*picSize,Image.SCALE_DEFAULT));
+						interpolatedImageLabel.setIcon(img);
+					}
+				}
+			});
+
+			interpolatedLevel.add(new JLabel("   ")); // Create some space
+			
+			// First the slider for interpolating
+			interpolatedLevel.add(slider);
+			
+			// Then the image of the level
+			interpolatedLevel.add(interpolatedImageLabel);
+
+			interpolatedLevel.add(new JLabel("   ")); // Create some space
+			
+			// Play the modified level
+			JButton play = new JButton("Play");
+			play.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					playLevel(interpolatedPhenotype);
+				}
+			});
+			
+			// Then the option to play the interpolated level
+			interpolatedLevel.add(play);
+
+			// Place interface in middle
+			explorer.getContentPane().add(interpolatedLevel);
+
+			// Other level on the right
+			JLabel rightImageLabel = getLevelImageLabel(rightItem);
+			explorer.getContentPane().add(rightImageLabel);
+			
+			explorer.pack();
+			explorer.setVisible(true);
+
+		}
 
 		return false; // no undo: every thing is fine
+	}
+
+	/**
+	 * @param itemIndex
+	 * @return
+	 */
+	private JLabel getLevelImageLabel(int itemIndex) {
+		int leftPopulationIndex = selectedItems.get(itemIndex);
+		ArrayList<Double> leftPhenotype = scores.get(leftPopulationIndex).individual.getPhenotype();
+		// Image of level
+		BufferedImage leftLevel = getButtonImage(false, leftPhenotype, picSize,picSize, inputMultipliers);
+		ImageIcon img = new ImageIcon(leftLevel.getScaledInstance(picSize,picSize,Image.SCALE_DEFAULT));
+		JLabel leftImageLabel = new JLabel(img);
+		return leftImageLabel;
 	}
 
 	/**
