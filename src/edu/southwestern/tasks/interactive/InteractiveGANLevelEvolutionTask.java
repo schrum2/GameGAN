@@ -254,8 +254,8 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			}
 		}
 		if(itemID == INTERPOLATE_BUTTON_INDEX) {
-			if(selectedItems.size() != 2) {
-				System.out.println("Select exactly two items to interpolate between");
+			if(selectedItems.size() < 2) {
+				System.out.println("Select two items to interpolate between");
 				return false; // Can only interpolate between two
 			}
 			
