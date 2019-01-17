@@ -276,7 +276,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			final JLabel interpolatedImageLabel = new JLabel(img);			
 			
 			// Show one level on the left
-			JLabel leftImageLabel = getLevelImageLabel(leftItem);
+			JLabel leftImageLabel = getLevelImageLabel(leftItem, picSize);
 			explorer.getContentPane().add(leftImageLabel);
 			
 			// In between is the level interpolated between
@@ -316,8 +316,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 						}
 						
 						// Update image
-						BufferedImage interpolatedLevelImage = getButtonImage(false, interpolatedPhenotype, picSize,picSize, inputMultipliers);
-						ImageIcon img = new ImageIcon(interpolatedLevelImage.getScaledInstance(2*picSize,2*picSize,Image.SCALE_DEFAULT));
+						ImageIcon img = getLevelImageIcon(2*picSize, interpolatedPhenotype);
 						interpolatedImageLabel.setIcon(img);
 					}
 				}
@@ -349,7 +348,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			explorer.getContentPane().add(interpolatedLevel);
 
 			// Other level on the right
-			JLabel rightImageLabel = getLevelImageLabel(rightItem);
+			JLabel rightImageLabel = getLevelImageLabel(rightItem, picSize);
 			explorer.getContentPane().add(rightImageLabel);
 			
 			explorer.pack();
@@ -361,17 +360,33 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 	}
 
 	/**
-	 * @param itemIndex
+	 * 
+	 * @param itemIndex Index in population
+	 * @param picSize Size of image
 	 * @return
 	 */
-	private JLabel getLevelImageLabel(int itemIndex) {
+	private JLabel getLevelImageLabel(int itemIndex, int picSize) {
 		int leftPopulationIndex = selectedItems.get(itemIndex);
 		ArrayList<Double> leftPhenotype = scores.get(leftPopulationIndex).individual.getPhenotype();
 		// Image of level
-		BufferedImage leftLevel = getButtonImage(false, leftPhenotype, picSize,picSize, inputMultipliers);
-		ImageIcon img = new ImageIcon(leftLevel.getScaledInstance(picSize,picSize,Image.SCALE_DEFAULT));
+		return getLevelImageLabel(picSize, leftPhenotype);
+	}
+
+	/**
+	 * @param picSize Size of image
+	 * @param phenotype Latent vector
+	 * @return
+	 */
+	public JLabel getLevelImageLabel(int picSize, ArrayList<Double> phenotype) {
+		ImageIcon img = getLevelImageIcon(picSize, phenotype);
 		JLabel leftImageLabel = new JLabel(img);
 		return leftImageLabel;
+	}
+
+	public ImageIcon getLevelImageIcon(int picSize, ArrayList<Double> phenotype) {
+		BufferedImage leftLevel = getButtonImage(false, phenotype, picSize,picSize, inputMultipliers);
+		ImageIcon img = new ImageIcon(leftLevel.getScaledInstance(picSize,picSize,Image.SCALE_DEFAULT));
+		return img;
 	}
 
 	/**
