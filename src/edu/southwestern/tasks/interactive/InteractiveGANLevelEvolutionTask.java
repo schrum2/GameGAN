@@ -225,6 +225,8 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			}
 			resetButtons(true);
 		}
+		
+		// This button doesn't exist any more, since the latent space explorere handles it
 		if(itemID == KL_DIV_BUTTON_INDEX) {
 			// Compare every selected level with every other selected level
 			for(Integer i : selectedItems) {
@@ -262,21 +264,21 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			JFrame explorer = new JFrame("Interpolate Between Vectors");
 			explorer.getContentPane().setLayout(new GridLayout(1,3));
 			
-			int leftItem = selectedItems.size() - 1;
-			int rightItem = selectedItems.size() - 2;
+			final int leftItem = selectedItems.size() - 1;
+			final int rightItem = selectedItems.size() - 2;
 			
 			final ArrayList<Double> leftPhenotype = scores.get(selectedItems.get(leftItem)).individual.getPhenotype();
 			final ArrayList<Double> rightPhenotype = scores.get(selectedItems.get(rightItem)).individual.getPhenotype();
 			
 			// The interpolated result starts as the left level/vector
-			interpolatedPhenotype = (ArrayList<Double>) leftPhenotype.clone();
-			
-			BufferedImage interpolatedLevelImage = getButtonImage(false, interpolatedPhenotype, picSize,picSize, inputMultipliers);
-			ImageIcon img = new ImageIcon(interpolatedLevelImage.getScaledInstance(2*picSize,2*picSize,Image.SCALE_DEFAULT));
-			final JLabel interpolatedImageLabel = new JLabel(img);			
+			interpolatedPhenotype = (ArrayList<Double>) leftPhenotype.clone();			
+			final JLabel interpolatedImageLabel = getLevelImageLabel(2*picSize, interpolatedPhenotype);		
 			
 			// Show one level on the left
-			JLabel leftImageLabel = getLevelImageLabel(leftItem, picSize);
+			final JLabel leftImageLabel = getLevelImageLabel(leftItem, picSize);
+			final JLabel rightImageLabel = getLevelImageLabel(rightItem, picSize);
+			
+			// Add left image now. Right image added below.
 			explorer.getContentPane().add(leftImageLabel);
 			
 			// In between is the level interpolated between
@@ -306,7 +308,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 						int newValue = (int) source.getValue();
 						double scaledValue = (1.0 * newValue) / SLIDER_RANGE;
 
-						// Loop through the interpolated phenotype and set each position basd on slider
+						// Loop through the interpolated phenotype and set each position based on slider
 						for(int i = 0; i < interpolatedPhenotype.size(); i++) {
 							double left = leftPhenotype.get(i);
 							double right = rightPhenotype.get(i);
@@ -332,6 +334,36 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 
 			interpolatedLevel.add(new JLabel("   ")); // Create some space
 			
+			JPanel buttons = new JPanel();
+			
+			JButton repalceLeft = new JButton("ReplaceLeft");
+			repalceLeft.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// Set each position in left phenotype to interpolated phenotype value
+					for(int i = 0; i < interpolatedPhenotype.size(); i++) {
+						leftPhenotype.set(i, interpolatedPhenotype.get(i));
+						ImageIcon img = getLevelImageIcon(picSize, leftPhenotype);
+						leftImageLabel.setIcon(img);
+						resetButton(scores.get(selectedItems.get(leftItem)).individual, selectedItems.get(leftItem));
+					}
+				}
+			});
+			
+			JButton repalceRight = new JButton("ReplaceRight");
+			repalceRight.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// Set each position in right phenotype to interpolated phenotype value
+					for(int i = 0; i < interpolatedPhenotype.size(); i++) {
+						rightPhenotype.set(i, interpolatedPhenotype.get(i));
+						ImageIcon img = getLevelImageIcon(picSize, rightPhenotype);
+						rightImageLabel.setIcon(img);
+						resetButton(scores.get(selectedItems.get(rightItem)).individual, selectedItems.get(rightItem));
+					}
+				}
+			});
+			
 			// Play the modified level
 			JButton play = new JButton("Play");
 			play.addActionListener(new ActionListener() {
@@ -341,14 +373,17 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 				}
 			});
 			
+			buttons.add(repalceLeft);
+			buttons.add(play);
+			buttons.add(repalceRight);
+			
 			// Then the option to play the interpolated level
-			interpolatedLevel.add(play);
+			interpolatedLevel.add(buttons);
 
 			// Place interface in middle
 			explorer.getContentPane().add(interpolatedLevel);
 
 			// Other level on the right
-			JLabel rightImageLabel = getLevelImageLabel(rightItem, picSize);
 			explorer.getContentPane().add(rightImageLabel);
 			
 			explorer.pack();
@@ -383,6 +418,12 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		return leftImageLabel;
 	}
 
+	/**
+	 * Get the ImageIcon to put on a JLabel
+	 * @param picSize Image size
+	 * @param phenotype latent vector
+	 * @return
+	 */
 	public ImageIcon getLevelImageIcon(int picSize, ArrayList<Double> phenotype) {
 		BufferedImage leftLevel = getButtonImage(false, phenotype, picSize,picSize, inputMultipliers);
 		ImageIcon img = new ImageIcon(leftLevel.getScaledInstance(picSize,picSize,Image.SCALE_DEFAULT));
