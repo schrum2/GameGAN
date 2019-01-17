@@ -403,9 +403,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		final boolean compare = compareTwo;
 		ArrayList<Double> phenotype = scores.get(populationIndex).individual.getPhenotype();
 		// Image of level
-		BufferedImage level = getButtonImage(false, phenotype, 2*picSize,2*picSize, inputMultipliers);
-		ImageIcon img = new ImageIcon(level.getScaledInstance(2*picSize,2*picSize,Image.SCALE_DEFAULT));
-		final JLabel imageLabel = new JLabel(img);
+		final JLabel imageLabel = getLevelImageLabel(2*picSize, phenotype);
 		
 		JPanel bothKLDivStrings = new JPanel();
 		bothKLDivStrings.setLayout(new GridLayout(3,1));
@@ -452,8 +450,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 						// Actually change the value of the phenotype in the population
 						phenotype.set(latentVariableIndex, scaledValue);
 						// Update image
-						BufferedImage level = getButtonImage(false, phenotype, 2*picSize,2*picSize, inputMultipliers);
-						ImageIcon img = new ImageIcon(level.getScaledInstance(2*picSize,2*picSize,Image.SCALE_DEFAULT));
+						ImageIcon img = getLevelImageIcon(2*picSize, phenotype); 
 						imageLabel.setIcon(img);
 						// Genotype references the phenotype, so it is changed by the modifications above
 						resetButton(scores.get(populationIndex).individual, populationIndex);
