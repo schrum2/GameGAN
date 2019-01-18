@@ -118,6 +118,15 @@ public class MarioGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 		if(model.equals("GECCO2018GAN_World1-1_32_Epoch5000.pth")) {
 			Parameters.parameters.setInteger("GANInputSize", 32); // Default latent vector size
 			Parameters.parameters.setBoolean("marioGANUsesOriginalEncoding", true);
+		} else if(model.startsWith("GECCOEncoding")) { // Old encoding, but created after GECCO
+			// Need to parse the model name to find out the latent vector size
+			String dropEncodingLabel = model.substring(model.indexOf("_")+1);
+			String dropDataSource = dropEncodingLabel.substring(model.indexOf("_")+1);
+			String dropType = dropDataSource.substring(dropDataSource.indexOf("_")+1);
+			String latentSize = dropType.substring(0,dropType.indexOf("_"));
+			int size = Integer.parseInt(latentSize);
+			Parameters.parameters.setInteger("GANInputSize", size);
+			Parameters.parameters.setBoolean("marioGANUsesOriginalEncoding", true);
 		} else {
 			// Need to parse the model name to find out the latent vector size
 			String dropDataSource = model.substring(model.indexOf("_")+1);
