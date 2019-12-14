@@ -80,48 +80,48 @@ if __name__ == '__main__':
  # Make new model with weights/parameters from deprecatedModel but labels/keys from generator.state_dict()
  fixedModel = OrderedDict()
  for (goodKey,ignore) in generator.state_dict().items():
-   # Take the good key and replace the : with . in order to get the deprecated key so the associated value can be retrieved
-   badKey = goodKey.replace(":",".")
-   #print(goodKey)
-   #print(badKey)
-   # Some parameter settings of the generator.state_dict() are not actually part of the saved models
-   if badKey in deprecatedModel:
-     goodValue = deprecatedModel[badKey]
-     fixedModel[goodKey] = goodValue
+  # Take the good key and replace the : with . in order to get the deprecated key so the associated value can be retrieved
+  badKey = goodKey.replace(":",".")
+  #print(goodKey)
+  #print(badKey)
+  # Some parameter settings of the generator.state_dict() are not actually part of the saved models
+  if badKey in deprecatedModel:
+   goodValue = deprecatedModel[badKey]
+   fixedModel[goodKey] = goodValue
 
  if not fixedModel:
-   #print("LOAD REGULAR")
-   #print(deprecatedModel)
-   # If the fixedModel was empty, then the model was trained with the new labels, and the regular load process is fine
-   generator.load_state_dict(deprecatedModel)
+  #print("LOAD REGULAR")
+  #print(deprecatedModel)
+  # If the fixedModel was empty, then the model was trained with the new labels, and the regular load process is fine
+  generator.load_state_dict(deprecatedModel)
  else:
-   # Load the parameters with the fixed labels  
-   generator.load_state_dict(fixedModel)
+  # Load the parameters with the fixed labels  
+  generator.load_state_dict(fixedModel)
 
  testing = False
 
  if testing:  
-   line = []
-   for i in range (batchSize):
-     line.append( [ random.uniform(-1.0, 1.0) ]*nz )
+  line = []
+  for i in range (batchSize):
+   line.append( [ random.uniform(-1.0, 1.0) ]*nz )
 
-   #This is the format that we expect from sys.stdin
-   print(line)
-   line = json.dumps(line)
-   lv = numpy.array(json.loads(line))
-   latent_vector = torch.FloatTensor( lv ).view(batchSize, nz, 1, 1) #torch.from_numpy(lv)# torch.FloatTensor( torch.from_numpy(lv) )
-   #latent_vector = numpy.array(json.loads(line))
-   levels = generator(Variable(latent_vector, volatile=True))
-   im = levels.data.cpu().numpy()
-   im = im[:,:,:out_height,:out_width] #Cut off rest to fit the 14x28 tile dimensions
-   im = numpy.argmax( im, axis = 1)
-   #print(json.dumps(levels.data.tolist()))
-   print("Saving to file ")
-   im = ( plt.get_cmap('rainbow')( im/float(z_dims) ) )
+  #This is the format that we expect from sys.stdin
+  print(line)
+  line = json.dumps(line)
+  lv = numpy.array(json.loads(line))
+  latent_vector = torch.FloatTensor( lv ).view(batchSize, nz, 1, 1) #torch.from_numpy(lv)# torch.FloatTensor( torch.from_numpy(lv) )
+  #latent_vector = numpy.array(json.loads(line))
+  levels = generator(Variable(latent_vector, volatile=True))
+  im = levels.data.cpu().numpy()
+  im = im[:,:,:out_height,:out_width] #Cut off rest to fit the 14x28 tile dimensions
+  im = numpy.argmax( im, axis = 1)
+  #print(json.dumps(levels.data.tolist()))
+  print("Saving to file ")
+  im = ( plt.get_cmap('rainbow')( im/float(z_dims) ) )
 
-   plt.imsave('fake_sample.png', combine_images(im) )
+  plt.imsave('fake_sample.png', combine_images(im) )
 
-   exit()
+  exit()
 
  print("READY") # Java loops until it sees this special signal
  sys.stdout.flush() # Make sure Java can sense this output before Python blocks waiting for input
