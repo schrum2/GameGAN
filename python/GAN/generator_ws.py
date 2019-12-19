@@ -54,10 +54,14 @@ if __name__ == '__main__':
     # the number of different tile types. It is true for now, because Zelda and Mario 
     # are the only options, and they have very different tile counts. But the count for Zelda
     # may change, and we may add more domains, so a better solution is needed in the long term.
- 
-    if z_dims < 9 : # Assume this is Zelda (4 tiles, currently)
+
+    if z_dims == 4 : # Assume this is Zelda (4 tiles, currently)
         out_height = 16
         out_width = 11
+    elif z_dims == 6: # Fixed Zelda with all tiles
+        # The fixed Zelda rotates the rooms to match the original game presentation
+        out_height = 11
+        out_width = 16
     else: # Assume this is Mario (10 or 13 tiles, depending)
         out_height = 14
         out_width = 28

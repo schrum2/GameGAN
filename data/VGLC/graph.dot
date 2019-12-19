@@ -1,0 +1,29 @@
+graph {
+OHVW[label="s"]
+FLGH[label="e"]
+WVRN[label="sl"]
+QOCA[label="e"]
+QMNW[label="e"]
+JTUK[label="e"]
+GJDG[label="l"]
+EQWJ[label="k"]
+UYWT[label="e"]
+IPMY[label="t"]
+XBIL[label="e"]
+NIJA[label="e"]
+OHVW -- FLGH
+OHVW -- WVRN
+OHVW -- QOCA
+FLGH -- QMNW
+FLGH -- WVRN
+WVRN -- JTUK
+QMNW -- GJDG
+QMNW -- EQWJ
+WVRN -- JTUK
+GJDG -- UYWT
+GJDG -- EQWJ
+UYWT -- IPMY
+UYWT -- XBIL
+UYWT -- NIJA
+IPMY -- NIJA
+}

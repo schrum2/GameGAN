@@ -1,17 +1,24 @@
 package edu.southwestern.tasks.gvgai;
 
 import java.io.FileNotFoundException;
+import java.util.LinkedList;
+import java.util.List;
 
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.genotypes.Genotype;
 import edu.southwestern.networks.Network;
 import edu.southwestern.networks.NetworkTask;
+//import edu.southwestern.networks.hyperneat.HyperNEATTask;
+//import edu.southwestern.networks.hyperneat.HyperNEATUtil;
+//import edu.southwestern.networks.hyperneat.Substrate;
+//import edu.southwestern.networks.hyperneat.SubstrateConnectivity;
 import edu.southwestern.parameters.CommonConstants;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.NoisyLonerTask;
 import edu.southwestern.tasks.gvgai.player.GVGAINNPlayer;
 import edu.southwestern.util.ClassCreation;
 import edu.southwestern.util.datastructures.Pair;
+import edu.southwestern.util.datastructures.Triple;
 import edu.southwestern.util.random.RandomNumbers;
 import gvgai.core.game.Game;
 import gvgai.core.vgdl.VGDLFactory;
@@ -19,7 +26,7 @@ import gvgai.core.vgdl.VGDLParser;
 import gvgai.core.vgdl.VGDLRegistry;
 import gvgai.tools.IO;
 
-public class GVGAISinglePlayerTask<T extends Network> extends NoisyLonerTask<T> implements NetworkTask {
+public class GVGAISinglePlayerTask<T extends Network> extends NoisyLonerTask<T> implements NetworkTask { //, HyperNEATTask{
 
 	public static final String GAMES_PATH = "data/gvgai/examples/gridphysics/"; // Comes from gvgai.tracks.singlePlayer.Test
 	String game;
@@ -136,6 +143,37 @@ public class GVGAISinglePlayerTask<T extends Network> extends NoisyLonerTask<T> 
 		return new Pair<double[], double[]>(fitness, otherScores);
 	}
 
+//	@Override
+//	public int numCPPNInputs() {
+//		return HyperNEATTask.DEFAULT_NUM_CPPN_INPUTS;
+//	}
+//
+//	@Override
+//	public double[] filterCPPNInputs(double[] fullInputs) {
+//		// Default behavior
+//		return fullInputs;
+//	}
+
+//	@Override
+//	public List<Substrate> getSubstrateInformation() {
+//		// TODO: Fix the Height and Width of the input substrates; find a way to get the height and width from the game
+//		int height = 1; // Currently only uses the raw scores; doesn't use the whole board yet
+//		int width = 4; // Currently only uses four inputs: gameScore, gameHealth, gameSpeed, and gameTick
+//		List<Triple<String, Integer, Integer>> outputInfo = new LinkedList<Triple<String, Integer, Integer>>();
+//		outputInfo.add(new Triple<String, Integer, Integer>("Utility Output", 1, 1));
+//		// Otherwise, no substrates will be defined, and the code will crash from the null result
+//
+//		return HyperNEATUtil.getSubstrateInformation(width, height, 1, outputInfo); // Only has 1 Input Substrate with the Height and Width of the Board Game
+//	}
+
+//	@Override
+//	public List<SubstrateConnectivity> getSubstrateConnectivity() {
+//		List<String> outputNames = new LinkedList<String>();
+//		outputNames.add("Utility Output");	
+//
+//		return HyperNEATUtil.getSubstrateConnectivity(1, outputNames); // Only has 1 Input Substrate
+//	}
+
 	@Override
 	public String[] sensorLabels() {
 		return new String[]{"Game Score", "Game Health", "Game Speed", "Game Tick", "BIAS"};
@@ -152,4 +190,8 @@ public class GVGAISinglePlayerTask<T extends Network> extends NoisyLonerTask<T> 
 		MMNEAT.main(args.split(" "));
 	}
 
+//	@Override
+//	public void flushSubstrateMemory() {
+//		// Does nothing: This task does not cache substrate information
+//	}
 }

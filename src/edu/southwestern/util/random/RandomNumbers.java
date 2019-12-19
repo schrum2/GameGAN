@@ -29,15 +29,47 @@ public class RandomNumbers {
 		}
 	}
 
+	public static final boolean RANDOM_DEBUG = false;
+	
 	/**
 	 * Give random generator a specific new seed
 	 *
 	 * @param seed
 	 *            seed to use
 	 */
+	@SuppressWarnings("serial")
 	public static void reset(int seed) {
 		System.out.println("Reset random seed to: " + seed);
-		randomGenerator = new Random(seed);
+		// If RANDOM_DEBUG is true, then extensive information will be printed to the console whenever
+		// a random number is generated.
+		randomGenerator = !RANDOM_DEBUG ? new Random(seed) : new Random(seed) {
+			public int nextInt(int x) {
+				int result = super.nextInt(x);
+				System.out.println("int: " + result + " (out of "+x+")");
+				new IllegalArgumentException().printStackTrace(System.out);
+				return result;
+			}
+			
+			public double nextDouble() {
+				double result = super.nextDouble();
+				System.out.println("double: " + result);
+				new IllegalArgumentException().printStackTrace(System.out);
+				return result;
+			}
+
+			public boolean nextBoolean() {
+				boolean result = super.nextBoolean();
+				System.out.println("boolean: " + result);
+				new IllegalArgumentException().printStackTrace(System.out);
+				return result;
+			}
+			
+			public void nextBytes(byte[] bs) {
+				super.nextBytes(bs);
+				System.out.println("bytes: " + Arrays.toString(bs));
+				new IllegalArgumentException().printStackTrace(System.out);
+			}
+		};
 	}
 
 	/**
@@ -158,8 +190,20 @@ public class RandomNumbers {
 		return result;
 	}
 
+	/**
+	 * Randomly return 1 or -1
+	 * @return 1 or -1, 50% chance
+	 */
 	public static double randomSign() {
 		return randomGenerator.nextBoolean() ? 1 : -1;
+	}
+	
+	/**
+	 * Random boolean
+	 * @return true or false, 50% chance of each
+	 */
+	public static boolean coinFlip() {
+		return randomGenerator.nextBoolean();
 	}
 
 	/**
@@ -250,6 +294,26 @@ public class RandomNumbers {
 		int index = randomGenerator.nextInt(list.length);
 		return list[index];
 	}
+
+	/**
+	 * Return true if random double in [0,1] is less than input, and false otherwise
+	 * @param chance Chance of true result
+	 * @return true with chance probability, false otherwise
+	 */
+	public static boolean randomCoin(double chance) {
+		return randomGenerator.nextDouble() < chance;
+	}
+	
+	/**
+	 * Generate and return an array of random bytes of a given length
+	 * @param len length of byte array
+	 * @return random byte array
+	 */
+	public static byte[] randomByteArray(int len) {
+		byte[] b = new byte[len];
+		randomGenerator.nextBytes(b);
+		return b;
+	}
 	
 	/**
 	 * For testing
@@ -270,14 +334,5 @@ public class RandomNumbers {
 		for (int i = 0; i < size; i++) {
 			System.out.println(cauchies[i] + "\t" + gaussians[i]);
 		}
-	}
-
-	/**
-	 * Return true if random double in [0,1] is less than input, and false otherwise
-	 * @param chance Chance of true result
-	 * @return true with chance probability, false otherwise
-	 */
-	public static boolean randomCoin(double chance) {
-		return randomGenerator.nextDouble() < chance;
 	}
 }

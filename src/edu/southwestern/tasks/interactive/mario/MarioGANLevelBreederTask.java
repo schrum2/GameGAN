@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -113,6 +114,10 @@ public class MarioGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 
 	@Override
 	public Pair<Integer, Integer> resetAndReLaunchGAN(String model) {
+		return staticResetAndReLaunchGAN(model);
+	}
+	
+	public static Pair<Integer, Integer> staticResetAndReLaunchGAN(String model) {
 		int marioGANLevelChunks = Parameters.parameters.integerParameter("marioGANLevelChunks");
 		int oldLength = marioGANLevelChunks * GANProcess.latentVectorLength(); // for old model
 		if(model.equals("GECCO2018GAN_World1-1_32_Epoch5000.pth")) {
@@ -159,10 +164,33 @@ public class MarioGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 			}
 		}.start();
 	}
+
+	@Override
+	protected void save(String file, int i) {
+		ArrayList<Double> latentVector = scores.get(i).individual.getPhenotype();
+		double[] doubleArray = ArrayUtil.doubleArrayFromList(latentVector);
+		ArrayList<List<Integer>> levelList = MarioGANUtil.generateLevelListRepresentationFromGAN(doubleArray);
+		String[] level = MarioGANUtil.generateTextLevel(levelList); // Generate the level from 2D integers
+
+		// Prepare text file
+		try {
+			PrintStream ps = new PrintStream(new File(file));
+//			ps.println(Parameters.parameters.stringParameter("marioGANModel"));
+			// Write String array to text file 
+			for(String row : level) {
+				ps.println(row);
+			}
+			ps.close();
+		} catch (FileNotFoundException e) {
+			System.out.println("Could not save file: " + file);
+			e.printStackTrace();
+			return;
+		}
+	}
 	
 	public static void main(String[] args) {
 		try {
-			MMNEAT.main(new String[]{"runNumber:0","randomSeed:1","trials:1","mu:16","maxGens:500","io:false","netio:false","mating:true","fs:false","task:edu.southwestern.tasks.interactive.mario.MarioGANLevelBreederTask","watch:true","cleanFrequency:-1","genotype:edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype","simplifiedInteractiveInterface:false","saveAllChampions:true","ea:edu.southwestern.evolution.selectiveBreeding.SelectiveBreedingEA","imageWidth:2000","imageHeight:2000","imageSize:200"});
+			MMNEAT.main(new String[]{"runNumber:0","randomSeed:1","showKLOptions:false","trials:1","mu:16","maxGens:500","io:false","netio:false","mating:true","fs:false","task:edu.southwestern.tasks.interactive.mario.MarioGANLevelBreederTask","watch:true","cleanFrequency:-1","genotype:edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype","simplifiedInteractiveInterface:false","saveAllChampions:true","ea:edu.southwestern.evolution.selectiveBreeding.SelectiveBreedingEA","imageWidth:2000","imageHeight:2000","imageSize:200"});
 		} catch (FileNotFoundException | NoSuchMethodException e) {
 			e.printStackTrace();
 		}
