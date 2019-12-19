@@ -1,29 +1,26 @@
 graph {
-OHVW[label="s"]
-FLGH[label="e"]
-WVRN[label="sl"]
-QOCA[label="e"]
-QMNW[label="e"]
-JTUK[label="e"]
-GJDG[label="l"]
-EQWJ[label="k"]
-UYWT[label="e"]
-IPMY[label="t"]
-XBIL[label="e"]
-NIJA[label="e"]
-OHVW -- FLGH
-OHVW -- WVRN
-OHVW -- QOCA
-FLGH -- QMNW
-FLGH -- WVRN
-WVRN -- JTUK
-QMNW -- GJDG
-QMNW -- EQWJ
-WVRN -- JTUK
-GJDG -- UYWT
-GJDG -- EQWJ
-UYWT -- IPMY
-UYWT -- XBIL
-UYWT -- NIJA
-IPMY -- NIJA
+KJVJ[label="s"]
+YRKO[label="e"]
+IGSW[label="sl"]
+IOPG[label="e"]
+TVRB[label="k"]
+NUPR[label="e"]
+TREG[label="l"]
+XASX[label="e"]
+AYKL[label="e"]
+GOIB[label="e"]
+EQQV[label="t"]
+KJVJ -- YRKO
+KJVJ -- IGSW
+KJVJ -- IOPG
+YRKO -- TVRB
+YRKO -- IGSW
+IGSW -- NUPR
+TVRB -- TREG
+TVRB -- XASX
+IGSW -- NUPR
+TREG -- AYKL
+AYKL -- GOIB
+AYKL -- EQQV
+GOIB -- EQQV
 }
