@@ -27,8 +27,10 @@ import edu.southwestern.tasks.Task;
 import edu.southwestern.tasks.gvgai.GVGAISinglePlayerTask;
 import edu.southwestern.tasks.interactive.InteractiveEvolutionTask;
 import edu.southwestern.tasks.interactive.gvgai.ZeldaGANLevelBreederTask;
+import edu.southwestern.tasks.interactive.mario.MarioCPPNtoGANLevelBreederTask;
 import edu.southwestern.tasks.interactive.mario.MarioGANLevelBreederTask;
 import edu.southwestern.tasks.interactive.mario.MarioLevelBreederTask;
+import edu.southwestern.tasks.mario.MarioCPPNtoGANLevelTask;
 import edu.southwestern.tasks.mario.MarioGANLevelTask;
 import edu.southwestern.tasks.mario.MarioLevelTask;
 import edu.southwestern.tasks.mario.MarioTask;
@@ -320,8 +322,13 @@ public class MMNEAT {
 				System.out.println("Set up Mario Task");
 			} else if (task instanceof MarioLevelTask) {
 				GANProcess.type = GANProcess.GAN_TYPE.MARIO;
-				// This line only matters for the CPPN version of the task, but doesn't hurt the GAN version, which does not evolve networks
-				setNNInputParameters(MarioLevelBreederTask.INPUTS.length, MarioLevelBreederTask.OUTPUTS.length);
+				if(task instanceof MarioCPPNtoGANLevelTask) {
+					// Evolving CPPNs that create latent vectors that are sent to a GAN
+					setNNInputParameters(MarioCPPNtoGANLevelBreederTask.UPDATED_INPUTS.length, GANProcess.latentVectorLength());
+				} else {
+					// This line only matters for the CPPN version of the task, but doesn't hurt the GAN version, which does not evolve networks
+					setNNInputParameters(MarioLevelBreederTask.INPUTS.length, MarioLevelBreederTask.OUTPUTS.length);
+				}
 				System.out.println("Set up Mario Level Task");
 			} else if (task == null) {
 				// this else statement should only happen for JUnit testing cases.

@@ -86,7 +86,7 @@ public class MarioCPPNtoGANLevelBreederTask<T extends Network> extends MarioLeve
 		return level;
 	}
 
-	private double[] createLatentVectorFromCPPN(Network cppn, double[] inputMultipliers, int marioLevelLength) {
+	public static double[] createLatentVectorFromCPPN(Network cppn, double[] inputMultipliers, int marioLevelLength) {
 		int latentVectorLength = GANProcess.latentVectorLength();
 		// One GAN vector for each segment
 		double[] doubleArray = new double[marioLevelLength*latentVectorLength];
