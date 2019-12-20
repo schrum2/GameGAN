@@ -120,7 +120,6 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			if(Parameters.parameters.booleanParameter("showLatentSpaceOptions")) {
 				top.add(vectorExplorerButton);
 				top.add(interpolationButton);
-				top.add(randomizeButton);
 			}
 			
 			if(Parameters.parameters.booleanParameter("showKLOptions")) {
@@ -133,6 +132,11 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 
 				top.add(klSliders);
 			}
+			
+			if(Parameters.parameters.booleanParameter("showRandomizeLatent")) {
+				top.add(randomizeButton);
+			}
+			
 		}
 
 		if(isPlayable) {
