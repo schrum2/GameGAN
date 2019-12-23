@@ -21,6 +21,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
@@ -279,7 +280,15 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		}
 
 		if(itemID == VECTOR_EXPLORER_BUTTON_INDEX) {
-			if(selectedItems.size() == 0) return false; // Nothing to explore
+			if(selectedItems.size() == 0) {
+				JOptionPane.showMessageDialog(null, "Must select an individual to explore.");
+				return false; // Nothing to explore
+			}
+			
+			if(!Parameters.parameters.booleanParameter("showKLOptions") && selectedItems.size() != 1) {
+				JOptionPane.showMessageDialog(null, "Select only one individual to modify.");
+				return false; // Nothing to explore
+			}
 
 			JFrame explorer = new JFrame("Explore Latent Space");
 
@@ -298,6 +307,10 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			}
 		}
 		if(itemID == RANDOMIZE_BUTTON_INDEX) {
+			if(selectedItems.size() == 0) {
+				JOptionPane.showMessageDialog(null, "Must select at least one individual to randomize.");
+				return false; // Nothing to explore
+			}
 			// Replace all currently selected items with a random latent vector
 			for(Integer itemIndex : selectedItems) {
 				Score<ArrayList<Double>> score = scores.get(itemIndex);
@@ -306,8 +319,8 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			this.resetButtons(true);
 		}
 		if(itemID == INTERPOLATE_BUTTON_INDEX) {
-			if(selectedItems.size() < 2) {
-				System.out.println("Select two items to interpolate between");
+			if(selectedItems.size() != 2) {
+				JOptionPane.showMessageDialog(null, "Select exactly two individuals to interpolate between.");
 				return false; // Can only interpolate between two
 			}
 
@@ -345,6 +358,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			slider.setLabelTable(labels);
 			slider.setPaintLabels(true);
 			slider.setPreferredSize(new Dimension(200, 40));
+			slider.setToolTipText("The slider moves along a line in latent space connecting the latent vector for the left level to the latent vector for the right level.");
 
 			/**
 			 * Changed level with picture previews
@@ -387,6 +401,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			JPanel buttons = new JPanel();
 
 			JButton repalceLeft = new JButton("ReplaceLeft");
+			repalceLeft.setToolTipText("Replace the level on the left with the center result.");
 			repalceLeft.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -401,6 +416,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			});
 
 			JButton repalceRight = new JButton("ReplaceRight");
+			repalceRight.setToolTipText("Replace the level on the right with the center result.");
 			repalceRight.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -424,6 +440,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 						playLevel(interpolatedPhenotype);
 					}
 				});
+				play.setToolTipText("Play the interpolated level in the middle");
 				buttons.add(play);
 			}
 			buttons.add(repalceRight);
