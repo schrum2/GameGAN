@@ -97,16 +97,19 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 
 		JButton vectorExplorerButton = new JButton();
 		vectorExplorerButton.setText("ExploreLatentSpace");
+		vectorExplorerButton.setToolTipText("Change individual numbers in the latent vector used by the GAN to generate a selected individual.");
 		vectorExplorerButton.setName("" + VECTOR_EXPLORER_BUTTON_INDEX);
 		vectorExplorerButton.addActionListener(this);
 
 		JButton interpolationButton = new JButton();
 		interpolationButton.setText("Interpolate");
 		interpolationButton.setName("" + INTERPOLATE_BUTTON_INDEX);
+		interpolationButton.setToolTipText("Select two individuals and then explore the latent space along the line connecting their two latent vectors.");
 		interpolationButton.addActionListener(this);
 
 		JButton randomizeButton = new JButton();
 		randomizeButton.setText("Randomize");
+		randomizeButton.setToolTipText("Replace selected individuals with new random latent vectors.");
 		randomizeButton.setName("" + RANDOMIZE_BUTTON_INDEX);
 		randomizeButton.addActionListener(this);
 
@@ -146,6 +149,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			JButton play = new JButton("Play");
 			// Name is first available numeric label after the input disablers
 			play.setName("" + PLAY_BUTTON_INDEX);
+			play.setToolTipText("Play a selected level.");
 			play.addActionListener(this);
 			top.add(play);
 		}

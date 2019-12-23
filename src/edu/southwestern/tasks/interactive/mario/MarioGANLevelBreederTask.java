@@ -47,6 +47,7 @@ public class MarioGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 
 		//Construction of JSlider to determine number of latent vector level chunks
 		levelChunksSlider = new JSlider(JSlider.HORIZONTAL, LEVEL_MIN_CHUNKS, LEVEL_MAX_CHUNKS, Parameters.parameters.integerParameter("marioGANLevelChunks"));
+		levelChunksSlider.setToolTipText("Determines the number of distinct latent vectors that are sent to the GAN to create level chunks which are patched together into a single level.");
 		levelChunksSlider.setMinorTickSpacing(1);
 		levelChunksSlider.setPaintTicks(true);
 		Hashtable<Integer,JLabel> labels = new Hashtable<>();

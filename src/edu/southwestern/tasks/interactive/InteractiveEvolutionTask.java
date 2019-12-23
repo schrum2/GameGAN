@@ -230,7 +230,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 
 			resetButton.setText("Reset");
 			saveButton.setText("Save");
-			evolveButton.setText("Evolve!");
+			evolveButton.setText("Evolve");
 			//lineageButton.setText("Lineage");
 			if(evolveCPPNs) networkButton.setText("Network");
 			undoButton.setText("Undo");
@@ -242,11 +242,11 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 			Hashtable<Integer,JLabel> labels = new Hashtable<>();
 			//set graphic names and toolTip titles
 			evolveButton.setName("" + EVOLVE_BUTTON_INDEX);
-			evolveButton.setToolTipText("Evolve button");
+			evolveButton.setToolTipText("Select some members of the population and then click this to create several offspring from those parents. Your selected parents will also be present in the next generation.");
 			saveButton.setName("" + SAVE_BUTTON_INDEX);
 			saveButton.setToolTipText("Save button");
 			resetButton.setName("" + RESET_BUTTON_INDEX);
-			resetButton.setToolTipText("Reset button");
+			resetButton.setToolTipText("Completely resets the whole population with a new random population.");
 			//closeButton.setName("" + CLOSE_BUTTON_INDEX);
 			//closeButton.setToolTipText("Close button");
 			//lineageButton.setName("" + LINEAGE_BUTTON_INDEX);
@@ -264,6 +264,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 			labels.put(10, new JLabel("More Mutations"));
 			mutationsPerGeneration.setLabelTable(labels);
 			mutationsPerGeneration.setPaintLabels(true);
+			mutationsPerGeneration.setToolTipText("The number of mutation chances per offspring when clicking Evolve. A higher value will result in larger differences between parents and offspring.");
 			mutationsPerGeneration.setPreferredSize(new Dimension(200, 40));
 
 			//add action listeners to buttons
