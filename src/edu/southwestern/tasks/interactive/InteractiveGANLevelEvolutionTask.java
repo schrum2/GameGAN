@@ -115,7 +115,9 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		JSlider strideFilterSlider = klDivSlider("stride",1,6,"KL filter stride");
 
 		if(!Parameters.parameters.booleanParameter("simplifiedInteractiveInterface")) {
-			top.add(fileLoadButton);
+			if(Parameters.parameters.booleanParameter("showInteractiveGANModelLoader")) {
+				top.add(fileLoadButton);
+			}
 			
 			if(Parameters.parameters.booleanParameter("showLatentSpaceOptions")) {
 				top.add(vectorExplorerButton);

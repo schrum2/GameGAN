@@ -325,6 +325,7 @@ public class Parameters {
 		longOptions.add("lastGenotypeId", 0l, "Highest genotype id used so far");
 		longOptions.add("lastInnovation", 0l, "Highest innovation number used so far");
 		// Boolean parameters 
+		booleanOptions.add("showInteractiveGANModelLoader", true, "Interactive GAN evolution shows interface for changing GAN model");
 		booleanOptions.add("showRandomizeLatent", true, "Interactive GAN evolution includes randomization option");
 		booleanOptions.add("showLatentSpaceOptions", true, "Interactive GAN evolution includes latent space exploration and interpolation");
 		booleanOptions.add("allowInteractiveEvolution", true, "Interactive evolution actually allows evolution");
