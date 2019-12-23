@@ -26,6 +26,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
@@ -529,11 +530,11 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 * @param individual genotype used to replace button image
 	 * @param x index of button in question
 	 */
-	protected void resetButton(Genotype<T> individual, int x) { 
+	protected void resetButton(Genotype<T> individual, int x, boolean selected) { 
 		scores.add(new Score<T>(individual, new double[]{0}, null));
 		setButtonImage(showNetwork ? getNetwork(individual) : getButtonImage(true, individual.getPhenotype(),  picSize, picSize, inputMultipliers), x);
 		chosen[x] = false;
-		buttons.get(x).setBorder(BorderFactory.createLineBorder(Color.lightGray, BORDER_THICKNESS));
+		buttons.get(x).setBorder(BorderFactory.createLineBorder(selected ? Color.BLUE : Color.lightGray, BORDER_THICKNESS));
 	}
 
 	/**
@@ -611,7 +612,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		}	
 		// Put appropriate content on buttons
 		for(int x = 0; x < buttons.size(); x++) {
-			resetButton(population.get(x), x);
+			resetButton(population.get(x), x, false);
 		}
 		while(waitingForUser){
 			try {//waits for user to click buttons before evaluating
@@ -675,7 +676,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		ActivationFunctionRandomReplacement frr = new ActivationFunctionRandomReplacement();
 		for(int i = 0; i < newPop.size(); i++) {
 			if(newPop.get(i) instanceof TWEANNGenotype) frr.mutate((Genotype<TWEANN>) newPop.get(i));
-			resetButton(newPop.get(i), i);
+			resetButton(newPop.get(i), i, false);
 		}	
 	}
 
@@ -828,7 +829,11 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		} else if(itemID == UNDO_BUTTON_INDEX) {//If undo button clicked
 			// Not implemented yet
 			setUndo();
-		} else if(itemID == EVOLVE_BUTTON_INDEX && BooleanUtil.any(chosen)) {//If evolve button clicked
+		} else if(itemID == EVOLVE_BUTTON_INDEX) {//If evolve button clicked
+			if(!BooleanUtil.any(chosen)) {
+				JOptionPane.showMessageDialog(null, "Must select at least one parent for the next generation.");
+				return false;
+			}
 			if(Parameters.parameters.booleanParameter("saveInteractiveSelections")) {
 				String dir = FileUtilities.getSaveDirectory() + "/selectedFromGen" +  ((GenerationalEA) MMNEAT.ea).currentGeneration();
 				new File(dir).mkdir(); // Make the save directory
@@ -989,7 +994,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		scores = new ArrayList<Score<T>>();
 		for(int i = 0; i < previousScores.size(); i++) {
 			//System.out.println("score size " + scores.size() + " previousScores size " + previousScores.size() + " buttons size " + buttons.size() + " i " + i);
-			resetButton(previousScores.get(i).individual, i);
+			resetButton(previousScores.get(i).individual, i, false);
 		}
 	}
 

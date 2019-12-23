@@ -258,7 +258,12 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		boolean undo = super.respondToClick(itemID);
 		if(undo) return true; // Click must have been a bad activation checkbox choice. Skip rest
 		// Human plays level
-		if(itemID == PLAY_BUTTON_INDEX && selectedItems.size() > 0) {
+		if(itemID == PLAY_BUTTON_INDEX) {
+			if(selectedItems.size() != 1) {
+				JOptionPane.showMessageDialog(null, "Select exactly one level to play.");
+				return false; // Nothing to explore
+			}
+
 			ArrayList<Double> phenotype = scores.get(selectedItems.get(selectedItems.size() - 1)).individual.getPhenotype();
 			playLevel(phenotype);
 		}
@@ -410,7 +415,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 						leftPhenotype.set(i, interpolatedPhenotype.get(i));
 						ImageIcon img = getLevelImageIcon(picSize, leftPhenotype);
 						leftImageLabel.setIcon(img);
-						resetButton(scores.get(selectedItems.get(leftItem)).individual, selectedItems.get(leftItem));
+						resetButton(scores.get(selectedItems.get(leftItem)).individual, selectedItems.get(leftItem),true);
 					}
 				}
 			});
@@ -425,7 +430,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 						rightPhenotype.set(i, interpolatedPhenotype.get(i));
 						ImageIcon img = getLevelImageIcon(picSize, rightPhenotype);
 						rightImageLabel.setIcon(img);
-						resetButton(scores.get(selectedItems.get(rightItem)).individual, selectedItems.get(rightItem));
+						resetButton(scores.get(selectedItems.get(rightItem)).individual, selectedItems.get(rightItem),true);
 					}
 				}
 			});
@@ -569,7 +574,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 						ImageIcon img = getLevelImageIcon(2*picSize, phenotype); 
 						imageLabel.setIcon(img);
 						// Genotype references the phenotype, so it is changed by the modifications above
-						resetButton(scores.get(populationIndex).individual, populationIndex);
+						resetButton(scores.get(populationIndex).individual, populationIndex,true);
 
 						// If there is another level in the frame to compare against, then update KL Div calculations
 						if(compare) {
