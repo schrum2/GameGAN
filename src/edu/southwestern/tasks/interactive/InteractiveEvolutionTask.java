@@ -287,9 +287,9 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 			top.add(evolveButton);
 
 			if(!Parameters.parameters.booleanParameter("simplifiedInteractiveInterface")) {
-				top.add(saveButton);
+				if(Parameters.parameters.booleanParameter("allowInteractiveSave")) top.add(saveButton);
 				if(evolveCPPNs) top.add(networkButton);
-				top.add(undoButton);
+				if(Parameters.parameters.booleanParameter("allowInteractiveUndo")) top.add(undoButton);
 			}
 
 			//top.add(closeButton);
