@@ -413,10 +413,11 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 					// Set each position in left phenotype to interpolated phenotype value
 					for(int i = 0; i < interpolatedPhenotype.size(); i++) {
 						leftPhenotype.set(i, interpolatedPhenotype.get(i));
-						ImageIcon img = getLevelImageIcon(picSize, leftPhenotype);
-						leftImageLabel.setIcon(img);
-						resetButton(scores.get(selectedItems.get(leftItem)).individual, selectedItems.get(leftItem),true);
 					}
+					ImageIcon img = getLevelImageIcon(picSize, leftPhenotype);
+					leftImageLabel.setIcon(img);
+					resetButton(scores.get(selectedItems.get(leftItem)).individual, selectedItems.get(leftItem),true);
+					slider.setValue(0); // Move slider to left
 				}
 			});
 
@@ -428,10 +429,11 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 					// Set each position in right phenotype to interpolated phenotype value
 					for(int i = 0; i < interpolatedPhenotype.size(); i++) {
 						rightPhenotype.set(i, interpolatedPhenotype.get(i));
-						ImageIcon img = getLevelImageIcon(picSize, rightPhenotype);
-						rightImageLabel.setIcon(img);
-						resetButton(scores.get(selectedItems.get(rightItem)).individual, selectedItems.get(rightItem),true);
 					}
+					ImageIcon img = getLevelImageIcon(picSize, rightPhenotype);
+					rightImageLabel.setIcon(img);
+					resetButton(scores.get(selectedItems.get(rightItem)).individual, selectedItems.get(rightItem),true);
+					slider.setValue(SLIDER_RANGE); // Move slider to right
 				}
 			});
 
