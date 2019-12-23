@@ -624,6 +624,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			JButton play = new JButton("Play");
 			// Population index of last clicked level
 			play.setName(""+populationIndex);
+			play.setToolTipText("Play the new level");
 			play.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
