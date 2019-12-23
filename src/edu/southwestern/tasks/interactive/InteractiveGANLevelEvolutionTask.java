@@ -85,7 +85,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 	}
 
 	public InteractiveGANLevelEvolutionTask(boolean isPlayable) throws IllegalAccessException {
-		super(false); // false indicates that we are NOT evolving CPPNs
+		super(false,true); // false indicates that we are NOT evolving CPPNs
 		configureGAN();
 
 		// Whether Play buttons are hidden

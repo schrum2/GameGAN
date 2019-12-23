@@ -127,18 +127,20 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	protected JPanel top;
 
 	public LinkedList<Integer> selectedItems;
+	private boolean stretchToFitButtons;
 
 	public InteractiveEvolutionTask() throws IllegalAccessException {		
-		this(true); // By default, evolve CPPNs
+		this(true,false); // By default, evolve CPPNs, but do not stretch the button images
 	}
 
 	/**
 	 * Default Constructor
 	 * @throws IllegalAccessException 
 	 */
-	public InteractiveEvolutionTask(boolean evolveCPPNs) throws IllegalAccessException {		
+	public InteractiveEvolutionTask(boolean evolveCPPNs, boolean stretchToFitButtons) throws IllegalAccessException {		
 		if(evolveCPPNs) inputMultipliers = new double[numCPPNInputs()];
 		boolean evolveAllowed = Parameters.parameters.booleanParameter("allowInteractiveEvolution");
+		this.stretchToFitButtons = stretchToFitButtons;
 		
 		selectedItems = new LinkedList<Integer>(); //keeps track of selected CPPNs for MIDI playback with multiple CPPNS in Breedesizer
 
@@ -468,9 +470,12 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 * @param buttonIndex index of button 
 	 */
 	protected void setButtonImage(BufferedImage gmi, int buttonIndex){ 
-		// These hard-coded numbers look better in Mario
-		//ImageIcon img = new ImageIcon(gmi.getScaledInstance(350,200,Image.SCALE_DEFAULT));
-		ImageIcon img = new ImageIcon(gmi.getScaledInstance(picSize,picSize,Image.SCALE_DEFAULT));
+		int width = picSize;
+		int height = picSize;
+		if(stretchToFitButtons) {
+			width = frame.getWidth() / NUM_COLUMNS;
+		}
+		ImageIcon img = new ImageIcon(gmi.getScaledInstance(width,height,Image.SCALE_DEFAULT));
 		buttons.get(buttonIndex).setName("" + buttonIndex);
 		buttons.get(buttonIndex).setIcon(img);
 
