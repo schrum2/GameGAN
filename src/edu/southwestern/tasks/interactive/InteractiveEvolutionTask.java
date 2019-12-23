@@ -536,9 +536,9 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 * @param x index of button in question
 	 */
 	protected void resetButton(Genotype<T> individual, int x, boolean selected) { 
-		scores.add(new Score<T>(individual, new double[]{0}, null));
+		if(!selected) scores.add(new Score<T>(individual, new double[]{0}, null));
 		setButtonImage(showNetwork ? getNetwork(individual) : getButtonImage(true, individual.getPhenotype(),  picSize, picSize, inputMultipliers), x);
-		chosen[x] = false;
+		if(!selected) chosen[x] = false;
 		buttons.get(x).setBorder(BorderFactory.createLineBorder(selected ? Color.BLUE : Color.lightGray, BORDER_THICKNESS));
 	}
 
@@ -645,12 +645,15 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 */
 	private void buttonPressed(int scoreIndex) {
 		if(chosen[scoreIndex]) {//if image has already been clicked, reset
+			System.out.println("Deselect "+scoreIndex);
 			selectedItems.remove(new Integer(scoreIndex)); //remove CPPN from list of currently selected CPPNs
 			chosen[scoreIndex] = false;
 			buttons.get(scoreIndex).setBorder(BorderFactory.createLineBorder(Color.lightGray, BORDER_THICKNESS));
 			scores.get(scoreIndex).replaceScores(new double[]{0});
 		} else {//if image has not been clicked, set it
-			selectedItems.add(scoreIndex); //add CPPN to list of currently selected CPPNs
+			System.out.println("Select "+scoreIndex);
+			if(!selectedItems.contains(scoreIndex)) // Do not add duplicates 
+				selectedItems.add(scoreIndex); //add CPPN to list of currently selected CPPNs
 			chosen[scoreIndex] = true;
 			buttons.get(scoreIndex).setBorder(BorderFactory.createLineBorder(Color.BLUE, BORDER_THICKNESS));
 			scores.get(scoreIndex).replaceScores(new double[]{1.0});
