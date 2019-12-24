@@ -55,6 +55,7 @@ public abstract class ZeldaDungeon<T> {
 	private Level[][] dungeon = null;
 	protected Dungeon dungeonInstance = null;
 	JPanel dungeonGrid;
+	private ArrayList<T> originalPhenotypes;
 
 	public ZeldaDungeon() {}
 
@@ -155,7 +156,8 @@ public abstract class ZeldaDungeon<T> {
 	 * @throws Exception 
 	 */
 	public void showDungeon(ArrayList<T> phenotypes, int numRooms) throws Exception {
-		dungeonInstance = makeDungeon(phenotypes, numRooms);
+		originalPhenotypes = phenotypes;
+		dungeonInstance = makeDungeon(originalPhenotypes, numRooms);
 
 		JFrame frame = new JFrame("Dungeon Viewer");
 		frame.setSize(1000, 1000);
@@ -201,6 +203,27 @@ public abstract class ZeldaDungeon<T> {
 
 		});
 		buttons.add(playDungeon);
+		
+		JButton newDungeon = new JButton("Remake Dungeon");
+		newDungeon.setToolTipText("Regenerate the dungeon using the same rooms originally selected.");
+		newDungeon.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					dungeonInstance = makeDungeon(originalPhenotypes, numRooms);
+					container.remove(dungeonGrid); 
+					dungeonGrid = getDungeonGrid(numRooms);
+					container.add(dungeonGrid);
+					frame.validate();
+					frame.repaint();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+			}
+
+		});
+		buttons.add(newDungeon);
 
 		if(Parameters.parameters.booleanParameter("dungeonizeAdvancedOptions")) {
 
@@ -325,7 +348,6 @@ public abstract class ZeldaDungeon<T> {
 						BufferedImage level = getButtonImage(n, ZELDA_WIDTH * 3 / 4, ZELDA_HEIGHT * 3 / 4); //creates image rep. of level)
 						ImageIcon img = new ImageIcon(level.getScaledInstance(level.getWidth(), level.getHeight(), Image.SCALE_FAST)); //creates image of level
 						JLabel imageLabel = new JLabel(img); // places level on label
-						imageLabel.setPreferredSize(new Dimension(300, 300));
 						panel.add(imageLabel); //add label to panel
 					} else {
 						JLabel blankText = new JLabel("");
