@@ -61,6 +61,7 @@ public class ZeldaGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 		
 		JButton dungeonize = new JButton("Dungeonize");
 		dungeonize.setName("" + DUNGEONIZE_BUTTON_INDEX);
+		dungeonize.setToolTipText("Take selected rooms and randomly combine them into a playable dungeon (may not use all rooms).");
 		dungeonize.addActionListener(this);
 		top.add(dungeonize);
 		
