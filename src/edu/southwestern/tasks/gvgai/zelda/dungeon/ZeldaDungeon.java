@@ -1,7 +1,6 @@
 package edu.southwestern.tasks.gvgai.zelda.dungeon;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Point;

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.parameters.Parameters;
@@ -19,7 +20,6 @@ import edu.southwestern.tasks.gvgai.zelda.ZeldaVGLCUtil;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.Dungeon;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.DungeonUtil;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.GraphDungeon;
-import edu.southwestern.tasks.gvgai.zelda.dungeon.SimpleDungeon;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.ZeldaDungeon;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.ZeldaDungeon.Level;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaLevelUtil;
@@ -263,7 +263,12 @@ public class ZeldaGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 	protected boolean respondToClick(int itemID) {
 		boolean undo = super.respondToClick(itemID);
 		if (undo) return true;
-		if(itemID == DUNGEONIZE_BUTTON_INDEX && selectedItems.size() > 0) {
+		if(itemID == DUNGEONIZE_BUTTON_INDEX) {
+			if(selectedItems.size() == 0) {
+				JOptionPane.showMessageDialog(null, "Must select rooms to build the dungeon with.");
+				return false; // Nothing to explore
+			}
+			
 			ArrayList<ArrayList<Double>> phenotypes = new ArrayList<>();
 			for(Integer i : selectedItems) {
 				phenotypes.add(scores.get(i).individual.getPhenotype());
