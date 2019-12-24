@@ -26,6 +26,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
@@ -126,18 +127,20 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	protected JPanel top;
 
 	public LinkedList<Integer> selectedItems;
+	private boolean stretchToFitButtons;
 
 	public InteractiveEvolutionTask() throws IllegalAccessException {		
-		this(true); // By default, evolve CPPNs
+		this(true,false); // By default, evolve CPPNs, but do not stretch the button images
 	}
 
 	/**
 	 * Default Constructor
 	 * @throws IllegalAccessException 
 	 */
-	public InteractiveEvolutionTask(boolean evolveCPPNs) throws IllegalAccessException {		
+	public InteractiveEvolutionTask(boolean evolveCPPNs, boolean stretchToFitButtons) throws IllegalAccessException {		
 		if(evolveCPPNs) inputMultipliers = new double[numCPPNInputs()];
 		boolean evolveAllowed = Parameters.parameters.booleanParameter("allowInteractiveEvolution");
+		this.stretchToFitButtons = stretchToFitButtons;
 		
 		selectedItems = new LinkedList<Integer>(); //keeps track of selected CPPNs for MIDI playback with multiple CPPNS in Breedesizer
 
@@ -230,7 +233,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 
 			resetButton.setText("Reset");
 			saveButton.setText("Save");
-			evolveButton.setText("Evolve!");
+			evolveButton.setText("Evolve");
 			//lineageButton.setText("Lineage");
 			if(evolveCPPNs) networkButton.setText("Network");
 			undoButton.setText("Undo");
@@ -242,11 +245,11 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 			Hashtable<Integer,JLabel> labels = new Hashtable<>();
 			//set graphic names and toolTip titles
 			evolveButton.setName("" + EVOLVE_BUTTON_INDEX);
-			evolveButton.setToolTipText("Evolve button");
+			evolveButton.setToolTipText("Select some members of the population and then click this to create several offspring from those parents. Your selected parents will also be present in the next generation.");
 			saveButton.setName("" + SAVE_BUTTON_INDEX);
 			saveButton.setToolTipText("Save button");
 			resetButton.setName("" + RESET_BUTTON_INDEX);
-			resetButton.setToolTipText("Reset button");
+			resetButton.setToolTipText("Completely resets the whole population with a new random population.");
 			//closeButton.setName("" + CLOSE_BUTTON_INDEX);
 			//closeButton.setToolTipText("Close button");
 			//lineageButton.setName("" + LINEAGE_BUTTON_INDEX);
@@ -264,6 +267,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 			labels.put(10, new JLabel("More Mutations"));
 			mutationsPerGeneration.setLabelTable(labels);
 			mutationsPerGeneration.setPaintLabels(true);
+			mutationsPerGeneration.setToolTipText("The number of mutation chances per offspring when clicking Evolve. A higher value will result in larger differences between parents and offspring.");
 			mutationsPerGeneration.setPreferredSize(new Dimension(200, 40));
 
 			//add action listeners to buttons
@@ -287,9 +291,9 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 			top.add(evolveButton);
 
 			if(!Parameters.parameters.booleanParameter("simplifiedInteractiveInterface")) {
-				top.add(saveButton);
+				if(Parameters.parameters.booleanParameter("allowInteractiveSave")) top.add(saveButton);
 				if(evolveCPPNs) top.add(networkButton);
-				top.add(undoButton);
+				if(Parameters.parameters.booleanParameter("allowInteractiveUndo")) top.add(undoButton);
 			}
 
 			//top.add(closeButton);
@@ -466,9 +470,12 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 * @param buttonIndex index of button 
 	 */
 	protected void setButtonImage(BufferedImage gmi, int buttonIndex){ 
-		// These hard-coded numbers look better in Mario
-		//ImageIcon img = new ImageIcon(gmi.getScaledInstance(350,200,Image.SCALE_DEFAULT));
-		ImageIcon img = new ImageIcon(gmi.getScaledInstance(picSize,picSize,Image.SCALE_DEFAULT));
+		int width = picSize;
+		int height = picSize;
+		if(stretchToFitButtons) {
+			width = frame.getWidth() / NUM_COLUMNS;
+		}
+		ImageIcon img = new ImageIcon(gmi.getScaledInstance(width,height,Image.SCALE_DEFAULT));
 		buttons.get(buttonIndex).setName("" + buttonIndex);
 		buttons.get(buttonIndex).setIcon(img);
 
@@ -528,11 +535,11 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 * @param individual genotype used to replace button image
 	 * @param x index of button in question
 	 */
-	protected void resetButton(Genotype<T> individual, int x) { 
-		scores.add(new Score<T>(individual, new double[]{0}, null));
+	protected void resetButton(Genotype<T> individual, int x, boolean selected) { 
+		if(!selected) scores.add(new Score<T>(individual, new double[]{0}, null));
 		setButtonImage(showNetwork ? getNetwork(individual) : getButtonImage(true, individual.getPhenotype(),  picSize, picSize, inputMultipliers), x);
-		chosen[x] = false;
-		buttons.get(x).setBorder(BorderFactory.createLineBorder(Color.lightGray, BORDER_THICKNESS));
+		if(!selected) chosen[x] = false;
+		buttons.get(x).setBorder(BorderFactory.createLineBorder(selected ? Color.BLUE : Color.lightGray, BORDER_THICKNESS));
 	}
 
 	/**
@@ -610,7 +617,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		}	
 		// Put appropriate content on buttons
 		for(int x = 0; x < buttons.size(); x++) {
-			resetButton(population.get(x), x);
+			resetButton(population.get(x), x, false);
 		}
 		while(waitingForUser){
 			try {//waits for user to click buttons before evaluating
@@ -638,12 +645,15 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 */
 	private void buttonPressed(int scoreIndex) {
 		if(chosen[scoreIndex]) {//if image has already been clicked, reset
+			System.out.println("Deselect "+scoreIndex);
 			selectedItems.remove(new Integer(scoreIndex)); //remove CPPN from list of currently selected CPPNs
 			chosen[scoreIndex] = false;
 			buttons.get(scoreIndex).setBorder(BorderFactory.createLineBorder(Color.lightGray, BORDER_THICKNESS));
 			scores.get(scoreIndex).replaceScores(new double[]{0});
 		} else {//if image has not been clicked, set it
-			selectedItems.add(scoreIndex); //add CPPN to list of currently selected CPPNs
+			System.out.println("Select "+scoreIndex);
+			if(!selectedItems.contains(scoreIndex)) // Do not add duplicates 
+				selectedItems.add(scoreIndex); //add CPPN to list of currently selected CPPNs
 			chosen[scoreIndex] = true;
 			buttons.get(scoreIndex).setBorder(BorderFactory.createLineBorder(Color.BLUE, BORDER_THICKNESS));
 			scores.get(scoreIndex).replaceScores(new double[]{1.0});
@@ -674,7 +684,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		ActivationFunctionRandomReplacement frr = new ActivationFunctionRandomReplacement();
 		for(int i = 0; i < newPop.size(); i++) {
 			if(newPop.get(i) instanceof TWEANNGenotype) frr.mutate((Genotype<TWEANN>) newPop.get(i));
-			resetButton(newPop.get(i), i);
+			resetButton(newPop.get(i), i, false);
 		}	
 	}
 
@@ -827,7 +837,11 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		} else if(itemID == UNDO_BUTTON_INDEX) {//If undo button clicked
 			// Not implemented yet
 			setUndo();
-		} else if(itemID == EVOLVE_BUTTON_INDEX && BooleanUtil.any(chosen)) {//If evolve button clicked
+		} else if(itemID == EVOLVE_BUTTON_INDEX) {//If evolve button clicked
+			if(!BooleanUtil.any(chosen)) {
+				JOptionPane.showMessageDialog(null, "Must select at least one parent for the next generation.");
+				return false;
+			}
 			if(Parameters.parameters.booleanParameter("saveInteractiveSelections")) {
 				String dir = FileUtilities.getSaveDirectory() + "/selectedFromGen" +  ((GenerationalEA) MMNEAT.ea).currentGeneration();
 				new File(dir).mkdir(); // Make the save directory
@@ -988,7 +1002,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		scores = new ArrayList<Score<T>>();
 		for(int i = 0; i < previousScores.size(); i++) {
 			//System.out.println("score size " + scores.size() + " previousScores size " + previousScores.size() + " buttons size " + buttons.size() + " i " + i);
-			resetButton(previousScores.get(i).individual, i);
+			resetButton(previousScores.get(i).individual, i, false);
 		}
 	}
 

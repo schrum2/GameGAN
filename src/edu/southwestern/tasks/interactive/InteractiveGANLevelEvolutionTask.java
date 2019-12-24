@@ -21,6 +21,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
@@ -84,7 +85,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 	}
 
 	public InteractiveGANLevelEvolutionTask(boolean isPlayable) throws IllegalAccessException {
-		super(false); // false indicates that we are NOT evolving CPPNs
+		super(false,true); // false indicates that we are NOT evolving CPPNs
 		configureGAN();
 
 		// Whether Play buttons are hidden
@@ -97,16 +98,19 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 
 		JButton vectorExplorerButton = new JButton();
 		vectorExplorerButton.setText("ExploreLatentSpace");
+		vectorExplorerButton.setToolTipText("Change individual numbers in the latent vector used by the GAN to generate a selected individual.");
 		vectorExplorerButton.setName("" + VECTOR_EXPLORER_BUTTON_INDEX);
 		vectorExplorerButton.addActionListener(this);
 
 		JButton interpolationButton = new JButton();
 		interpolationButton.setText("Interpolate");
 		interpolationButton.setName("" + INTERPOLATE_BUTTON_INDEX);
+		interpolationButton.setToolTipText("Select two individuals and then explore the latent space along the line connecting their two latent vectors.");
 		interpolationButton.addActionListener(this);
 
 		JButton randomizeButton = new JButton();
 		randomizeButton.setText("Randomize");
+		randomizeButton.setToolTipText("Replace selected individuals with new random latent vectors.");
 		randomizeButton.setName("" + RANDOMIZE_BUTTON_INDEX);
 		randomizeButton.addActionListener(this);
 
@@ -115,12 +119,13 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		JSlider strideFilterSlider = klDivSlider("stride",1,6,"KL filter stride");
 
 		if(!Parameters.parameters.booleanParameter("simplifiedInteractiveInterface")) {
-			top.add(fileLoadButton);
+			if(Parameters.parameters.booleanParameter("showInteractiveGANModelLoader")) {
+				top.add(fileLoadButton);
+			}
 			
 			if(Parameters.parameters.booleanParameter("showLatentSpaceOptions")) {
 				top.add(vectorExplorerButton);
 				top.add(interpolationButton);
-				top.add(randomizeButton);
 			}
 			
 			if(Parameters.parameters.booleanParameter("showKLOptions")) {
@@ -133,6 +138,11 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 
 				top.add(klSliders);
 			}
+			
+			if(Parameters.parameters.booleanParameter("showRandomizeLatent")) {
+				top.add(randomizeButton);
+			}
+			
 		}
 
 		if(isPlayable) {
@@ -140,6 +150,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			JButton play = new JButton("Play");
 			// Name is first available numeric label after the input disablers
 			play.setName("" + PLAY_BUTTON_INDEX);
+			play.setToolTipText("Play a selected level.");
 			play.addActionListener(this);
 			top.add(play);
 		}
@@ -247,7 +258,12 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		boolean undo = super.respondToClick(itemID);
 		if(undo) return true; // Click must have been a bad activation checkbox choice. Skip rest
 		// Human plays level
-		if(itemID == PLAY_BUTTON_INDEX && selectedItems.size() > 0) {
+		if(itemID == PLAY_BUTTON_INDEX) {
+			if(selectedItems.size() != 1) {
+				JOptionPane.showMessageDialog(null, "Select exactly one level to play.");
+				return false; // Nothing to explore
+			}
+
 			ArrayList<Double> phenotype = scores.get(selectedItems.get(selectedItems.size() - 1)).individual.getPhenotype();
 			playLevel(phenotype);
 		}
@@ -269,7 +285,15 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		}
 
 		if(itemID == VECTOR_EXPLORER_BUTTON_INDEX) {
-			if(selectedItems.size() == 0) return false; // Nothing to explore
+			if(selectedItems.size() == 0) {
+				JOptionPane.showMessageDialog(null, "Must select an individual to explore.");
+				return false; // Nothing to explore
+			}
+			
+			if(!Parameters.parameters.booleanParameter("showKLOptions") && selectedItems.size() != 1) {
+				JOptionPane.showMessageDialog(null, "Select only one individual to modify.");
+				return false; // Nothing to explore
+			}
 
 			JFrame explorer = new JFrame("Explore Latent Space");
 
@@ -288,6 +312,10 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			}
 		}
 		if(itemID == RANDOMIZE_BUTTON_INDEX) {
+			if(selectedItems.size() == 0) {
+				JOptionPane.showMessageDialog(null, "Must select at least one individual to randomize.");
+				return false; // Nothing to explore
+			}
 			// Replace all currently selected items with a random latent vector
 			for(Integer itemIndex : selectedItems) {
 				Score<ArrayList<Double>> score = scores.get(itemIndex);
@@ -296,8 +324,8 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			this.resetButtons(true);
 		}
 		if(itemID == INTERPOLATE_BUTTON_INDEX) {
-			if(selectedItems.size() < 2) {
-				System.out.println("Select two items to interpolate between");
+			if(selectedItems.size() != 2) {
+				JOptionPane.showMessageDialog(null, "Select exactly two individuals to interpolate between.");
 				return false; // Can only interpolate between two
 			}
 
@@ -335,6 +363,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			slider.setLabelTable(labels);
 			slider.setPaintLabels(true);
 			slider.setPreferredSize(new Dimension(200, 40));
+			slider.setToolTipText("The slider moves along a line in latent space connecting the latent vector for the left level to the latent vector for the right level.");
 
 			/**
 			 * Changed level with picture previews
@@ -377,30 +406,34 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			JPanel buttons = new JPanel();
 
 			JButton repalceLeft = new JButton("ReplaceLeft");
+			repalceLeft.setToolTipText("Replace the level on the left with the center result.");
 			repalceLeft.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					// Set each position in left phenotype to interpolated phenotype value
 					for(int i = 0; i < interpolatedPhenotype.size(); i++) {
 						leftPhenotype.set(i, interpolatedPhenotype.get(i));
-						ImageIcon img = getLevelImageIcon(picSize, leftPhenotype);
-						leftImageLabel.setIcon(img);
-						resetButton(scores.get(selectedItems.get(leftItem)).individual, selectedItems.get(leftItem));
 					}
+					ImageIcon img = getLevelImageIcon(picSize, leftPhenotype);
+					leftImageLabel.setIcon(img);
+					resetButton(scores.get(selectedItems.get(leftItem)).individual, selectedItems.get(leftItem),true);
+					slider.setValue(0); // Move slider to left
 				}
 			});
 
 			JButton repalceRight = new JButton("ReplaceRight");
+			repalceRight.setToolTipText("Replace the level on the right with the center result.");
 			repalceRight.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					// Set each position in right phenotype to interpolated phenotype value
 					for(int i = 0; i < interpolatedPhenotype.size(); i++) {
 						rightPhenotype.set(i, interpolatedPhenotype.get(i));
-						ImageIcon img = getLevelImageIcon(picSize, rightPhenotype);
-						rightImageLabel.setIcon(img);
-						resetButton(scores.get(selectedItems.get(rightItem)).individual, selectedItems.get(rightItem));
 					}
+					ImageIcon img = getLevelImageIcon(picSize, rightPhenotype);
+					rightImageLabel.setIcon(img);
+					resetButton(scores.get(selectedItems.get(rightItem)).individual, selectedItems.get(rightItem),true);
+					slider.setValue(SLIDER_RANGE); // Move slider to right
 				}
 			});
 
@@ -414,6 +447,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 						playLevel(interpolatedPhenotype);
 					}
 				});
+				play.setToolTipText("Play the interpolated level in the middle");
 				buttons.add(play);
 			}
 			buttons.add(repalceRight);
@@ -542,7 +576,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 						ImageIcon img = getLevelImageIcon(2*picSize, phenotype); 
 						imageLabel.setIcon(img);
 						// Genotype references the phenotype, so it is changed by the modifications above
-						resetButton(scores.get(populationIndex).individual, populationIndex);
+						resetButton(scores.get(populationIndex).individual, populationIndex,true);
 
 						// If there is another level in the frame to compare against, then update KL Div calculations
 						if(compare) {
@@ -592,6 +626,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			JButton play = new JButton("Play");
 			// Population index of last clicked level
 			play.setName(""+populationIndex);
+			play.setToolTipText("Play the new level");
 			play.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {

@@ -325,9 +325,14 @@ public class Parameters {
 		longOptions.add("lastGenotypeId", 0l, "Highest genotype id used so far");
 		longOptions.add("lastInnovation", 0l, "Highest innovation number used so far");
 		// Boolean parameters 
+		booleanOptions.add("dungeonizeAdvancedOptions", false, "Zelda Dungeonize interface includes advanced configuration options.");
+		booleanOptions.add("allowInteractiveSave", false, "Interactive evolution interface has save option");
+		booleanOptions.add("allowInteractiveUndo", false, "Interactive evolution interface has undo option");
+		booleanOptions.add("showInteractiveGANModelLoader", true, "Interactive GAN evolution shows interface for changing GAN model");
+		booleanOptions.add("showRandomizeLatent", true, "Interactive GAN evolution includes randomization option");
 		booleanOptions.add("showLatentSpaceOptions", true, "Interactive GAN evolution includes latent space exploration and interpolation");
 		booleanOptions.add("allowInteractiveEvolution", true, "Interactive evolution actually allows evolution");
-		booleanOptions.add("showKLOptions", true, "Interactive GAN evolution displays KL measurements");
+		booleanOptions.add("showKLOptions", false, "Interactive GAN evolution displays KL measurements");
 		booleanOptions.add("gvgAIForZeldaGAN", false, "Use GVG-AI representation of Zelda game");
 		booleanOptions.add("starkPicbreeder", false, "Picbreeder only uses two extreme brightness levels");
 		booleanOptions.add("blackAndWhitePicbreeder", false, "Picbreeder only uses black and white (possible gray)");
@@ -694,7 +699,7 @@ public class Parameters {
 		booleanOptions.add("simplifiedInteractiveInterface", true, "Determines how many buttons to show on the interactive evolution interfaces");
 		booleanOptions.add("utBotKilledAtEnd", true, "True if UT2004 bots are forcibly killed at time limit (instead of running until server dies)");
 		booleanOptions.add("zeldaGANUsesOriginalEncoding", true, "True if the number of tiles for the GAN is 4, otherwise 10.");
-		booleanOptions.add("zeldaHelpScreenEnabled", false, "Enable the help screen of Zelda rouge");
+		booleanOptions.add("zeldaHelpScreenEnabled", true, "Enable the help screen of Zelda rouge");
 		// Double parameters
 		doubleOptions.add("aggressiveGhostConsistency", 0.9, "How often aggressive ghosts pursue pacman");
 		doubleOptions.add("backpropLearningRate", 0.1, "Rate backprop learning for neural networks");
