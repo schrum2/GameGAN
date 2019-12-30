@@ -26,6 +26,7 @@ import edu.southwestern.tasks.MultiplePopulationTask;
 import edu.southwestern.tasks.Task;
 import edu.southwestern.tasks.gvgai.GVGAISinglePlayerTask;
 import edu.southwestern.tasks.interactive.InteractiveEvolutionTask;
+import edu.southwestern.tasks.interactive.gvgai.ZeldaCPPNtoGANLevelBreederTask;
 import edu.southwestern.tasks.interactive.gvgai.ZeldaGANLevelBreederTask;
 import edu.southwestern.tasks.interactive.mario.MarioCPPNtoGANLevelBreederTask;
 import edu.southwestern.tasks.interactive.mario.MarioGANLevelBreederTask;
@@ -35,6 +36,8 @@ import edu.southwestern.tasks.mario.MarioGANLevelTask;
 import edu.southwestern.tasks.mario.MarioLevelTask;
 import edu.southwestern.tasks.mario.MarioTask;
 import edu.southwestern.tasks.mario.gan.GANProcess;
+import edu.southwestern.tasks.zelda.ZeldaCPPNtoGANDungeonTask;
+import edu.southwestern.tasks.zelda.ZeldaDungeonTask;
 import edu.southwestern.util.ClassCreation;
 import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.file.FileUtilities;
@@ -330,6 +333,12 @@ public class MMNEAT {
 					setNNInputParameters(MarioLevelBreederTask.INPUTS.length, MarioLevelBreederTask.OUTPUTS.length);
 				}
 				System.out.println("Set up Mario Level Task");
+			} else if (task instanceof ZeldaDungeonTask) {
+				GANProcess.type = GANProcess.GAN_TYPE.ZELDA;
+				if(task instanceof ZeldaCPPNtoGANDungeonTask) {
+					// Evolving CPPNs that create latent vectors that are sent to a GAN
+					setNNInputParameters(ZeldaCPPNtoGANLevelBreederTask.SENSOR_LABELS.length, GANProcess.latentVectorLength()+ZeldaCPPNtoGANLevelBreederTask.NUM_NON_LATENT_INPUTS);
+				}
 			} else if (task == null) {
 				// this else statement should only happen for JUnit testing cases.
 				// Some default network setup is needed.
