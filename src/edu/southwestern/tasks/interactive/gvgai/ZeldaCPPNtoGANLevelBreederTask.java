@@ -42,6 +42,8 @@ import me.jakerg.rougelike.RougelikeApp;
 
 public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWEANN> {
 
+	public static final String[] SENSOR_LABELS = new String[] {"x-coordinate", "y-coordinate", "radius", "bias"};
+	
 	public static final int NUM_NON_LATENT_INPUTS = 2;
 	public static final int INDEX_ROOM_PRESENCE = 0;
 	public static final int INDEX_TRIFORCE_PREFERENCE = 1;
@@ -171,10 +173,9 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 		}
 	}
 
-
 	@Override
 	public String[] sensorLabels() {
-		return new String[] {"x-coordinate", "y-coordinate", "radius", "bias"};
+		return SENSOR_LABELS;
 	}
 
 	@Override

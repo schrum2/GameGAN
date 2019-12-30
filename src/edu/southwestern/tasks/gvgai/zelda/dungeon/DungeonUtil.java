@@ -854,12 +854,10 @@ public class DungeonUtil {
 
 	/**
 	 * Use A* agent to to see if it's playable, if it's not playable change layout of room. Do this over and over
-	 * until dungeon is playable
-	 * 
-	 * Dr. Schrum, look at this function
+	 * until dungeon is playable. Return the action sequence from start to triforce when successful.
 	 * @param dungeon Generated dungeon
 	 */
-	public static void makeDungeonPlayable(Dungeon dungeon) {
+	public static ArrayList<GridAction> makeDungeonPlayable(Dungeon dungeon) {
 		Search<GridAction,ZeldaState> search = new AStarSearch<>(ZeldaLevelUtil.manhattan);
 		ZeldaState state = new ZeldaState(5, 5, 0, dungeon);
 		boolean reset = true;
@@ -885,7 +883,10 @@ public class DungeonUtil {
 				if(HumanSubjectStudy2019Zelda.DEBUG)
 					System.out.println(state);
 			}
-			else break;
+			else {
+				// Success! Return action sequence
+				return result;
+			}
 		}
 	}
 
