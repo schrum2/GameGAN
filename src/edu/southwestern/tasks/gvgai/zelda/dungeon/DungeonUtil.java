@@ -31,6 +31,7 @@ import org.apache.commons.io.FileUtils;
 
 import asciiPanel.AsciiFont;
 import asciiPanel.AsciiPanel;
+import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.ZeldaDungeon.Level;
 import edu.southwestern.tasks.gvgai.zelda.level.Grammar;
 import edu.southwestern.tasks.gvgai.zelda.level.LevelLoader;
@@ -862,7 +863,7 @@ public class DungeonUtil {
 		ZeldaState state = new ZeldaState(5, 5, 0, dungeon);
 		boolean reset = true;
 		while(true) {			
-			ArrayList<GridAction> result = ((AStarSearch<GridAction, ZeldaState>) search).search(state, reset);
+			ArrayList<GridAction> result = ((AStarSearch<GridAction, ZeldaState>) search).search(state, reset, Parameters.parameters.integerParameter("aStarSearchBudget"));
 			// Would prefer not to start from scratch when resuming the search after a fix, but currently
 			// we get an infinite loop if this is changed to false.
 			// Leaving it to false occasionally leads to errors
