@@ -341,7 +341,7 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 				unbeatable = true;
 			}
 			if(numTries > 50) {
-				DungeonUtil.viewDungeon(dungeon);
+				DungeonUtil.viewDungeon(dungeon,DungeonUtil.mostRecentVisited);
 				System.out.println("Press a key to fail");
 				MiscUtil.waitForReadStringAndEnterKeyPress();
 				throw new IllegalStateException("Can't find a way to make this level beatable!");
