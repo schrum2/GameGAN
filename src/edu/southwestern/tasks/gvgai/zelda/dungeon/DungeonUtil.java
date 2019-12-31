@@ -894,7 +894,6 @@ public class DungeonUtil {
 					System.out.println(state);
 			}
 			else {
-				//mostRecentVisited = null; // Only need to maintain when things go wrong
 				// Success! Return action sequence
 				return result;
 			}

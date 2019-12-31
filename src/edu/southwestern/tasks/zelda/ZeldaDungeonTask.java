@@ -1,13 +1,16 @@
 package edu.southwestern.tasks.zelda;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.genotypes.Genotype;
+import edu.southwestern.parameters.CommonConstants;
 import edu.southwestern.tasks.NoisyLonerTask;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.Dungeon;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.DungeonUtil;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaState.GridAction;
+import edu.southwestern.util.MiscUtil;
 import edu.southwestern.util.datastructures.Pair;
 
 public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
@@ -45,8 +48,20 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 			// so this level should receive minimal fitness.
 			return new Pair<double[], double[]>(new double[]{-100}, new double[] {0, 0});
 		}
-		// A* should already have been run during creation to assure beat-ability, but it is run again here to get the action sequence/
-		ArrayList<GridAction> actionSequence = DungeonUtil.makeDungeonPlayable(dungeon);
+		// A* should already have been run during creation to assure beat-ability, but it is run again here to get the action sequence.
+		ArrayList<GridAction> actionSequence;
+		try {
+			actionSequence = DungeonUtil.makeDungeonPlayable(dungeon);
+		}catch(IllegalStateException e) {
+			// But sometimes this exception occurs anyway. Not sure why, but we can take this to mean the level has a problem and deserves bad fitness
+			return new Pair<double[], double[]>(new double[]{-100}, new double[] {0, 0});
+		}
+		
+		if(CommonConstants.watch) {
+			// View whole dungeon layout
+			DungeonUtil.viewDungeon(dungeon, DungeonUtil.mostRecentVisited);
+			MiscUtil.waitForReadStringAndEnterKeyPress();
+		}
 		
 		int distanceToTriforce = actionSequence.size();
 		int numRooms = dungeon.getLevels().size();
