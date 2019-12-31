@@ -34,6 +34,7 @@ import edu.southwestern.tasks.gvgai.zelda.level.ZeldaLevelUtil;
 import edu.southwestern.tasks.interactive.InteractiveEvolutionTask;
 import edu.southwestern.tasks.mario.gan.GANProcess;
 import edu.southwestern.util.CartesianGeometricUtilities;
+import edu.southwestern.util.MiscUtil;
 import edu.southwestern.util.datastructures.Pair;
 import edu.southwestern.util.graphics.GraphicsUtil;
 import edu.southwestern.util.util2D.ILocated2D;
@@ -304,7 +305,7 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 		double presenceThreshold = 0;
 		int numTries = 1;
 		do {
-			System.out.println("Generate for " + cppn + ": try: " + numTries);
+			System.out.println("Generate for CPPN: try: " + numTries);
 			unbeatable = false;
 			try {
 				List<List<Integer>>[][] levelAsListsGrid = levelGridFromLatentVectorGrid(latentVectorGrid,auxiliaryInformation,presenceThreshold);
@@ -333,10 +334,16 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 				// In this case, make all rooms visible
 				presenceThreshold -= 100; // All rooms should appear
 				numTries++;
+				// Also give A* more time to run
+				//Parameters.parameters.setInteger("aStarSearchBudget", (int)(Parameters.parameters.integerParameter("aStarSearchBudget")*1.1));
+				System.out.println("A* failed. New budget: "+Parameters.parameters.integerParameter("aStarSearchBudget"));
 				// Force loop
 				unbeatable = true;
 			}
 			if(numTries > 50) {
+				DungeonUtil.viewDungeon(dungeon);
+				System.out.println("Press a key to fail");
+				MiscUtil.waitForReadStringAndEnterKeyPress();
 				throw new IllegalStateException("Can't find a way to make this level beatable!");
 			}
 		} while(unbeatable);
