@@ -12,6 +12,7 @@ import edu.southwestern.tasks.gvgai.zelda.dungeon.DungeonUtil;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaState.GridAction;
 import edu.southwestern.util.MiscUtil;
 import edu.southwestern.util.datastructures.Pair;
+import me.jakerg.rougelike.RougelikeApp;
 
 public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 
@@ -60,7 +61,19 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 		if(CommonConstants.watch) {
 			// View whole dungeon layout
 			DungeonUtil.viewDungeon(dungeon, DungeonUtil.mostRecentVisited);
-			MiscUtil.waitForReadStringAndEnterKeyPress();
+			System.out.println("Enter 'P' to play, or just press Enter to continue");
+			String input = MiscUtil.waitForReadStringAndEnterKeyPress();
+			System.out.println("Entered \""+input+"\"");
+			if(input.toLowerCase().equals("p")) {
+				new Thread() {
+					@Override
+					public void run() {
+						RougelikeApp.startDungeon(dungeon);
+					}
+				}.start();
+				System.out.println("Press enter");
+				MiscUtil.waitForReadStringAndEnterKeyPress();
+			}
 		}
 		
 		int distanceToTriforce = actionSequence.size();
