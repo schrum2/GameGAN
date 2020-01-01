@@ -58,7 +58,14 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 			return new Pair<double[], double[]>(new double[]{-100}, new double[] {0, 0});
 		}
 		
+		int distanceToTriforce = actionSequence.size();
+		int numRooms = dungeon.getLevels().size();
+		int numRoomsTraversed = -1; // TODO: How?
+				
 		if(CommonConstants.watch) {
+			System.out.println("Distance to Triforce: "+distanceToTriforce);
+			System.out.println("Number of rooms: "+numRooms);
+			System.out.println("Number of rooms traversed: "+numRoomsTraversed);
 			// View whole dungeon layout
 			DungeonUtil.viewDungeon(dungeon, DungeonUtil.mostRecentVisited);
 			System.out.println("Enter 'P' to play, or just press Enter to continue");
@@ -75,10 +82,6 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 				MiscUtil.waitForReadStringAndEnterKeyPress();
 			}
 		}
-		
-		int distanceToTriforce = actionSequence.size();
-		int numRooms = dungeon.getLevels().size();
-		int numRoomsTraversed = -1; // TODO: Don't know how to do this yet
 		
 		return new Pair<double[], double[]>(new double[]{distanceToTriforce}, new double[] {numRooms, numRoomsTraversed});
 	}
