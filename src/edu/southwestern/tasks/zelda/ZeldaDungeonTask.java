@@ -75,7 +75,7 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 			System.out.println("Number of rooms: "+numRooms);
 			System.out.println("Number of rooms traversed: "+numRoomsTraversed);
 			// View whole dungeon layout
-			DungeonUtil.viewDungeon(dungeon, DungeonUtil.mostRecentVisited);
+			DungeonUtil.viewDungeon(dungeon, DungeonUtil.mostRecentVisited);			
 			System.out.println("Enter 'P' to play, or just press Enter to continue");
 			String input = MiscUtil.waitForReadStringAndEnterKeyPress();
 			System.out.println("Entered \""+input+"\"");
@@ -83,6 +83,8 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 				new Thread() {
 					@Override
 					public void run() {
+						// Repeat dungeon generation to remove visited marks
+						Dungeon dungeon = getZeldaDungeonFromGenotype(individual);
 						RougelikeApp.startDungeon(dungeon);
 					}
 				}.start();
