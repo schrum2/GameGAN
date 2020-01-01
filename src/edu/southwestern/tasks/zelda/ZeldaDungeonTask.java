@@ -9,6 +9,7 @@ import edu.southwestern.parameters.CommonConstants;
 import edu.southwestern.tasks.NoisyLonerTask;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.Dungeon;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.DungeonUtil;
+import edu.southwestern.tasks.gvgai.zelda.level.ZeldaState;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaState.GridAction;
 import edu.southwestern.util.MiscUtil;
 import edu.southwestern.util.datastructures.Pair;
@@ -60,7 +61,14 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 		
 		int distanceToTriforce = actionSequence.size();
 		int numRooms = dungeon.getLevels().size();
-		int numRoomsTraversed = -1; // TODO: How?
+		
+		HashSet<Pair<Integer,Integer>> visitedRoomCoordinates = new HashSet<>();
+		for(ZeldaState zs: DungeonUtil.mostRecentVisited) {
+			// Set does not allow duplicates: one Pair per room
+			visitedRoomCoordinates.add(new Pair<>(zs.dX,zs.dY));
+		}
+		
+		int numRoomsTraversed = visitedRoomCoordinates.size();
 				
 		if(CommonConstants.watch) {
 			System.out.println("Distance to Triforce: "+distanceToTriforce);
