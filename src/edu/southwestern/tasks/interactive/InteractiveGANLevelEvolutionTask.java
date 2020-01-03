@@ -39,6 +39,7 @@ import edu.southwestern.parameters.Parameters;
 import edu.southwestern.scores.Score;
 import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.datastructures.Pair;
+import edu.southwestern.util.graphics.GraphicsUtil;
 
 /**
  * Use a GAN to evolve levels for some game.
@@ -154,6 +155,31 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			play.addActionListener(this);
 			top.add(play);
 		}
+	}
+	
+	@Override
+	public ArrayList<Score<ArrayList<Double>>> evaluateAll(ArrayList<Genotype<ArrayList<Double>>> population) {
+		if(Parameters.parameters.booleanParameter("netio") && Parameters.parameters.booleanParameter("saveAllInteractiveGANData")) {
+			String saveDir = Parameters.parameters.stringParameter("lastSavedDirectory");
+			for(int i = 0; i < population.size(); i++) {
+				Genotype<ArrayList<Double>> g = population.get(i);
+				ArrayList<Double> vector = g.getPhenotype();
+				try {
+					PrintStream latent = new PrintStream(new File(saveDir + File.separator + "vector"+i+".txt"));
+					latent.println(vector);
+					latent.close();
+				} catch (FileNotFoundException e) {
+					System.out.println("COULD NOT SAVE LATENT VECTOR "+i);
+					e.printStackTrace();
+					System.exit(1);
+				}
+				
+				BufferedImage image = getButtonImage(false, vector,  picSize, picSize, inputMultipliers);
+				GraphicsUtil.saveImage(image, saveDir + File.separator + "level"+i+".png");
+
+			}
+		}
+		return super.evaluateAll(population);
 	}
 
 	/**
