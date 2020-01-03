@@ -39,6 +39,7 @@ import edu.southwestern.parameters.Parameters;
 import edu.southwestern.scores.Score;
 import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.datastructures.Pair;
+import edu.southwestern.util.graphics.GraphicsUtil;
 
 /**
  * Use a GAN to evolve levels for some game.
@@ -172,6 +173,10 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 					e.printStackTrace();
 					System.exit(1);
 				}
+				
+				BufferedImage image = getButtonImage(false, vector,  picSize, picSize, inputMultipliers);
+				GraphicsUtil.saveImage(image, saveDir + File.separator + "level"+i+".png");
+
 			}
 		}
 		return super.evaluateAll(population);
