@@ -16,8 +16,10 @@ import me.jakerg.rougelike.Tile;
 
 public class ZeldaState extends State<ZeldaState.GridAction>{
 	
+	// Coordinates of agent in room
 	public int x;
 	public int y;
+	// Coordinates of room in dungeon
 	public int dX;
 	public int dY;
 	private int numKeys = 0;

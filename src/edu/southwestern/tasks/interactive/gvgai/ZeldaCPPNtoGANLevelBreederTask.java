@@ -34,6 +34,7 @@ import edu.southwestern.tasks.gvgai.zelda.level.ZeldaLevelUtil;
 import edu.southwestern.tasks.interactive.InteractiveEvolutionTask;
 import edu.southwestern.tasks.mario.gan.GANProcess;
 import edu.southwestern.util.CartesianGeometricUtilities;
+import edu.southwestern.util.MiscUtil;
 import edu.southwestern.util.datastructures.Pair;
 import edu.southwestern.util.graphics.GraphicsUtil;
 import edu.southwestern.util.util2D.ILocated2D;
@@ -42,6 +43,8 @@ import me.jakerg.rougelike.RougelikeApp;
 
 public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWEANN> {
 
+	public static final String[] SENSOR_LABELS = new String[] {"x-coordinate", "y-coordinate", "radius", "bias"};
+	
 	public static final int NUM_NON_LATENT_INPUTS = 2;
 	public static final int INDEX_ROOM_PRESENCE = 0;
 	public static final int INDEX_TRIFORCE_PREFERENCE = 1;
@@ -171,10 +174,9 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 		}
 	}
 
-
 	@Override
 	public String[] sensorLabels() {
-		return new String[] {"x-coordinate", "y-coordinate", "radius", "bias"};
+		return SENSOR_LABELS;
 	}
 
 	@Override
@@ -303,7 +305,7 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 		double presenceThreshold = 0;
 		int numTries = 1;
 		do {
-			System.out.println("Generate for " + cppn + ": try: " + numTries);
+			System.out.println("Generate for CPPN: try: " + numTries);
 			unbeatable = false;
 			try {
 				List<List<Integer>>[][] levelAsListsGrid = levelGridFromLatentVectorGrid(latentVectorGrid,auxiliaryInformation,presenceThreshold);
@@ -332,11 +334,19 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 				// In this case, make all rooms visible
 				presenceThreshold -= 100; // All rooms should appear
 				numTries++;
+				// Also give A* more time to run
+				//Parameters.parameters.setInteger("aStarSearchBudget", (int)(Parameters.parameters.integerParameter("aStarSearchBudget")*1.1));
+				System.out.println("A* failed. New budget: "+Parameters.parameters.integerParameter("aStarSearchBudget"));
 				// Force loop
 				unbeatable = true;
 			}
-			if(numTries > 50) {
-				throw new IllegalStateException("Can't find a way to make this level beatable!");
+			if(numTries > Parameters.parameters.integerParameter("dungeonGenerationFailChances")) {
+				//DungeonUtil.viewDungeon(dungeon,DungeonUtil.mostRecentVisited);
+				//System.out.println("Press a key to fail");
+				//MiscUtil.waitForReadStringAndEnterKeyPress();
+				//throw new IllegalStateException("Can't find a way to make this level beatable!");
+				System.out.println("Can't find a way to make this level beatable!");
+				return null;
 			}
 		} while(unbeatable);
 		return dungeon;

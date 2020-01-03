@@ -1,8 +1,6 @@
 package wox.serial;
 
-// import sun.reflect.ReflectionFactory;
-
-// import jdk.internal.reflect.ReflectionFactory;
+import sun.reflect.ReflectionFactory;
 
 import java.security.AccessController;
 import java.lang.reflect.Constructor;
@@ -19,9 +17,9 @@ import java.lang.reflect.Constructor;
 public class Util implements Serial {
 
     /** reflection factory for forcing default constructors */
-//    private static final ReflectionFactory reflFactory = (ReflectionFactory)
-//            AccessController.doPrivileged(
-//                    new ReflectionFactory.GetReflectionFactoryAction());
+    private static final ReflectionFactory reflFactory = (ReflectionFactory)
+            AccessController.doPrivileged(
+                    new ReflectionFactory.GetReflectionFactoryAction());
 
 
 
@@ -37,7 +35,7 @@ public class Util implements Serial {
      */
     public static Constructor forceDefaultConstructor(Class cl) throws Exception {
         Constructor cons = Object.class.getDeclaredConstructor(new Class[0]);
-        // cons = reflFactory.newConstructorForSerialization(cl, cons);
+        cons = reflFactory.newConstructorForSerialization(cl, cons);
         cons.setAccessible(true);
         // System.out.println("Cons: " + cons);
         return cons;

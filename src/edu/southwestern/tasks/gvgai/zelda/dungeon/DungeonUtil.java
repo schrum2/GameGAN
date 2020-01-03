@@ -31,6 +31,7 @@ import org.apache.commons.io.FileUtils;
 
 import asciiPanel.AsciiFont;
 import asciiPanel.AsciiPanel;
+import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.ZeldaDungeon.Level;
 import edu.southwestern.tasks.gvgai.zelda.level.Grammar;
 import edu.southwestern.tasks.gvgai.zelda.level.LevelLoader;
@@ -852,24 +853,31 @@ public class DungeonUtil {
 		
 	}
 
+	// Maintained for diagnosing problems with A*
+	public static HashSet<ZeldaState> mostRecentVisited;
+	
 	/**
 	 * Use A* agent to to see if it's playable, if it's not playable change layout of room. Do this over and over
-	 * until dungeon is playable
-	 * 
-	 * Dr. Schrum, look at this function
+	 * until dungeon is playable. Return the action sequence from start to triforce when successful.
 	 * @param dungeon Generated dungeon
 	 */
-	public static void makeDungeonPlayable(Dungeon dungeon) {
+	public static ArrayList<GridAction> makeDungeonPlayable(Dungeon dungeon) {
 		Search<GridAction,ZeldaState> search = new AStarSearch<>(ZeldaLevelUtil.manhattan);
 		ZeldaState state = new ZeldaState(5, 5, 0, dungeon);
 		boolean reset = true;
-		while(true) {			
-			ArrayList<GridAction> result = ((AStarSearch<GridAction, ZeldaState>) search).search(state, reset);
+		while(true) {		
+			ArrayList<GridAction> result = null;
+			try {
+				result = ((AStarSearch<GridAction, ZeldaState>) search).search(state, reset, Parameters.parameters.integerParameter("aStarSearchBudget"));
+			}catch(IllegalStateException e) {
+				throw e; // Pass on exception, but the finally assures we save states when things go wrong.
+			} finally {
+				mostRecentVisited = ((AStarSearch<GridAction, ZeldaState>) search).getVisited();
+			}
 			// Would prefer not to start from scratch when resuming the search after a fix, but currently
 			// we get an infinite loop if this is changed to false.
 			// Leaving it to false occasionally leads to errors
 			reset = true; 
-			HashSet<ZeldaState> visited = ((AStarSearch<GridAction, ZeldaState>) search).getVisited();
 //			setUnvisited(visited);
 			if(HumanSubjectStudy2019Zelda.DEBUG)
 				System.out.println(result);
@@ -880,12 +888,15 @@ public class DungeonUtil {
 				//viewDungeon(dungeon, new HashSet<>());
 				//MiscUtil.waitForReadStringAndEnterKeyPress();
 				// Resume search from new state: but is this actually the state if should be?
-				state = makePlayable(visited); 
+				state = makePlayable(mostRecentVisited); 
 //				state = new ZeldaState(5, 5, 0, dungeon);
 				if(HumanSubjectStudy2019Zelda.DEBUG)
 					System.out.println(state);
 			}
-			else break;
+			else {
+				// Success! Return action sequence
+				return result;
+			}
 		}
 	}
 

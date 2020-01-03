@@ -11,3 +11,7 @@ python/GAN/models/__pycache__/dcgan.cpython-36.pyc
 .settings/org.eclipse.jdt.core.prefs
 .idea/workspace.xml
 *.pyc
+
+mariogan/
+mariocppntogan/
+zeldacppntogan/
