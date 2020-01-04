@@ -1,9 +1,12 @@
 package edu.southwestern.tasks.zelda;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 
 import edu.southwestern.MMNEAT.MMNEAT;
+import edu.southwestern.evolution.GenerationalEA;
 import edu.southwestern.evolution.genotypes.Genotype;
 import edu.southwestern.parameters.CommonConstants;
 import edu.southwestern.parameters.Parameters;
@@ -15,6 +18,8 @@ import edu.southwestern.tasks.gvgai.zelda.level.ZeldaState;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaState.GridAction;
 import edu.southwestern.util.MiscUtil;
 import edu.southwestern.util.datastructures.Pair;
+import edu.southwestern.util.file.FileUtilities;
+import edu.southwestern.util.graphics.GraphicsUtil;
 import edu.southwestern.util.search.AStarSearch;
 import edu.southwestern.util.search.Search;
 import me.jakerg.rougelike.RougelikeApp;
@@ -90,7 +95,10 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 					System.out.println("Number of rooms traversed: "+numRoomsTraversed);
 					System.out.println("Number of states visited: "+searchStatesVisited);
 					// View whole dungeon layout
-					DungeonUtil.viewDungeon(dungeon, mostRecentVisited);			
+					BufferedImage image = DungeonUtil.viewDungeon(dungeon, mostRecentVisited);
+					String saveDir = FileUtilities.getSaveDirectory();
+					int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
+					GraphicsUtil.saveImage(image, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "Dungeon"+individual.getId()+".png");
 					System.out.println("Enter 'P' to play, or just press Enter to continue");
 					String input = MiscUtil.waitForReadStringAndEnterKeyPress();
 					System.out.println("Entered \""+input+"\"");

@@ -900,7 +900,14 @@ public class DungeonUtil {
 		}
 	}
 
-	public static void viewDungeon(Dungeon dungeon, HashSet<ZeldaState> visited) {
+	/**
+	 * Show Dungeon in new window, and also return the resulting image.
+	 * 
+	 * @param dungeon Dungeon instance
+	 * @param visited Collection of visited states in the dungeon
+	 * @return Image off the dungeon
+	 */
+	public static BufferedImage viewDungeon(Dungeon dungeon, HashSet<ZeldaState> visited) {
 		BufferedImage image = imageOfDungeon(dungeon, visited);
 		JFrame frame = new JFrame();
 		JPanel panel = new JPanel();
@@ -909,6 +916,8 @@ public class DungeonUtil {
 		frame.add(panel);
 		frame.pack();
 		frame.setVisible(true);
+		
+		return image;
 	}
 
 	/**
