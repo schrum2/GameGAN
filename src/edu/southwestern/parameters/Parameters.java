@@ -704,6 +704,10 @@ public class Parameters {
 		booleanOptions.add("utBotKilledAtEnd", true, "True if UT2004 bots are forcibly killed at time limit (instead of running until server dies)");
 		booleanOptions.add("zeldaGANUsesOriginalEncoding", true, "True if the number of tiles for the GAN is 4, otherwise 10.");
 		booleanOptions.add("zeldaHelpScreenEnabled", true, "Enable the help screen of Zelda rouge");
+		booleanOptions.add("zeldaDungeonDistanceFitness", true, "Evolve levels that require lots of effort to traverse");
+		booleanOptions.add("zeldaDungeonFewRoomFitness", true, "Evolve levels with as few rooms as possible");
+		booleanOptions.add("zeldaDungeonTraversedRoomFitness", true, "Evolve levels where player has to traverse most of the rooms");
+		booleanOptions.add("zeldaDungeonRandomFitness", true, "Evolve levels with random fitness");
 		// Double parameters
 		doubleOptions.add("aggressiveGhostConsistency", 0.9, "How often aggressive ghosts pursue pacman");
 		doubleOptions.add("backpropLearningRate", 0.1, "Rate backprop learning for neural networks");

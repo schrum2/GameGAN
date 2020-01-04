@@ -20,6 +20,7 @@ import edu.southwestern.util.MiscUtil;
 import edu.southwestern.util.datastructures.Pair;
 import edu.southwestern.util.file.FileUtilities;
 import edu.southwestern.util.graphics.GraphicsUtil;
+import edu.southwestern.util.random.RandomNumbers;
 import edu.southwestern.util.search.AStarSearch;
 import edu.southwestern.util.search.Search;
 import me.jakerg.rougelike.RougelikeApp;
@@ -28,9 +29,14 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 
 	public ZeldaDungeonTask() {
 		// Objective functions
-		MMNEAT.registerFitnessFunction("DistanceToTriforce");
-		MMNEAT.registerFitnessFunction("NegativeRooms"); // Fewer rooms means more interesting shapes
-		MMNEAT.registerFitnessFunction("PercentRoomsTraversed"); // Avoid superfluous rooms
+		if(Parameters.parameters.booleanParameter("zeldaDungeonDistanceFitness")) 
+			MMNEAT.registerFitnessFunction("DistanceToTriforce");
+		if(Parameters.parameters.booleanParameter("zeldaDungeonFewRoomFitness")) 
+			MMNEAT.registerFitnessFunction("NegativeRooms"); // Fewer rooms means more interesting shapes
+		if(Parameters.parameters.booleanParameter("zeldaDungeonTraversedRoomFitness")) 
+			MMNEAT.registerFitnessFunction("PercentRoomsTraversed"); // Avoid superfluous rooms
+		if(Parameters.parameters.booleanParameter("zeldaDungeonRandomFitness")) 
+			MMNEAT.registerFitnessFunction("RandomFitness");
 		// Additional information tracked about each dungeon
 		MMNEAT.registerFitnessFunction("NumRooms",false);
 		MMNEAT.registerFitnessFunction("NumRoomsTraversed",false);
@@ -119,6 +125,23 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 				// Sometimes this exception occurs from A*. Not sure why, but we can take this to mean the level has a problem and deserves bad fitness.
 			}
 		}
-		return new Pair<double[], double[]>(new double[]{distanceToTriforce, -numRooms, numRooms == 0 ? 0 : (numRoomsTraversed*1.0)/numRooms}, new double[] {numRooms, numRoomsTraversed, searchStatesVisited});
+		
+		ArrayList<Double> fitness = new ArrayList<Double>(5);
+		if(Parameters.parameters.booleanParameter("zeldaDungeonDistanceFitness")) 
+			fitness.add(new Double(distanceToTriforce));
+		if(Parameters.parameters.booleanParameter("zeldaDungeonFewRoomFitness")) 
+			fitness.add(new Double(-numRooms));
+		if(Parameters.parameters.booleanParameter("zeldaDungeonTraversedRoomFitness")) 
+			fitness.add(new Double(numRooms == 0 ? 0 : (numRoomsTraversed*1.0)/numRooms));
+		if(Parameters.parameters.booleanParameter("zeldaDungeonRandomFitness")) 
+			fitness.add(new Double(RandomNumbers.fullSmallRand()));
+			
+		double[] scores = new double[fitness.size()];
+		
+		for(int i = 0; i < scores.length; i++) {
+			scores[i] = fitness.get(i);
+		}
+		
+		return new Pair<double[], double[]>(scores, new double[] {numRooms, numRoomsTraversed, searchStatesVisited});
 	}
 }
