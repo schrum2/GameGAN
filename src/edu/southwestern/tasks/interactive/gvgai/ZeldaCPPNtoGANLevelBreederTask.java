@@ -34,7 +34,6 @@ import edu.southwestern.tasks.gvgai.zelda.level.ZeldaLevelUtil;
 import edu.southwestern.tasks.interactive.InteractiveEvolutionTask;
 import edu.southwestern.tasks.mario.gan.GANProcess;
 import edu.southwestern.util.CartesianGeometricUtilities;
-import edu.southwestern.util.MiscUtil;
 import edu.southwestern.util.datastructures.Pair;
 import edu.southwestern.util.graphics.GraphicsUtil;
 import edu.southwestern.util.util2D.ILocated2D;
@@ -293,6 +292,15 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 		return this.outputLabels().length;
 	}
 
+	/**
+	 * Create a Dungeon of the given size (in rooms) using a CPPN that generates latent vectors that are sent to a GAN.
+	 * 
+	 * @param cppn Network that takes the location of the room in the dungeon, and returns a latent vector and some other information
+	 * @param width Number of rooms wide
+	 * @param height Number of rooms high
+	 * @param inputMultipliers Multipliers for CPPN inputs (can turn them on or off)
+	 * @return A Rogue-like Dungeon instance
+	 */
 	public static Dungeon cppnToDungeon(Network cppn, int width, int height, double[] inputMultipliers) {
 		Pair<double[][][],double[][][]> cppnOutput = latentVectorGridFromCPPN(cppn, width, height, inputMultipliers);		
 		double[][][] auxiliaryInformation = cppnOutput.t1;
@@ -322,7 +330,9 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 				levelGrid[triforceRoom.y][triforceRoom.x] = levelGrid[triforceRoom.y][triforceRoom.x].placeTriforce(dungeon);
 				dungeon.setGoalPoint(new Point(triforceRoom.x, triforceRoom.y));
 				dungeon.setGoal("("+triforceRoom.x+","+triforceRoom.y+")");
-				DungeonUtil.makeDungeonPlayable(dungeon);
+				// Use A* to modify the level to make sections passable
+				if(Parameters.parameters.booleanParameter("makeZeldaLevelsPlayable")) 
+					DungeonUtil.makeDungeonPlayable(dungeon);
 			} catch(IllegalArgumentException e) {
 				// Make a new room appear in dungeon
 				//enableRoomActivation(auxiliaryInformation);

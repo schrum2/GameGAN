@@ -327,6 +327,7 @@ public class Parameters {
 		longOptions.add("lastGenotypeId", 0l, "Highest genotype id used so far");
 		longOptions.add("lastInnovation", 0l, "Highest innovation number used so far");
 		// Boolean parameters 
+		booleanOptions.add("makeZeldaLevelsPlayable", true, "Use A* to check that Zelda dungeons are beatable and modify if needed");
 		booleanOptions.add("saveAllInteractiveGANData", true, "Save latent vectors, generated levels, etc.");
 		booleanOptions.add("dungeonizeAdvancedOptions", false, "Zelda Dungeonize interface includes advanced configuration options.");
 		booleanOptions.add("allowInteractiveSave", false, "Interactive evolution interface has save option");
