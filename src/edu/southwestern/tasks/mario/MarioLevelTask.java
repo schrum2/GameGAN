@@ -1,5 +1,6 @@
 package edu.southwestern.tasks.mario;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ch.idsia.ai.agents.Agent;
@@ -10,9 +11,11 @@ import ch.idsia.tools.EvaluationOptions;
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.genotypes.Genotype;
 import edu.southwestern.parameters.CommonConstants;
+import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.NoisyLonerTask;
 import edu.southwestern.tasks.mario.level.MarioLevelUtil;
 import edu.southwestern.util.ClassCreation;
+import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.datastructures.Pair;
 
 /**
@@ -26,10 +29,9 @@ import edu.southwestern.util.datastructures.Pair;
  *
  * @param <T>
  */
-public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
-	public static boolean useProgressPlusJumpsFitness = true;
-	
+public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {	
 	private Agent agent;
+	private int numFitnessFunctions;
 	
 	public MarioLevelTask() {
 		// Replace this with a command line parameter
@@ -42,11 +44,21 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		}
 		
 		// Fitness
-		if(useProgressPlusJumpsFitness) {
+		numFitnessFunctions = 0;
+		if(Parameters.parameters.booleanParameter("marioProgressPlusJumpsFitness")) {
+			// First maximize progress through the level.
+			// If the level is cleared, then maximize the duration of the
+			// level, which will indicate that it is challenging.
 			MMNEAT.registerFitnessFunction("ProgressPlusJumps");
-		} else {
+			numFitnessFunctions++;
+		} 
+		if(Parameters.parameters.booleanParameter("marioProgressPlusTimeFitness")) {
+			// Levels that take longer must be harder
 			MMNEAT.registerFitnessFunction("ProgressPlusTime");
+			numFitnessFunctions++;
 		}
+		
+		if(numFitnessFunctions == 0) throw new IllegalStateException("At least one fitness function required to evolve Mario levels");
         // Other scores
         MMNEAT.registerFitnessFunction("Distance", false);
         MMNEAT.registerFitnessFunction("PercentDistance", false);
@@ -57,10 +69,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 	
 	@Override
 	public int numObjectives() {
-		// First maximize progress through the level.
-		// If the level is cleared, then maximize the duration of the
-		// level, which will indicate that it is challenging.
-		return 1;  
+		return numFitnessFunctions;  
 	}
 	
 	public int numOtherScores() {
@@ -104,20 +113,24 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		double jumps = info.jumpActionsPerformed;
 
 		double[] otherScores = new double[] {distancePassed, percentLevelPassed, time, jumps};
-		
-		if(percentLevelPassed < 1.0) {
-			//System.out.println(distancePassed + " < " + (totalDistanceInLevel - SPACE_AT_LEVEL_END));
-			// If level is not completed, score the amount of distance covered.
-			// This is true whether time or jumps are added.
-			return new Pair<double[],double[]>(new double[]{percentLevelPassed}, otherScores);
-		} else { // Level beaten
-			//System.out.println("BEAT LEVEL");
-			if(useProgressPlusJumpsFitness) { // Add Jumps to favor harder levels requiring more jumping
-				return new Pair<double[],double[]>(new double[]{1.0+jumps}, otherScores);
-			} else { // Add in the time so that more complicated, challenging levels will be favored
-				return new Pair<double[],double[]>(new double[]{1.0+time}, otherScores);
+
+		ArrayList<Double> fitnesses = new ArrayList<>(numFitnessFunctions);
+		if(Parameters.parameters.booleanParameter("marioProgressPlusJumpsFitness")) {
+			if(percentLevelPassed < 1.0) {
+				fitnesses.add(percentLevelPassed);
+			} else { // Level beaten
+				fitnesses.add(1.0+jumps);
+			}
+		} 
+		if(Parameters.parameters.booleanParameter("marioProgressPlusTimeFitness")) {
+			if(percentLevelPassed < 1.0) {
+				fitnesses.add(percentLevelPassed);
+			} else { // Level beaten
+				fitnesses.add(1.0+time);
 			}
 		}
+		
+		return new Pair<double[],double[]>(ArrayUtil.doubleArrayFromList(fitnesses), otherScores);
 	}
 	
 }
