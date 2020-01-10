@@ -17,6 +17,7 @@ import edu.southwestern.tasks.mario.level.MarioLevelUtil;
 import edu.southwestern.util.ClassCreation;
 import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.datastructures.Pair;
+import edu.southwestern.util.random.RandomNumbers;
 
 /**
  * 
@@ -32,6 +33,7 @@ import edu.southwestern.util.datastructures.Pair;
 public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {	
 	private Agent agent;
 	private int numFitnessFunctions;
+	private boolean fitnessRequiresSimulation;
 	
 	public MarioLevelTask() {
 		// Replace this with a command line parameter
@@ -45,16 +47,23 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		
 		// Fitness
 		numFitnessFunctions = 0;
+		fitnessRequiresSimulation = false; // Until proven otherwise
 		if(Parameters.parameters.booleanParameter("marioProgressPlusJumpsFitness")) {
 			// First maximize progress through the level.
 			// If the level is cleared, then maximize the duration of the
 			// level, which will indicate that it is challenging.
 			MMNEAT.registerFitnessFunction("ProgressPlusJumps");
+			fitnessRequiresSimulation = true;
 			numFitnessFunctions++;
 		} 
 		if(Parameters.parameters.booleanParameter("marioProgressPlusTimeFitness")) {
 			// Levels that take longer must be harder
 			MMNEAT.registerFitnessFunction("ProgressPlusTime");
+			fitnessRequiresSimulation = true;
+			numFitnessFunctions++;
+		}
+		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {
+			MMNEAT.registerFitnessFunction("Random");
 			numFitnessFunctions++;
 		}
 		
@@ -97,20 +106,23 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 	
 	@Override
 	public Pair<double[], double[]> oneEval(Genotype<T> individual, int num) {
-		Level level = getMarioLevelFromGenotype(individual);
-		agent.reset(); // Get ready to play a new level
-		EvaluationOptions options = new CmdLineOptions(new String[]{});
-		options.setAgent(agent);
-        options.setLevel(level);
-        options.setMaxFPS(!(agent instanceof ch.idsia.ai.agents.human.HumanKeyboardAgent)); // Run fast when not playing
-        options.setVisualization(CommonConstants.watch);
-		List<EvaluationInfo> infos = MarioLevelUtil.agentPlaysLevel(options);
-		// For now, assume a single evaluation
-		EvaluationInfo info = infos.get(0);
-		double distancePassed = info.lengthOfLevelPassedPhys;
-		double percentLevelPassed = distancePassed / totalPassableDistance(info);
-		double time = info.timeSpentOnLevel;
-		double jumps = info.jumpActionsPerformed;
+		EvaluationInfo info = null;
+		if(fitnessRequiresSimulation || CommonConstants.watch) {
+			Level level = getMarioLevelFromGenotype(individual);
+			agent.reset(); // Get ready to play a new level
+			EvaluationOptions options = new CmdLineOptions(new String[]{});
+			options.setAgent(agent);
+			options.setLevel(level);
+			options.setMaxFPS(!(agent instanceof ch.idsia.ai.agents.human.HumanKeyboardAgent)); // Run fast when not playing
+			options.setVisualization(CommonConstants.watch);
+			List<EvaluationInfo> infos = MarioLevelUtil.agentPlaysLevel(options);
+			// For now, assume a single evaluation
+			info = infos.get(0);
+		}
+		double distancePassed = info == null ? 0 : info.lengthOfLevelPassedPhys;
+		double percentLevelPassed = info == null ? 0 : distancePassed / totalPassableDistance(info);
+		double time = info == null ? 0 : info.timeSpentOnLevel;
+		double jumps = info == null ? 0 : info.jumpActionsPerformed;
 
 		double[] otherScores = new double[] {distancePassed, percentLevelPassed, time, jumps};
 
@@ -128,6 +140,9 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			} else { // Level beaten
 				fitnesses.add(1.0+time);
 			}
+		}
+		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {
+			fitnesses.add(RandomNumbers.fullSmallRand());
 		}
 		
 		return new Pair<double[],double[]>(ArrayUtil.doubleArrayFromList(fitnesses), otherScores);

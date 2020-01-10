@@ -328,7 +328,8 @@ public class Parameters {
 		longOptions.add("lastInnovation", 0l, "Highest innovation number used so far");
 		// Boolean parameters 
 		booleanOptions.add("marioProgressPlusJumpsFitness", true, "Mario Progress Plus Jumps Fitness included");
-		booleanOptions.add("marioProgressPlusTimeFitness", true, "Mario Progress Plus Time Fitness included");
+		booleanOptions.add("marioProgressPlusTimeFitness", false, "Mario Progress Plus Time Fitness included");
+		booleanOptions.add("marioRandomFitness", false, "Mario levels evolved with random fitness");
 		booleanOptions.add("makeZeldaLevelsPlayable", true, "Use A* to check that Zelda dungeons are beatable and modify if needed");
 		booleanOptions.add("saveAllInteractiveGANData", true, "Save latent vectors, generated levels, etc.");
 		booleanOptions.add("dungeonizeAdvancedOptions", false, "Zelda Dungeonize interface includes advanced configuration options.");
