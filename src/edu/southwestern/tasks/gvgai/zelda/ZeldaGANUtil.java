@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ListIterator;
 
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.gvgai.GVGAIUtil;
@@ -43,6 +44,18 @@ public class ZeldaGANUtil {
 		if(result.size() > result.get(0).size()) {
 			// If taller than wide, then rotate
 			result = ArrayUtil.rotateCounterClockwise(result);
+		}
+		// This means the encoding will use 2 to represent water instead of enemies. Easier to fix by changing 2 to 5 here.
+		if(Parameters.parameters.stringParameter("zeldaGANModel").startsWith("ZeldaDungeonsAll3Tiles")) {
+			for(List<Integer> row : result) {
+				ListIterator<Integer> itr = row.listIterator();
+				while(itr.hasNext()) {
+					Integer value = itr.next();
+					if(value.equals(new Integer(2))) {	// 2 is not an enemy in this representation
+						itr.set(5); // It is water, which normally has a value of 5
+					}
+				}
+			}
 		}
 		return result;
 	}
