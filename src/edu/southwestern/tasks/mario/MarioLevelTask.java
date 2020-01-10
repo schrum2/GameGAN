@@ -1,5 +1,7 @@
 package edu.southwestern.tasks.mario;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,14 +11,18 @@ import ch.idsia.tools.CmdLineOptions;
 import ch.idsia.tools.EvaluationInfo;
 import ch.idsia.tools.EvaluationOptions;
 import edu.southwestern.MMNEAT.MMNEAT;
+import edu.southwestern.evolution.GenerationalEA;
 import edu.southwestern.evolution.genotypes.Genotype;
 import edu.southwestern.parameters.CommonConstants;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.NoisyLonerTask;
+import edu.southwestern.tasks.gvgai.zelda.dungeon.DungeonUtil;
 import edu.southwestern.tasks.mario.level.MarioLevelUtil;
 import edu.southwestern.util.ClassCreation;
 import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.datastructures.Pair;
+import edu.southwestern.util.file.FileUtilities;
+import edu.southwestern.util.graphics.GraphicsUtil;
 import edu.southwestern.util.random.RandomNumbers;
 
 /**
@@ -115,6 +121,15 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			options.setLevel(level);
 			options.setMaxFPS(!(agent instanceof ch.idsia.ai.agents.human.HumanKeyboardAgent)); // Run fast when not playing
 			options.setVisualization(CommonConstants.watch);
+			
+			if(CommonConstants.watch) {
+				// View whole dungeon layout
+				BufferedImage image = MarioLevelUtil.getLevelImage(level);
+				String saveDir = FileUtilities.getSaveDirectory();
+				int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
+				GraphicsUtil.saveImage(image, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioLevel"+individual.getId()+".png");
+			}
+			
 			List<EvaluationInfo> infos = MarioLevelUtil.agentPlaysLevel(options);
 			// For now, assume a single evaluation
 			info = infos.get(0);
