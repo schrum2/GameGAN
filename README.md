@@ -31,7 +31,7 @@ git clone git@github.com:schrum2/GameGAN.git
 cd GameGAN
 git checkout CPPNtoGAN
 docker build -t gamegan .
-docker run -ti --name GameGAN --rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $PWD:/app gamegan /bin/bash -c "cd /app; bash ObjectiveMarioCPPNtoGAN.bat"
+docker run -ti --name GameGAN --rm -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $PWD:/app gamegan /bin/bash -c "cd /app; bash ObjectiveMarioCPPNtoGAN-Random.bat 1"
 ```
 
 ## Known issues
