@@ -19,6 +19,12 @@ public class ZeldaGANDungeonTask extends ZeldaDungeonTask<ArrayList<Double>>{
 		segmentLength = GANProcess.latentVectorLength()+ZeldaCPPNtoGANLevelBreederTask.NUM_NON_LATENT_INPUTS;
 	}
 	
+	public static int genomeLength() {
+		return (GANProcess.latentVectorLength()+ZeldaCPPNtoGANLevelBreederTask.NUM_NON_LATENT_INPUTS)*
+				Parameters.parameters.integerParameter("zeldaGANLevelWidthChunks")*
+				Parameters.parameters.integerParameter("zeldaGANLevelHeightChunks");
+	}
+	
 	@Override
 	public Dungeon getZeldaDungeonFromGenotype(Genotype<ArrayList<Double>> individual) {
 		ArrayList<Double> latentVector = individual.getPhenotype();

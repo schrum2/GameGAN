@@ -38,6 +38,7 @@ import edu.southwestern.tasks.mario.MarioTask;
 import edu.southwestern.tasks.mario.gan.GANProcess;
 import edu.southwestern.tasks.zelda.ZeldaCPPNtoGANDungeonTask;
 import edu.southwestern.tasks.zelda.ZeldaDungeonTask;
+import edu.southwestern.tasks.zelda.ZeldaGANDungeonTask;
 import edu.southwestern.util.ClassCreation;
 import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.file.FileUtilities;
@@ -619,6 +620,7 @@ public class MMNEAT {
 		if(task instanceof MarioGANLevelTask || task instanceof MarioGANLevelBreederTask) return new double[GANProcess.latentVectorLength() * Parameters.parameters.integerParameter("marioGANLevelChunks")]; // all zeroes
 		// Similar for ZeldaGAN
 		else if(task instanceof ZeldaGANLevelBreederTask) return new double[GANProcess.latentVectorLength()]; // all zeroes
+		else if(task instanceof ZeldaGANDungeonTask) return new double[ZeldaGANDungeonTask.genomeLength()]; // all zeroes
 		else {
 			throw new IllegalArgumentException("BoundedRealValuedGenotypes only supported for Function Optimization and Mario/Zelda GAN");
 		}
@@ -632,6 +634,7 @@ public class MMNEAT {
 	public static double[] getUpperBounds() {
 		if(task instanceof MarioGANLevelTask || task instanceof MarioGANLevelBreederTask) return ArrayUtil.doubleOnes(GANProcess.latentVectorLength() * Parameters.parameters.integerParameter("marioGANLevelChunks")); // all ones
 		else if(task instanceof ZeldaGANLevelBreederTask) return ArrayUtil.doubleOnes(GANProcess.latentVectorLength()); // all ones
+		else if(task instanceof ZeldaGANDungeonTask) return ArrayUtil.doubleOnes(ZeldaGANDungeonTask.genomeLength()); // all ones
 		else {
 			throw new IllegalArgumentException("BoundedRealValuedGenotypes only supported for Function Optimization and Mario/Zelda GAN");
 		}
