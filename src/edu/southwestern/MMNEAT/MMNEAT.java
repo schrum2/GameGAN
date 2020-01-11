@@ -75,14 +75,14 @@ public class MMNEAT {
 	public static Crossover crossoverOperator;
 //	public static FunctionOptimizationSet fos;
 //	public static RLGlueEnvironment rlGlueEnvironment;
-	@SuppressWarnings("rawtypes") // depends on genotypes
+	
 //	public static ArrayList<Metaheuristic> metaheuristics;
 	public static ArrayList<ArrayList<String>> fitnessFunctions;
 	public static ArrayList<Statistic> aggregationOverrides;
 //	public static TaskSpec tso;
 //	public static FeatureExtractor rlGlueExtractor;
 	public static boolean blueprints = false;
-	@SuppressWarnings("rawtypes") // applies to any population type
+	
 //	public static PerformanceLog performanceLog;
 //	public static MsPacManControllerInputOutputMediator pacmanInputOutputMediator;
 //	public static GhostControllerInputOutputMediator ghostsInputOutputMediator;
@@ -98,17 +98,8 @@ public class MMNEAT {
 	public static MMNEATLog ghostLocationsOnPowerPillEaten = null;
 	public static boolean browseLineage = false;
 //	public static SubstrateCoordinateMapping substrateMapping = null;
-	@SuppressWarnings("rawtypes")
-//	public static HallOfFame hallOfFame;
-//	@SuppressWarnings("rawtypes")
-//	public static BoardGame boardGame;
-//	@SuppressWarnings("rawtypes")
-//	public static TwoDimensionalBoardGameViewer boardGameViewer;
-//	public static SubstrateArchitectureDefinition substrateArchitectureDefinition;
-
 	public static MMNEAT mmneat;
 
-	@SuppressWarnings("rawtypes")
 	public static ArrayList<String> fitnessPlusMetaheuristics(int pop) {
 		@SuppressWarnings("unchecked")
 		ArrayList<String> result = (ArrayList<String>) fitnessFunctions.get(pop).clone();
@@ -272,7 +263,7 @@ public class MMNEAT {
 	 * variables of this class so they are easily accessible
 	 * from all parts of the code.
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public static void loadClasses() {
 		try {
 			ActivationFunctions.resetFunctionSet();

@@ -35,11 +35,7 @@ import edu.southwestern.tasks.interactive.InteractiveEvolutionTask;
 import edu.southwestern.tasks.mario.gan.GANProcess;
 import edu.southwestern.tasks.zelda.ZeldaCPPNtoGANVectorMatrixBuilder;
 import edu.southwestern.tasks.zelda.ZeldaGANVectorMatrixBuilder;
-import edu.southwestern.util.CartesianGeometricUtilities;
 import edu.southwestern.util.datastructures.Pair;
-import edu.southwestern.util.graphics.GraphicsUtil;
-import edu.southwestern.util.util2D.ILocated2D;
-import edu.southwestern.util.util2D.Tuple2D;
 import me.jakerg.rougelike.RougelikeApp;
 
 public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWEANN> {
@@ -310,6 +306,19 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 		// Because a CPPN can make disconnected dungeons, it is legitimately possible for a level
 		// to be unbeatable, even after repair by A*. This loop randomly fills in empty rooms in the
 		// dungeon grid until A* succeeds.
+		return gridDataToDungeon(auxiliaryInformation, latentVectorGrid);
+	}
+
+	/**
+	 * Takes two grids of same width and height. One has auxiliary information about constructing the
+	 * dungeon, such as whether a room is even present. The other contains the latent vectors associated
+	 * with each room location. A Dungeon is created based on these.
+	 * 
+	 * @param auxiliaryInformation auxiliaryInformation[y][x] determines some miscellaneous features of the room at (x,y)
+	 * @param latentVectorGrid latentVectorGrid[y][x] is the latent vector for creating a room at (x,y) if a room is present
+	 * @return Resulting Dungeon
+	 */
+	public static Dungeon gridDataToDungeon(double[][][] auxiliaryInformation, double[][][] latentVectorGrid) {
 		Dungeon dungeon = null;
 		boolean unbeatable;
 		double presenceThreshold = 0;
