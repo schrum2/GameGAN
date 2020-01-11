@@ -617,10 +617,10 @@ public class MMNEAT {
 	 */
 	public static double[] getLowerBounds() {
 		// For Mario GAN, the latent vector length determines the size, but the lower bounds are all zero
-		if(task instanceof MarioGANLevelTask || task instanceof MarioGANLevelBreederTask) return new double[GANProcess.latentVectorLength() * Parameters.parameters.integerParameter("marioGANLevelChunks")]; // all zeroes
+		if(task instanceof MarioGANLevelTask || task instanceof MarioGANLevelBreederTask) return ArrayUtil.doubleNegativeOnes(GANProcess.latentVectorLength() * Parameters.parameters.integerParameter("marioGANLevelChunks")); // all -1
 		// Similar for ZeldaGAN
-		else if(task instanceof ZeldaGANLevelBreederTask) return new double[GANProcess.latentVectorLength()]; // all zeroes
-		else if(task instanceof ZeldaGANDungeonTask) return new double[ZeldaGANDungeonTask.genomeLength()]; // all zeroes
+		else if(task instanceof ZeldaGANLevelBreederTask) return ArrayUtil.doubleNegativeOnes(GANProcess.latentVectorLength()); // all -1
+		else if(task instanceof ZeldaGANDungeonTask) return ArrayUtil.doubleNegativeOnes(ZeldaGANDungeonTask.genomeLength()); // all -1
 		else {
 			throw new IllegalArgumentException("BoundedRealValuedGenotypes only supported for Function Optimization and Mario/Zelda GAN");
 		}

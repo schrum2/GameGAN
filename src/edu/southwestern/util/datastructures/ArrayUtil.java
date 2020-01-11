@@ -103,6 +103,21 @@ public class ArrayUtil {
 		}
 		return ones;
 	}
+	
+	/**
+	 * Return primitive double array of given size containing all negative ones
+	 *
+	 * @param size 
+	 * 			desired size of array
+	 * @return array of doubles of size 'size', all of which are -1
+	 */
+	public static double[] doubleNegativeOnes(int size) {
+		double[] ones = new double[size];
+		for (int i = 0; i < ones.length; i++) {
+			ones[i] = -1;
+		}
+		return ones;
+	}
 
 	/**
 	 * Return primitive int array of given size containing all ones
