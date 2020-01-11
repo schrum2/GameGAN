@@ -711,6 +711,7 @@ public class Parameters {
 		booleanOptions.add("zeldaDungeonFewRoomFitness", true, "Evolve levels with as few rooms as possible");
 		booleanOptions.add("zeldaDungeonTraversedRoomFitness", true, "Evolve levels where player has to traverse most of the rooms");
 		booleanOptions.add("zeldaDungeonRandomFitness", false, "Evolve levels with random fitness");
+		booleanOptions.add("zeldaStudySavesParticipantData", true, "Use with 2019 human subject study");
 		// Double parameters
 		doubleOptions.add("aggressiveGhostConsistency", 0.9, "How often aggressive ghosts pursue pacman");
 		doubleOptions.add("backpropLearningRate", 0.1, "Rate backprop learning for neural networks");
