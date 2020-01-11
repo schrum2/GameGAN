@@ -1,7 +1,9 @@
 package edu.southwestern.tasks.zelda;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
+import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.genotypes.Genotype;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.Dungeon;
@@ -16,6 +18,7 @@ public class ZeldaGANDungeonTask extends ZeldaDungeonTask<ArrayList<Double>>{
 
 	public ZeldaGANDungeonTask() {
 		super();
+		GANProcess.type = GANProcess.GAN_TYPE.ZELDA;
 		segmentLength = GANProcess.latentVectorLength()+ZeldaCPPNtoGANLevelBreederTask.NUM_NON_LATENT_INPUTS;
 	}
 	
@@ -36,4 +39,7 @@ public class ZeldaGANDungeonTask extends ZeldaDungeonTask<ArrayList<Double>>{
 		return dungeon;
 	}
 
+	public static void main(String[] args) throws FileNotFoundException, NoSuchMethodException {
+		MMNEAT.main("runNumber:0 randomSeed:0 zeldaDungeonDistanceFitness:true zeldaDungeonFewRoomFitness:false zeldaDungeonTraversedRoomFitness:true zeldaDungeonRandomFitness:false watch:false trials:1 mu:10 makeZeldaLevelsPlayable:false base:zeldagan log:ZeldaGAN-DistTraversed saveTo:DistTraversed zeldaGANLevelWidthChunks:10 zeldaGANLevelHeightChunks:10 zeldaGANModel:ZeldaDungeonsAll3Tiles_10000_10.pth maxGens:500 io:true netio:true GANInputSize:10 mating:true fs:false task:edu.southwestern.tasks.zelda.ZeldaGANDungeonTask cleanOldNetworks:false zeldaGANUsesOriginalEncoding:false cleanFrequency:-1 saveAllChampions:true genotype:edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype".split(" "));
+	}
 }
