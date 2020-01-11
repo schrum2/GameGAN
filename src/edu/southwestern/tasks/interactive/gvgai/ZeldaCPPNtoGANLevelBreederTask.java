@@ -33,6 +33,8 @@ import edu.southwestern.tasks.gvgai.zelda.dungeon.ZeldaDungeon.Level;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaLevelUtil;
 import edu.southwestern.tasks.interactive.InteractiveEvolutionTask;
 import edu.southwestern.tasks.mario.gan.GANProcess;
+import edu.southwestern.tasks.zelda.ZeldaCPPNtoGANVectorMatrixBuilder;
+import edu.southwestern.tasks.zelda.ZeldaGANVectorMatrixBuilder;
 import edu.southwestern.util.CartesianGeometricUtilities;
 import edu.southwestern.util.datastructures.Pair;
 import edu.southwestern.util.graphics.GraphicsUtil;
@@ -302,7 +304,7 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 	 * @return A Rogue-like Dungeon instance
 	 */
 	public static Dungeon cppnToDungeon(Network cppn, int width, int height, double[] inputMultipliers) {
-		Pair<double[][][],double[][][]> cppnOutput = latentVectorGridFromCPPN(cppn, width, height, inputMultipliers);		
+		Pair<double[][][],double[][][]> cppnOutput = latentVectorGridFromCPPN(new ZeldaCPPNtoGANVectorMatrixBuilder(cppn,inputMultipliers), width, height);		
 		double[][][] auxiliaryInformation = cppnOutput.t1;
 		double[][][] latentVectorGrid = cppnOutput.t2;
 		// Because a CPPN can make disconnected dungeons, it is legitimately possible for a level
@@ -469,18 +471,12 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 	 * @param inputMultipliers Multipliers for CPPN inputs which has potential to disable them
 	 * @return 3D array that is a 2D grid of latent vectors
 	 */
-	public static Pair<double[][][],double[][][]> latentVectorGridFromCPPN(Network cppn, int width, int height, double[] inputMultipliers) {
+	public static Pair<double[][][],double[][][]> latentVectorGridFromCPPN(ZeldaGANVectorMatrixBuilder builder, int width, int height) {
 		double[][][] latentVectorGrid = new double[height][width][];
 		double[][][] presenceAndTriforceGrid = new double[height][width][];
 		for(int y = 0; y < height; y++) {
 			for(int x = 0; x < width; x++) {
-				ILocated2D scaled = CartesianGeometricUtilities.centerAndScale(new Tuple2D(x, y), width, height);
-				double[] remixedInputs = { scaled.getX(), scaled.getY(), scaled.distance(new Tuple2D(0, 0)) * GraphicsUtil.SQRT2, GraphicsUtil.BIAS };
-				// Might turn some inputs on/off
-				for(int i = 0; i < remixedInputs.length; i++) {
-					remixedInputs[i] *= inputMultipliers[i];
-				}
-				double[] vector = cppn.process(remixedInputs);
+				double[] vector = builder.latentVectorAndMiscDataForPosition(width, height, x, y);
 				double[] latentVector = new double[GANProcess.latentVectorLength()]; // Shorter
 				System.arraycopy(vector, NUM_NON_LATENT_INPUTS, latentVector, 0, latentVector.length);
 				latentVectorGrid[y][x] = latentVector;
