@@ -3,6 +3,7 @@ package edu.southwestern.tasks.mario;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import ch.idsia.ai.agents.Agent;
@@ -41,6 +42,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 	private Agent agent;
 	private int numFitnessFunctions;
 	private boolean fitnessRequiresSimulation;
+	private ArrayList<List<Integer>> targetLevel = null;
 	
 	public MarioLevelTask() {
 		// Replace this with a command line parameter
@@ -68,6 +70,15 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			MMNEAT.registerFitnessFunction("ProgressPlusTime");
 			fitnessRequiresSimulation = true;
 			numFitnessFunctions++;
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelMatchFitness")) {
+			MMNEAT.registerFitnessFunction("LevelMatch");
+			numFitnessFunctions++;
+			// Load level representation from file here
+			// TODO
+			String levelFileName = Parameters.parameters.stringParameter("marioTargetLevel"); // Does not have a default value yet
+			//targetLevel = ... some method that loads a file with Mario level in json ... 
+			
 		}
 		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {
 			MMNEAT.registerFitnessFunction("Random");
@@ -114,8 +125,9 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 	@Override
 	public Pair<double[], double[]> oneEval(Genotype<T> individual, int num) {
 		EvaluationInfo info = null;
+		ArrayList<List<Integer>> oneLevel = null;
 		if(fitnessRequiresSimulation || CommonConstants.watch) {
-			ArrayList<List<Integer>> oneLevel = getMarioLevelListRepresentationFromGenotype(individual);
+			oneLevel = getMarioLevelListRepresentationFromGenotype(individual);
 			Level level = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ? OldLevelParser.createLevelJson(oneLevel) : LevelParser.createLevelJson(oneLevel);			
 			agent.reset(); // Get ready to play a new level
 			EvaluationOptions options = new CmdLineOptions(new String[]{});
@@ -157,6 +169,24 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			} else { // Level beaten
 				fitnesses.add(1.0+time);
 			}
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelMatchFitness")) {
+			int diffCount = 0;
+			// TODO
+			// Should this calculation include or eliminate the starting and ending regions we add to Mario levels?
+			Iterator<List<Integer>> evolveIterator = oneLevel.iterator();
+			Iterator<List<Integer>> targetIterator = targetLevel.iterator();
+			while(evolveIterator.hasNext() && targetIterator.hasNext()) {
+				Iterator<Integer> evolveRow = evolveIterator.next().iterator();
+				Iterator<Integer> targetRow = targetIterator.next().iterator();
+				while(evolveRow.hasNext() && targetRow.hasNext()) {
+					if(!evolveRow.next().equals(targetRow.next())) {
+						diffCount++;
+					}
+				}
+			}
+			// More differences = worse fitness
+			fitnesses.add(-1.0*diffCount);
 		}
 		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {
 			fitnesses.add(RandomNumbers.fullSmallRand());

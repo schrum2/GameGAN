@@ -327,6 +327,7 @@ public class Parameters {
 		longOptions.add("lastGenotypeId", 0l, "Highest genotype id used so far");
 		longOptions.add("lastInnovation", 0l, "Highest innovation number used so far");
 		// Boolean parameters 
+		booleanOptions.add("marioLevelMatchFitness", false, "Mario level evolves to match a specific input level");
 		booleanOptions.add("marioProgressPlusJumpsFitness", true, "Mario Progress Plus Jumps Fitness included");
 		booleanOptions.add("marioProgressPlusTimeFitness", false, "Mario Progress Plus Time Fitness included");
 		booleanOptions.add("marioRandomFitness", false, "Mario levels evolved with random fitness");
@@ -788,6 +789,7 @@ public class Parameters {
 		doubleOptions.add("healthDropRate", 20., "Health drop rate from enemies");
 		doubleOptions.add("bombDropRate", 40., "Bomb drop rate from enemies");
 		// String parameters
+		stringOptions.add("marioTargetLevel", "", "Relative path to json file with Mario level to target");
 		stringOptions.add("archetype", "", "Network that receives all mutations so as to keep other networks properly aligned");
 		stringOptions.add("base", "", "Base directory for all simulations within one experiment");
 		stringOptions.add("branchRoot", "", "Evolve from some other run as starting point, based off of this parameter file");
