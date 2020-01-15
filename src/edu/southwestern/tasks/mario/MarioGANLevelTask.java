@@ -2,8 +2,8 @@ package edu.southwestern.tasks.mario;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.List;
 
-import ch.idsia.mario.engine.level.Level;
 import ch.idsia.tools.EvaluationInfo;
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.genotypes.Genotype;
@@ -41,10 +41,10 @@ public class MarioGANLevelTask extends MarioLevelTask<ArrayList<Double>> {
 	 * Extract real-valued latent vector from genotype and then send to GAN to get a Mario level
 	 */
 	@Override
-	public Level getMarioLevelFromGenotype(Genotype<ArrayList<Double>> individual) {
+	public ArrayList<List<Integer>> getMarioLevelListRepresentationFromGenotype(Genotype<ArrayList<Double>> individual) {
 		ArrayList<Double> latentVector = individual.getPhenotype();
 		double[] doubleArray = ArrayUtil.doubleArrayFromList(latentVector);
-		Level level = MarioGANUtil.generateLevelFromGAN(doubleArray);
+		ArrayList<List<Integer>> level = MarioGANUtil.generateLevelListRepresentationFromGAN(doubleArray);
 		return level;
 	}
 

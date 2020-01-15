@@ -16,8 +16,9 @@ import edu.southwestern.evolution.genotypes.Genotype;
 import edu.southwestern.parameters.CommonConstants;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.NoisyLonerTask;
-import edu.southwestern.tasks.gvgai.zelda.dungeon.DungeonUtil;
+import edu.southwestern.tasks.mario.level.LevelParser;
 import edu.southwestern.tasks.mario.level.MarioLevelUtil;
+import edu.southwestern.tasks.mario.level.OldLevelParser;
 import edu.southwestern.util.ClassCreation;
 import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.datastructures.Pair;
@@ -98,10 +99,10 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 
 	/**
 	 * Different level generators use the genotype to generate a level in different ways
-	 * @param individual
-	 * @return
+	 * @param individual Genotype 
+	 * @return List of lists of integers corresponding to tile types
 	 */
-	public abstract Level getMarioLevelFromGenotype(Genotype<T> individual);
+	public abstract ArrayList<List<Integer>> getMarioLevelListRepresentationFromGenotype(Genotype<T> individual);
 	
 	/**
 	 * Different level generators generate levels of different lengths
@@ -114,7 +115,8 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 	public Pair<double[], double[]> oneEval(Genotype<T> individual, int num) {
 		EvaluationInfo info = null;
 		if(fitnessRequiresSimulation || CommonConstants.watch) {
-			Level level = getMarioLevelFromGenotype(individual);
+			ArrayList<List<Integer>> oneLevel = getMarioLevelListRepresentationFromGenotype(individual);
+			Level level = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ? OldLevelParser.createLevelJson(oneLevel) : LevelParser.createLevelJson(oneLevel);			
 			agent.reset(); // Get ready to play a new level
 			EvaluationOptions options = new CmdLineOptions(new String[]{});
 			options.setAgent(agent);

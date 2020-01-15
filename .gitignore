@@ -12,6 +12,7 @@ python/GAN/models/__pycache__/dcgan.cpython-36.pyc
 .idea/workspace.xml
 *.pyc
 
+mariocppn/
 mariogan/
 mariocppntogan/
 zeldacppntogan/

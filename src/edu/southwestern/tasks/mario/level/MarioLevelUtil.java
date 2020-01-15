@@ -242,6 +242,27 @@ public class MarioLevelUtil {
 	}
 	
 	/**
+	 * Convert from String representation to list of lists
+	 * @param stringLevel
+	 * @return
+	 */
+	public static ArrayList<List<Integer>> listLevelFromStringLevel(String[] stringLevel) {
+		ArrayList<List<Integer>> result = new ArrayList<List<Integer>>();
+		for(String row : stringLevel) {
+			List<Integer> listRow = new ArrayList<Integer>(row.length());
+			for(int i = 0; i < row.length(); i++) {
+				System.out.println(i + ":" + row.charAt(i));
+				Integer tile = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ?
+					OldLevelParser.indexOfBlock(row.charAt(i)) :
+					LevelParser.tiles.get(row.charAt(i));
+				listRow.add(tile);
+			}
+			result.add(listRow);
+		}
+		return result;
+	}
+	
+	/**
 	 * Return an image of the level, excluding the buffer zones at the
 	 * beginning and end of every CPPN generated level. Also excludes
 	 * the background, Mario, and enemy sprites.
