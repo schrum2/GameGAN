@@ -789,7 +789,7 @@ public class Parameters {
 		doubleOptions.add("healthDropRate", 20., "Health drop rate from enemies");
 		doubleOptions.add("bombDropRate", 40., "Bomb drop rate from enemies");
 		// String parameters
-		stringOptions.add("marioTargetLevel", "", "Relative path to json file with Mario level to target");
+		stringOptions.add("marioTargetLevel", "VGLC/SuperMarioBros/mario-1-1.txt", "Relative path to json file with Mario level to target");
 		stringOptions.add("archetype", "", "Network that receives all mutations so as to keep other networks properly aligned");
 		stringOptions.add("base", "", "Base directory for all simulations within one experiment");
 		stringOptions.add("branchRoot", "", "Evolve from some other run as starting point, based off of this parameter file");

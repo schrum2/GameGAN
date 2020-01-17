@@ -77,8 +77,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			// Load level representation from file here
 			// TODO
 			String levelFileName = Parameters.parameters.stringParameter("marioTargetLevel"); // Does not have a default value yet
-			//targetLevel = ... some method that loads a file with Mario level in json ... 
-			
+			targetLevel = MarioLevelUtil.listLevelFromVGLCFile(levelFileName);
 		}
 		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {
 			MMNEAT.registerFitnessFunction("Random");
@@ -172,6 +171,15 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelMatchFitness")) {
 			int diffCount = 0;
+			
+			if(oneLevel.size() != targetLevel.size()) {
+				System.out.println("Target");
+				System.out.println(targetLevel);
+				System.out.println("Evolved");
+				System.out.println(oneLevel);
+				throw new IllegalStateException("Target level and evolved level are not even the same height.");
+			}
+			
 			// TODO
 			// Should this calculation include or eliminate the starting and ending regions we add to Mario levels?
 			Iterator<List<Integer>> evolveIterator = oneLevel.iterator();
