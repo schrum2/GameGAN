@@ -279,7 +279,7 @@ public class MarioLevelUtil {
 		for(String row : stringLevel) {
 			List<Integer> listRow = new ArrayList<Integer>(row.length());
 			for(int i = 0; i < row.length(); i++) {
-				System.out.println(i + ":" + row.charAt(i));
+				//System.out.println(i + ":" + row.charAt(i));
 				Integer tile = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ?
 					OldLevelParser.indexOfBlock(row.charAt(i)) :
 					LevelParser.tiles.get(row.charAt(i));

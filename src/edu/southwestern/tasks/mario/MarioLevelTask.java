@@ -124,9 +124,8 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 	@Override
 	public Pair<double[], double[]> oneEval(Genotype<T> individual, int num) {
 		EvaluationInfo info = null;
-		ArrayList<List<Integer>> oneLevel = null;
+		ArrayList<List<Integer>> oneLevel = getMarioLevelListRepresentationFromGenotype(individual);
 		if(fitnessRequiresSimulation || CommonConstants.watch) {
-			oneLevel = getMarioLevelListRepresentationFromGenotype(individual);
 			Level level = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ? OldLevelParser.createLevelJson(oneLevel) : LevelParser.createLevelJson(oneLevel);			
 			agent.reset(); // Get ready to play a new level
 			EvaluationOptions options = new CmdLineOptions(new String[]{});
