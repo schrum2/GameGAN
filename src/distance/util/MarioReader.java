@@ -200,8 +200,12 @@ public class MarioReader {
     }
 
     static int maxNum = 0;
-
+    
     public static int[][] readLevel(Scanner scanner) throws Exception {
+        return readLevel(scanner, tiles);
+    }
+
+    public static int[][] readLevel(Scanner scanner, Map<Character, Integer> tiles) throws Exception {
         String line;
         ArrayList<String> lines = new ArrayList<>();
         int width = 0;
