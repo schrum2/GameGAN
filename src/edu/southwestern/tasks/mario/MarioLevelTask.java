@@ -178,6 +178,10 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 				System.out.println(oneLevel);
 				throw new IllegalStateException("Target level and evolved level are not even the same height.");
 			}
+						
+			// This will hold the target level, except that every location of conflict with the evolved level will
+			// be replaced with the blank passable background tile
+			ArrayList<List<Integer>> targetDiff = new ArrayList<>();
 			
 			// TODO
 			// Should this calculation include or eliminate the starting and ending regions we add to Mario levels?
@@ -186,14 +190,29 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			while(evolveIterator.hasNext() && targetIterator.hasNext()) {
 				Iterator<Integer> evolveRow = evolveIterator.next().iterator();
 				Iterator<Integer> targetRow = targetIterator.next().iterator();
+				List<Integer> diffRow = new ArrayList<>(targetLevel.get(0).size()); // For visualizing differences
 				while(evolveRow.hasNext() && targetRow.hasNext()) {
-					if(!evolveRow.next().equals(targetRow.next())) {
+					Integer nextInTarget = targetRow.next();
+					if(!evolveRow.next().equals(nextInTarget)) {
 						diffCount++;
+						diffRow.add(2); // 2 is the blank passable tile. Indicates a conflict
+					} else {
+						diffRow.add(nextInTarget);
 					}
 				}
+				targetDiff.add(diffRow);
 			}
 			// More differences = worse fitness
 			fitnesses.add(-1.0*diffCount);
+			
+			if(CommonConstants.watch) {
+				// View whole dungeon layout
+				Level level = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ? OldLevelParser.createLevelJson(targetDiff) : LevelParser.createLevelJson(targetDiff);			
+				BufferedImage image = MarioLevelUtil.getLevelImage(level);
+				String saveDir = FileUtilities.getSaveDirectory();
+				int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
+				GraphicsUtil.saveImage(image, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioTargetLevelDiff"+individual.getId()+".png");
+			}
 		}
 		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {
 			fitnesses.add(RandomNumbers.fullSmallRand());
