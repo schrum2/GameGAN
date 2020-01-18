@@ -45,6 +45,8 @@ public class LevelParser {
         tilesMario.put(3, 21); //question with coin
         tilesMario.put(4, 22); //question with power up
         tilesMario.put(5, 34); //coin
+        // Special tile meant to indicate a conflict in visualization ... not for playable levels, just visualization
+        tilesMario.put(-100, -81); 
     }
     
     public static final java.util.Map<String, Integer> tilesAdv = new HashMap<>();
@@ -130,7 +132,9 @@ public class LevelParser {
                     if(code==7){
                         level.setSpriteTemplate(j + extraStones, i, new SpriteTemplate(Enemy.ENEMY_FLOWER, false));
                     }
-                }else if(code!=2) {
+                }else if(code==-100) { // Special weird value that should not be in played levels. Just for visualizations. Indicated problem tile
+                    level.setBlock(j+extraStones, i, tilesMario.get(code).byteValue());
+                }else if(code!=2) { // 2 is "nothing" so anything else is a tile that gets placed
                     level.setBlock(j+extraStones, i, tilesMario.get(code).byteValue());
                 }
             }

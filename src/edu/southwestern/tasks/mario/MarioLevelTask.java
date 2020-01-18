@@ -78,6 +78,13 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			// TODO
 			String levelFileName = Parameters.parameters.stringParameter("marioTargetLevel"); // Does not have a default value yet
 			targetLevel = MarioLevelUtil.listLevelFromVGLCFile(levelFileName);
+			
+			// View whole dungeon layout
+			Level level = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ? OldLevelParser.createLevelJson(targetLevel) : LevelParser.createLevelJson(targetLevel);			
+			BufferedImage image = MarioLevelUtil.getLevelImage(level);
+			String saveDir = FileUtilities.getSaveDirectory();
+			GraphicsUtil.saveImage(image, saveDir + File.separator + "Target.png");
+
 		}
 		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {
 			MMNEAT.registerFitnessFunction("Random");
@@ -195,7 +202,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 					Integer nextInTarget = targetRow.next();
 					if(!evolveRow.next().equals(nextInTarget)) {
 						diffCount++;
-						diffRow.add(2); // 2 is the blank passable tile. Indicates a conflict
+						diffRow.add(-100); // An illegal tile. Indicates a conflict
 					} else {
 						diffRow.add(nextInTarget);
 					}
@@ -211,7 +218,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 				BufferedImage image = MarioLevelUtil.getLevelImage(level);
 				String saveDir = FileUtilities.getSaveDirectory();
 				int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
-				GraphicsUtil.saveImage(image, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioTargetLevelDiff"+individual.getId()+".png");
+				GraphicsUtil.saveImage(image, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioLevel"+individual.getId()+"TargetDiff.png");
 			}
 		}
 		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {
