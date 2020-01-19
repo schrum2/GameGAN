@@ -7,6 +7,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -36,15 +38,24 @@ import edu.southwestern.tasks.mario.gan.GANProcess;
 import edu.southwestern.tasks.zelda.ZeldaCPPNtoGANVectorMatrixBuilder;
 import edu.southwestern.tasks.zelda.ZeldaGANVectorMatrixBuilder;
 import edu.southwestern.util.datastructures.Pair;
+import edu.southwestern.util.datastructures.Triple;
+import edu.southwestern.util.random.RandomNumbers;
 import me.jakerg.rougelike.RougelikeApp;
 
+/**
+ * Uses a CPPN to map a latent vector for a GAN to each cell in a grid,
+ * and create a room for Zelda by sending the latent vector to the GAN.
+ * 
+ * @author Jacob Schrum
+ */
 public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWEANN> {
 
 	public static final String[] SENSOR_LABELS = new String[] {"x-coordinate", "y-coordinate", "radius", "bias"};
 	
-	public static final int NUM_NON_LATENT_INPUTS = 2;
-	public static final int INDEX_ROOM_PRESENCE = 0;
-	public static final int INDEX_TRIFORCE_PREFERENCE = 1;
+	public static final int NUM_NON_LATENT_INPUTS = 3;
+	public static final int INDEX_ROOM_PRESENCE = 0;	// Whether a room is present
+	public static final int INDEX_TRIFORCE_PREFERENCE = 1; // Determines both Triforce location AND starting location
+	public static final int INDEX_DOOR_COUNT = 2; // Determines how many doors the room can have
 	
 	public static final int PLAY_BUTTON_INDEX = -20;
 	private static final int FILE_LOADER_BUTTON_INDEX = -21;
@@ -166,6 +177,7 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 		outputLabels = new String[latentVectorLength + NUM_NON_LATENT_INPUTS];
 		outputLabels[INDEX_ROOM_PRESENCE] = "Room Presence";
 		outputLabels[INDEX_TRIFORCE_PREFERENCE] = "Triforce Preference";
+		outputLabels[INDEX_DOOR_COUNT] = "Door Amount";
 		for(int i = NUM_NON_LATENT_INPUTS; i < outputLabels.length; i++) {
 			outputLabels[i] = "LV"+(i-NUM_NON_LATENT_INPUTS);
 		}
@@ -337,7 +349,7 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 					throw new IllegalArgumentException("The dungeon must be empty since the start room is not in the grid");
 				}
 				Point triforceRoom = startAndGoal.t2;
-				dungeon = dungeonFromLevelGrid(levelGrid,startRoom);
+				dungeon = dungeonFromLevelGrid(levelGrid,startRoom,auxiliaryInformation,presenceThreshold);
 				levelGrid[triforceRoom.y][triforceRoom.x] = levelGrid[triforceRoom.y][triforceRoom.x].placeTriforce(dungeon);
 				dungeon.setGoalPoint(new Point(triforceRoom.x, triforceRoom.y));
 				dungeon.setGoal("("+triforceRoom.x+","+triforceRoom.y+")");
@@ -433,7 +445,7 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 	 * @param startRoom Coordinates in grid where player starts
 	 * @return Complete Dungeon representing the given Level grid
 	 */
-	public static Dungeon dungeonFromLevelGrid(Level[][] levelGrid,Point startRoom) {
+	public static Dungeon dungeonFromLevelGrid(Level[][] levelGrid,Point startRoom,double[][][] auxiliaryInformation,double presenceThreshold) {
 		Dungeon dungeonInstance = new Dungeon();
 
 		String[][] uuidLabels = new String[levelGrid.length][levelGrid[0].length];
@@ -454,10 +466,32 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 					String name = uuidLabels[y][x];
 					Node newNode = dungeonInstance.newNode(name, levelGrid[y][x]);
 					
-					ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, x + 1, y, "RIGHT");
-					ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, x, y - 1, "UP");
-					ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, x - 1, y, "LEFT");
-					ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, x, y + 1, "DOWN");
+					// Make at least one door, but others are determined by INDEX_DOOR_COUNT
+					// Check possible adjacent rooms
+					ArrayList<Triple<Integer, Integer, String>> availableNeighbors = new ArrayList<>(4); // At most 4 neighbors
+					if(x+1 < levelGrid[0].length && levelGrid[y][x+1] != null) availableNeighbors.add(new Triple<Integer, Integer, String>(x + 1, y, "RIGHT"));
+					if(y > 0 && levelGrid[y-1][x] != null) availableNeighbors.add(new Triple<Integer, Integer, String>(x, y - 1, "UP"));
+					if(x > 0 && levelGrid[y][x-1] != null) availableNeighbors.add(new Triple<Integer, Integer, String>(x - 1, y, "LEFT"));
+					if(y+1 < levelGrid.length && levelGrid[y+1][x] != null) availableNeighbors.add(new Triple<Integer, Integer, String>(x, y + 1, "DOWN"));
+					// Mix up so that the same adjacent room is not always chosen
+					Collections.shuffle(availableNeighbors, RandomNumbers.randomGenerator);
+					
+					int maxDoors = 1; // At least one
+					// Adapt threshold if needed
+					if(auxiliaryInformation[y][x][INDEX_DOOR_COUNT] > presenceThreshold) maxDoors++;
+					if(auxiliaryInformation[y][x][INDEX_DOOR_COUNT] > presenceThreshold + 0.33) maxDoors++;
+					if(auxiliaryInformation[y][x][INDEX_DOOR_COUNT] > presenceThreshold + 0.66) maxDoors++;
+					// Want to add maxDoors doors, but there may not be that many available
+					int availableDoors = Math.min(maxDoors, availableNeighbors.size());
+					for(int i = 0; i < availableDoors; i++) {
+						Triple<Integer,Integer,String> triple = availableNeighbors.get(i);
+						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, triple.t1, triple.t2, triple.t3);
+					}
+					
+//					ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, x + 1, y, "RIGHT");
+//					ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, x, y - 1, "UP");
+//					ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, x - 1, y, "LEFT");
+//					ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, x, y + 1, "DOWN");
 				}	
 			}
 		}

@@ -82,7 +82,7 @@ public abstract class ZeldaDungeon<T> {
 	 * @param direction String direction (UP, DOWN, LEFT, RIGHT)
 	 */
 	public static void addAdjacencyIfAvailable(Dungeon dungeonInstance, Level[][] dungeon, String[][] uuidLabels, Node newNode, int x, int y, String direction) {
-		int tileToSetTo = 3; // Door tile number
+		int tileToSetTo = Tile.DOOR.getNum(); // Door tile number
 		if(x < 0 || x >= dungeon[0].length || y < 0 || y >= dungeon.length || 
 				dungeon[y][x] == null) // If theres no dungeon there set the tiles to wall
 			tileToSetTo = Tile.WALL.getNum();
