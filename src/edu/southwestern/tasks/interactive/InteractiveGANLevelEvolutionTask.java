@@ -570,7 +570,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		// Add a slider for each latent vector variable
 		for(int i = 0; i < phenotype.size(); i++) {
 			JPanel slider = new JPanel();
-			JSlider vectorValue = new JSlider(JSlider.HORIZONTAL, 0, SLIDER_RANGE, (int)(SLIDER_RANGE*phenotype.get(i)));
+			JSlider vectorValue = new JSlider(JSlider.HORIZONTAL, -SLIDER_RANGE, SLIDER_RANGE, (int)(SLIDER_RANGE*phenotype.get(i)));
 			vectorValue.setMinorTickSpacing(1);
 			vectorValue.setPaintTicks(true);
 			Hashtable<Integer,JLabel> labels = new Hashtable<>();
