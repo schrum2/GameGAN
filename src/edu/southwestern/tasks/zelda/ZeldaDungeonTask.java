@@ -33,8 +33,10 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 			MMNEAT.registerFitnessFunction("DistanceToTriforce");
 		if(Parameters.parameters.booleanParameter("zeldaDungeonFewRoomFitness")) 
 			MMNEAT.registerFitnessFunction("NegativeRooms"); // Fewer rooms means more interesting shapes
+		if(Parameters.parameters.booleanParameter("zeldaPercentDungeonTraversedRoomFitness")) 
+			MMNEAT.registerFitnessFunction("PercentRoomsTraversed"); // Avoid superfluous rooms
 		if(Parameters.parameters.booleanParameter("zeldaDungeonTraversedRoomFitness")) 
-			MMNEAT.registerFitnessFunction("NumRoomsTraversed"); // Avoid superfluous rooms
+			MMNEAT.registerFitnessFunction("NumRoomsTraversed"); // Visit as many rooms as possible
 		if(Parameters.parameters.booleanParameter("zeldaDungeonRandomFitness")) 
 			MMNEAT.registerFitnessFunction("RandomFitness");
 		// Additional information tracked about each dungeon
@@ -141,6 +143,8 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 			fitness.add(new Double(distanceToTriforce));
 		if(Parameters.parameters.booleanParameter("zeldaDungeonFewRoomFitness")) 
 			fitness.add(new Double(-numRooms));
+		if(Parameters.parameters.booleanParameter("zeldaPercentDungeonTraversedRoomFitness")) 
+			fitness.add(new Double(numRooms == 0 ? 0 : (numRoomsTraversed*1.0)/numRooms));
 		if(Parameters.parameters.booleanParameter("zeldaDungeonTraversedRoomFitness")) 
 			fitness.add(new Double(numRoomsTraversed));
 		if(Parameters.parameters.booleanParameter("zeldaDungeonRandomFitness")) 

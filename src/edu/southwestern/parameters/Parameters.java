@@ -710,7 +710,8 @@ public class Parameters {
 		booleanOptions.add("zeldaHelpScreenEnabled", true, "Enable the help screen of Zelda rouge");
 		booleanOptions.add("zeldaDungeonDistanceFitness", true, "Evolve levels that require lots of effort to traverse");
 		booleanOptions.add("zeldaDungeonFewRoomFitness", true, "Evolve levels with as few rooms as possible");
-		booleanOptions.add("zeldaDungeonTraversedRoomFitness", true, "Evolve levels where player has to traverse most of the rooms");
+		booleanOptions.add("zeldaPercentDungeonTraversedRoomFitness", true, "Evolve levels where player has to traverse most of the rooms");
+		booleanOptions.add("zeldaDungeonTraversedRoomFitness", true, "Evolve levels where player has to traverse more rooms");
 		booleanOptions.add("zeldaDungeonRandomFitness", false, "Evolve levels with random fitness");
 		booleanOptions.add("zeldaStudySavesParticipantData", true, "Use with 2019 human subject study");
 		booleanOptions.add("rogueLikeDebugMode", false, "Show helpful information, like locations of secret bombable passages");
