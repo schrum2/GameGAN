@@ -48,11 +48,13 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 
 	public static final String[] SENSOR_LABELS = new String[] {"x-coordinate", "y-coordinate", "radius", "bias"};
 	
-	public static final int NUM_NON_LATENT_INPUTS = 4;
+	public static final int NUM_NON_LATENT_INPUTS = 6;
 	public static final int INDEX_ROOM_PRESENCE = 0;	// Whether a room is present
 	public static final int INDEX_TRIFORCE_PREFERENCE = 1; // Determines both Triforce location AND starting location
 	public static final int INDEX_DOOR_DOWN = 2; // Determines if there is a door heading down (and thus a door up in the connecting room)
 	public static final int INDEX_DOOR_RIGHT = 3; // Determines if there is a door heading right (and thus a door left in the connecting room)
+	public static final int INDEX_DOWN_DOOR_TYPE = 4; // Encodes the type of the down door
+	public static final int INDEX_RIGHT_DOOR_TYPE = 5; // Encodes the type of the right door
 	
 	public static final int PLAY_BUTTON_INDEX = -20;
 	private static final int FILE_LOADER_BUTTON_INDEX = -21;
@@ -176,6 +178,8 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 		outputLabels[INDEX_TRIFORCE_PREFERENCE] = "Triforce Preference";
 		outputLabels[INDEX_DOOR_DOWN] = "Door Down";
 		outputLabels[INDEX_DOOR_RIGHT] = "Door Right";
+		outputLabels[INDEX_DOWN_DOOR_TYPE] = "Down Door Type";
+		outputLabels[INDEX_RIGHT_DOOR_TYPE] = "Right Door Type";
 		for(int i = NUM_NON_LATENT_INPUTS; i < outputLabels.length; i++) {
 			outputLabels[i] = "LV"+(i-NUM_NON_LATENT_INPUTS);
 		}
@@ -475,18 +479,18 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 					
 					if(auxiliaryInformation[y][x][INDEX_DOOR_DOWN] > presenceThreshold && y+1 < levelGrid.length && levelGrid[y+1][x] != null) {
 						// Create door down in this room, and door up in connecting room
-						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, currentNode, x, y + 1, "DOWN");
+						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, currentNode, x, y + 1, "DOWN", auxiliaryInformation[y][x][INDEX_DOWN_DOOR_TYPE]);
 						String nameBelow = 	uuidLabels[y+1][x];
 						Node nodeBelow = dungeonInstance.getNode(nameBelow);
-						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, nodeBelow, x, y, "UP"); // Coordinates of this room
+						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, nodeBelow, x, y, "UP", auxiliaryInformation[y][x][INDEX_DOWN_DOOR_TYPE]); // Coordinates of this room
 					}
 					
 					if(auxiliaryInformation[y][x][INDEX_DOOR_RIGHT] > presenceThreshold && x+1 < levelGrid[y].length && levelGrid[y][x+1] != null) {
 						// Create door right in this room, and door left in connecting room
-						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, currentNode, x + 1, y, "RIGHT");
+						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, currentNode, x + 1, y, "RIGHT", auxiliaryInformation[y][x][INDEX_RIGHT_DOOR_TYPE]);
 						String nameRight = 	uuidLabels[y][x+1];
 						Node nodeRight = dungeonInstance.getNode(nameRight);
-						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, nodeRight, x, y, "LEFT"); // Coordinates of this room
+						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, nodeRight, x, y, "LEFT", auxiliaryInformation[y][x][INDEX_RIGHT_DOOR_TYPE]); // Coordinates of this room
 					}					
 				}	
 			}
