@@ -75,9 +75,9 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 				HashSet<ZeldaState> mostRecentVisited;
 				//actionSequence = DungeonUtil.makeDungeonPlayable(dungeon);
 				Search<GridAction,ZeldaState> search = new AStarSearch<>(ZeldaLevelUtil.manhattan);
-				ZeldaState state = new ZeldaState(5, 5, 0, dungeon);
+				ZeldaState startState = new ZeldaState(5, 5, 0, dungeon);
 				try {
-					actionSequence = ((AStarSearch<GridAction, ZeldaState>) search).search(state, true, Parameters.parameters.integerParameter("aStarSearchBudget"));
+					actionSequence = ((AStarSearch<GridAction, ZeldaState>) search).search(startState, true, Parameters.parameters.integerParameter("aStarSearchBudget"));
 					if(actionSequence != null) 
 						distanceToTriforce = actionSequence.size();
 				}catch(IllegalStateException e) {
@@ -100,8 +100,16 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 					System.out.println("Number of rooms: "+numRooms);
 					System.out.println("Number of rooms traversed: "+numRoomsTraversed);
 					System.out.println("Number of states visited: "+searchStatesVisited);
+					// Get states in the solution to plot a path
+					HashSet<ZeldaState> solutionPath = new HashSet<>();
+					ZeldaState currentState = startState;
+					solutionPath.add(currentState);
+					for(GridAction a : actionSequence) {
+						currentState = (ZeldaState) currentState.getSuccessor(a);
+						solutionPath.add(currentState);
+					}
 					// View whole dungeon layout
-					BufferedImage image = DungeonUtil.viewDungeon(dungeon, mostRecentVisited);
+					BufferedImage image = DungeonUtil.viewDungeon(dungeon, mostRecentVisited, solutionPath);
 					String saveDir = FileUtilities.getSaveDirectory();
 					int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
 					GraphicsUtil.saveImage(image, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "Dungeon"+individual.getId()+".png");

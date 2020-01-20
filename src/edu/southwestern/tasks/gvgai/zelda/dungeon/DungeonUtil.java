@@ -777,7 +777,7 @@ public class DungeonUtil {
 	 * @param visited 
 	 * @return BufferedImage representing dungeon
 	 */
-	public static BufferedImage imageOfDungeon(Dungeon dungeon, HashSet<ZeldaState> visited) {
+	public static BufferedImage imageOfDungeon(Dungeon dungeon, HashSet<ZeldaState> visited, HashSet<ZeldaState> solution) {
 		boolean debug = false;
 		
 		int BLOCK_HEIGHT = dungeon.getCurrentlevel().level.intLevel.size() * 16;
@@ -803,8 +803,12 @@ public class DungeonUtil {
 		
 		HashMap<Dungeon.Node, List<Point>> nodes = null;
 		
+		// Mark points on path to solution
+		if(solution != null)
+			setUnvisited(solution, Tile.PATH);
+		// Mark points visited during a search
 		if(visited != null)
-			setUnvisited(visited);
+			setUnvisited(visited, Tile.VISITED);
 	
 		for(int y = 0; y < levelThere.length; y++) {
 			for(int x = 0; x < levelThere[y].length; x++) {
@@ -843,11 +847,11 @@ public class DungeonUtil {
 		return image;
 	}
 
-	private static void setUnvisited(HashSet<ZeldaState> visited) {
+	private static void setUnvisited(HashSet<ZeldaState> visited, Tile tile) {
 		for(ZeldaState state : visited) {
 			Tile t = Tile.findNum(state.currentNode.level.intLevel.get(state.y).get(state.x));
 			if(t.equals(Tile.FLOOR))
-				state.currentNode.level.intLevel.get(state.y).set(state.x, Tile.VISITED.getNum());
+				state.currentNode.level.intLevel.get(state.y).set(state.x, tile.getNum());
 		}
 		
 	}
@@ -906,8 +910,8 @@ public class DungeonUtil {
 	 * @param visited Collection of visited states in the dungeon
 	 * @return Image off the dungeon
 	 */
-	public static BufferedImage viewDungeon(Dungeon dungeon, HashSet<ZeldaState> visited) {
-		BufferedImage image = imageOfDungeon(dungeon, visited);
+	public static BufferedImage viewDungeon(Dungeon dungeon, HashSet<ZeldaState> visited, HashSet<ZeldaState> solution) {
+		BufferedImage image = imageOfDungeon(dungeon, visited, solution);
 		JFrame frame = new JFrame();
 		JPanel panel = new JPanel();
 		JLabel label = new JLabel(new ImageIcon(image.getScaledInstance(image.getWidth() / 2, image.getHeight() / 2, Image.SCALE_FAST)));
@@ -980,11 +984,11 @@ public class DungeonUtil {
 	}
 
 	public static BufferedImage imageOfDungeon(Dungeon dungeon) {
-		return imageOfDungeon(dungeon, null);
+		return imageOfDungeon(dungeon, null, null);
 	}
 
 	public static void viewDungeon(Dungeon d) {
-		DungeonUtil.viewDungeon(d, new HashSet<>());
+		DungeonUtil.viewDungeon(d, new HashSet<>(), null);
 	}
 
 	/**
