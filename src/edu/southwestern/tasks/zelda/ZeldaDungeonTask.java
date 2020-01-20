@@ -72,14 +72,32 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 				numRooms = dungeon.getLevels().size();
 				// A* should already have been run during creation to assure beat-ability, but it is run again here to get the action sequence.
 				ArrayList<GridAction> actionSequence;
+				HashSet<ZeldaState> solutionPath = null;
 				HashSet<ZeldaState> mostRecentVisited;
 				//actionSequence = DungeonUtil.makeDungeonPlayable(dungeon);
 				Search<GridAction,ZeldaState> search = new AStarSearch<>(ZeldaLevelUtil.manhattan);
 				ZeldaState startState = new ZeldaState(5, 5, 0, dungeon);
 				try {
 					actionSequence = ((AStarSearch<GridAction, ZeldaState>) search).search(startState, true, Parameters.parameters.integerParameter("aStarSearchBudget"));
-					if(actionSequence != null) 
+					if(actionSequence != null) {
 						distanceToTriforce = actionSequence.size();
+						// Get states in the solution to plot a path
+						solutionPath = new HashSet<>();
+						ZeldaState currentState = startState;
+						solutionPath.add(currentState);
+						for(GridAction a : actionSequence) {
+							currentState = (ZeldaState) currentState.getSuccessor(a);
+							solutionPath.add(currentState);
+						}
+						
+						HashSet<Pair<Integer,Integer>> visitedRoomCoordinates = new HashSet<>();
+						for(ZeldaState zs: solutionPath) {
+							// Set does not allow duplicates: one Pair per room
+							visitedRoomCoordinates.add(new Pair<>(zs.dX,zs.dY));
+						}
+
+						numRoomsTraversed = visitedRoomCoordinates.size();
+					}
 				}catch(IllegalStateException e) {
 					throw e; // Pass on exception, but the finally assures we save states when things go wrong.
 				} finally {
@@ -87,27 +105,11 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 					searchStatesVisited = mostRecentVisited.size();
 				}
 
-				HashSet<Pair<Integer,Integer>> visitedRoomCoordinates = new HashSet<>();
-				for(ZeldaState zs: mostRecentVisited) {
-					// Set does not allow duplicates: one Pair per room
-					visitedRoomCoordinates.add(new Pair<>(zs.dX,zs.dY));
-				}
-
-				numRoomsTraversed = visitedRoomCoordinates.size();
-
 				if(CommonConstants.watch) {
 					System.out.println("Distance to Triforce: "+distanceToTriforce);
 					System.out.println("Number of rooms: "+numRooms);
 					System.out.println("Number of rooms traversed: "+numRoomsTraversed);
 					System.out.println("Number of states visited: "+searchStatesVisited);
-					// Get states in the solution to plot a path
-					HashSet<ZeldaState> solutionPath = new HashSet<>();
-					ZeldaState currentState = startState;
-					solutionPath.add(currentState);
-					for(GridAction a : actionSequence) {
-						currentState = (ZeldaState) currentState.getSuccessor(a);
-						solutionPath.add(currentState);
-					}
 					// View whole dungeon layout
 					BufferedImage image = DungeonUtil.viewDungeon(dungeon, mostRecentVisited, solutionPath);
 					String saveDir = FileUtilities.getSaveDirectory();
