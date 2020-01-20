@@ -39,7 +39,6 @@ import edu.southwestern.tasks.gvgai.zelda.level.ZeldaGrammar;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaLevelUtil;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaState;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaState.GridAction;
-import edu.southwestern.tasks.gvgai.zelda.study.HumanSubjectStudy2019Zelda;
 import edu.southwestern.util.datastructures.Graph;
 import edu.southwestern.util.datastructures.Pair;
 import edu.southwestern.util.random.RandomNumbers;
@@ -667,7 +666,7 @@ public class DungeonUtil {
 		Pair<Graph<T>.Node, Graph<T>.Node> pair = pending.pop();
 //		System.out.println(pending);
 		Graph<T>.Node next = pair.t1;
-		if(HumanSubjectStudy2019Zelda.DEBUG)
+		if(Parameters.parameters != null && Parameters.parameters.booleanParameter("rogueLikeDebugMode"))
 			System.out.println("Got " + next.getID() + " from list (" + next + ")");
 		Graph<T>.Node parent = pair.t2;
 		Point location = null;
@@ -879,7 +878,7 @@ public class DungeonUtil {
 			// Leaving it to false occasionally leads to errors
 			reset = true; 
 //			setUnvisited(visited);
-			if(HumanSubjectStudy2019Zelda.DEBUG)
+			if(Parameters.parameters != null && Parameters.parameters.booleanParameter("rogueLikeDebugMode"))
 				System.out.println(result);
 			if(result == null) {
 				// Warning: visited tiles will be replaced with X (Could affect keys)
@@ -890,7 +889,7 @@ public class DungeonUtil {
 				// Resume search from new state: but is this actually the state if should be?
 				state = makePlayable(mostRecentVisited); 
 //				state = new ZeldaState(5, 5, 0, dungeon);
-				if(HumanSubjectStudy2019Zelda.DEBUG)
+				if(Parameters.parameters != null && Parameters.parameters.booleanParameter("rogueLikeDebugMode"))
 					System.out.println(state);
 			}
 			else {

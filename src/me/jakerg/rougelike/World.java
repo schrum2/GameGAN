@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import asciiPanel.AsciiPanel;
+import edu.southwestern.parameters.Parameters;
 import edu.southwestern.util.random.RandomNumbers;
 
 /**
@@ -198,14 +199,14 @@ public class World {
 	public void update() {		
 		for(Creature c : creatures) {
 			c.update();
-			if(RougelikeApp.DEBUG)
+			if(Parameters.parameters != null && Parameters.parameters.booleanParameter("rogueLikeDebugMode"))
 				System.out.println(c.glyph() + "'s health : " + c.hp());
 		}
 		
 		creatures.removeIf(c -> c.hp() < 1);
 		
 		for(Item i : items) {
-			if(RougelikeApp.DEBUG)
+			if(Parameters.parameters != null && Parameters.parameters.booleanParameter("rogueLikeDebugMode"))
 				System.out.println("Updating item : " + i.glyph + " at (" + i.x + ", " + i.y + ")" );
 			i.update();
 		}

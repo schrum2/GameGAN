@@ -10,7 +10,7 @@ import java.util.Queue;
 
 import org.apache.commons.io.FileUtils;
 
-import edu.southwestern.tasks.gvgai.zelda.study.HumanSubjectStudy2019Zelda;
+import edu.southwestern.parameters.Parameters;
 import edu.southwestern.util.datastructures.Graph;
 import edu.southwestern.util.random.RandomNumbers;
 
@@ -102,7 +102,7 @@ abstract public class GraphRuleManager<T extends Grammar> {
 			if(ruleToApply != null) {
 //				if(nextNode != null) graph.removeEdge(node, nextNode);
 				ruleToApply.grammar().setOtherGraph(node, nextNode, graph);
-				if(HumanSubjectStudy2019Zelda.DEBUG) {
+				if(Parameters.parameters != null && Parameters.parameters.booleanParameter("rogueLikeDebugMode")) {
 					System.out.println(node.id);
 					System.out.println(node.adjacencies());
 					if(nextNode != null) {

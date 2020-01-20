@@ -2,6 +2,7 @@ package me.jakerg.rougelike;
 
 import java.awt.Color;
 import asciiPanel.AsciiPanel;
+import edu.southwestern.parameters.Parameters;
 
 /**
  * Enumerator to model our tiles with a character representation and a color
@@ -36,7 +37,7 @@ public enum Tile {
 	
 	public char getGlyph() {
 		if(this == HIDDEN) {
-			if(RougelikeApp.DEBUG)
+			if(Parameters.parameters != null && Parameters.parameters.booleanParameter("rogueLikeDebugMode"))
 				return glyph;
 			else
 				return WALL.glyph;
