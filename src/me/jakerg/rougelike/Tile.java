@@ -13,7 +13,7 @@ public enum Tile {
 	// Refer to Code Page 437 for the number representation of the char
 	FLOOR((char)250, AsciiPanel.yellow, 0),
 	VISITED('x', AsciiPanel.white, 101),
-	UNVISITED('x', AsciiPanel.red, 110),
+	PATH('x', AsciiPanel.red, 110), // To solution/Triforce
 	WALL((char)219, AsciiPanel.yellow, 1),
 	CURRENT((char)219, AsciiPanel.brightYellow, -99),
 	EXIT((char)239, AsciiPanel.green, 4),

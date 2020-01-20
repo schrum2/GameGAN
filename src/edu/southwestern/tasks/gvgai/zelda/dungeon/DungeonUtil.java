@@ -302,7 +302,7 @@ public class DungeonUtil {
 			break;
 		case "k":
 //			System.out.println("Putting key for: " + n.getID());
-			ZeldaLevelUtil.placeRandomKey(level.intLevel);
+			ZeldaLevelUtil.placeRandomKey(level.intLevel, RandomNumbers.randomGenerator);
 			break;
 		case "e":
 			if(tile == null || (tile != null && !tile.equals(Tile.SOFT_LOCK_DOOR)))

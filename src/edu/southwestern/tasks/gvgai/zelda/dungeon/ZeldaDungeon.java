@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import javax.swing.BoxLayout;
@@ -147,6 +148,7 @@ public abstract class ZeldaDungeon<T> {
 			// NaN means use chance to create door type
 			if(Double.isNaN(encodedDoorType) && RandomNumbers.randomCoin(0.7)) {
 				tile = (RandomNumbers.coinFlip()) ? Tile.LOCKED_DOOR.getNum() : Tile.HIDDEN.getNum(); // Randomize 5 (locked door) or 7 (bombable wall)
+				if(tile == Tile.LOCKED_DOOR.getNum()) ZeldaLevelUtil.placeRandomKey(level, RandomNumbers.randomGenerator); // If the door is now locked place a random key in the level
 			} else { // Assume CPPN provided coded interpretation of door type
 				if(encodedDoorType > 0.66) {
 					tile = Tile.LOCKED_DOOR.getNum();
@@ -156,8 +158,11 @@ public abstract class ZeldaDungeon<T> {
 					tile = Tile.SOFT_LOCK_DOOR.getNum();
 				}
 				// else remain a plain door
+				
+				// A random generator based on the CPPN output, so placement will be consistent
+				Random rand = new Random(Double.doubleToLongBits(encodedDoorType));
+				if(tile == Tile.LOCKED_DOOR.getNum()) ZeldaLevelUtil.placeRandomKey(level, rand); // If the door is now locked place a random key in the level
 			}
-			if(tile == Tile.LOCKED_DOOR.getNum()) ZeldaLevelUtil.placeRandomKey(level); // If the door is now locked place a random key in the level
 		}
 		ZeldaLevelUtil.setDoors(direction, node, tile);
 	}
