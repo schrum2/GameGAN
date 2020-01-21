@@ -465,6 +465,7 @@ public class Parameters {
 		booleanOptions.add("drawGhostPredictions", true, "Determines whether or not to visualize the predictions of ghost locations for PO pacman");
 		booleanOptions.add("drawPillModel", true, "Determines whether or not to visualize the model of pill locations for PO pacman");
 		booleanOptions.add("eTimeVsGDis", false, "Sense edible time minus ghost distance");
+		booleanOptions.add("bigInteractiveButtons", false, "Interface buttons for interactive evolution are LARGE");
 		booleanOptions.add("eachComponentTracksScoreToo", false, "Each subcomponent uses game score as reward in addition to preferred fitness");
 		booleanOptions.add("eligibilityOnEarnedFitness", false, "For earned fitness, track eligibility scores");
 		booleanOptions.add("eliminateImpossibleDirections", true, "Pac-man only chooses from available directions to move");

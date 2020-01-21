@@ -3,6 +3,7 @@ package edu.southwestern.tasks.interactive;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -71,6 +72,7 @@ import edu.southwestern.util.random.RandomNumbers;
  */
 public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTask<T>, ActionListener, ChangeListener, NetworkTask {
 
+	public static final int BIG_BUTTON_FONT_SIZE = 30;
 	//Global static final variables
 	public static final int NUM_COLUMNS	= 5;
 	public static final int MPG_DEFAULT = 2;// Starting number of mutations per generation (on slider)	
@@ -93,8 +95,8 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	private static final int MPG_MAX = 10;//maximum # of mutations per generation
 
 	// Activation Button Widths and Heights
-	protected static final int ACTION_BUTTON_WIDTH = 80;
-	protected static final int ACTION_BUTTON_HEIGHT = 60;	
+	private static final int ACTION_BUTTON_WIDTH = 80;
+	private static final int ACTION_BUTTON_HEIGHT = 60;	
 
 	//Private final variables
 	private static int numRows;
@@ -128,6 +130,14 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 
 	public LinkedList<Integer> selectedItems;
 	private boolean stretchToFitButtons;
+
+	private static int getActionButtonWidth() {
+		return (int)(ACTION_BUTTON_WIDTH * (Parameters.parameters.booleanParameter("bigInteractiveButtons") ? 1.6 : 1));
+	}
+
+	private static int getActionButtonHeight() {
+		return (int)(ACTION_BUTTON_HEIGHT * (Parameters.parameters.booleanParameter("bigInteractiveButtons") ? 1.6 : 1));
+	}
 
 	public InteractiveEvolutionTask() throws IllegalAccessException {		
 		this(true,false); // By default, evolve CPPNs, but do not stretch the button images
@@ -194,13 +204,13 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 
 		// Gets the Button Images from the Picbreeder data Folder and re-scales them for use on the smaller Action Buttons
 		ImageIcon reset = new ImageIcon("data"+File.separator+"picbreeder"+File.separator+"reset.png");
-		Image reset2 = reset.getImage().getScaledInstance(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT, 1);
+		Image reset2 = reset.getImage().getScaledInstance(getActionButtonWidth(), getActionButtonHeight(), 1);
 
 		ImageIcon save = new ImageIcon("data"+File.separator+"picbreeder"+File.separator+"save.png");
-		Image save2 = save.getImage().getScaledInstance(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT, 1);
+		Image save2 = save.getImage().getScaledInstance(getActionButtonWidth(), getActionButtonHeight(), 1);
 
 		ImageIcon evolve = new ImageIcon("data"+File.separator+"picbreeder"+File.separator+"arrow.png");
-		Image evolve2 = evolve.getImage().getScaledInstance(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT, 1);
+		Image evolve2 = evolve.getImage().getScaledInstance(getActionButtonWidth(), getActionButtonHeight(), 1);
 
 		//ImageIcon close = new ImageIcon("data"+File.separator+"picbreeder"+File.separator+"quit.png");
 		//Image close2 = close.getImage().getScaledInstance(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT, 1);
@@ -209,10 +219,10 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		//Image lineage2 = lineage.getImage().getScaledInstance(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT, 1);
 
 		ImageIcon network = evolveCPPNs ? new ImageIcon("data"+File.separator+"picbreeder"+File.separator+"network.png") : null;
-		Image network2 = evolveCPPNs ? network.getImage().getScaledInstance(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT, 1) : null;
+		Image network2 = evolveCPPNs ? network.getImage().getScaledInstance(getActionButtonWidth(), getActionButtonHeight(), 1) : null;
 
 		ImageIcon undo = new ImageIcon("data"+File.separator+"picbreeder"+File.separator+"undo.png");
-		Image undo2 = undo.getImage().getScaledInstance(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT, 1);
+		Image undo2 = undo.getImage().getScaledInstance(getActionButtonWidth(), getActionButtonHeight(), 1);
 
 		JButton resetButton = new JButton(new ImageIcon(reset2));
 		JButton saveButton = new JButton(new ImageIcon(save2));
@@ -223,22 +233,29 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		JButton undoButton = new JButton( new ImageIcon(undo2));
 
 		if(evolveAllowed) {
-			resetButton.setPreferredSize(new Dimension(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT));
-			saveButton.setPreferredSize(new Dimension(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT));
-			evolveButton.setPreferredSize(new Dimension(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT));
+			resetButton.setPreferredSize(new Dimension(getActionButtonWidth(), getActionButtonHeight()));
+			saveButton.setPreferredSize(new Dimension(getActionButtonWidth(), getActionButtonHeight()));
+			evolveButton.setPreferredSize(new Dimension(getActionButtonWidth(), getActionButtonHeight()));
 			//lineageButton.setPreferredSize(new Dimension(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT));
-			if(evolveCPPNs) networkButton.setPreferredSize(new Dimension(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT));
-			undoButton.setPreferredSize(new Dimension(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT));
+			if(evolveCPPNs) networkButton.setPreferredSize(new Dimension(getActionButtonWidth(), getActionButtonHeight()));
+			undoButton.setPreferredSize(new Dimension(getActionButtonWidth(), getActionButtonHeight()));
 			//closeButton.setPreferredSize(new Dimension(ACTION_BUTTON_WIDTH, ACTION_BUTTON_HEIGHT));
 
+			if(Parameters.parameters.booleanParameter("bigInteractiveButtons")) {
+				resetButton.setFont(new Font("Arial", Font.PLAIN, BIG_BUTTON_FONT_SIZE));
+				saveButton.setFont(new Font("Arial", Font.PLAIN, BIG_BUTTON_FONT_SIZE));
+				evolveButton.setFont(new Font("Arial", Font.PLAIN, BIG_BUTTON_FONT_SIZE));
+				if(evolveCPPNs) networkButton.setFont(new Font("Arial", Font.PLAIN, BIG_BUTTON_FONT_SIZE));
+				undoButton.setFont(new Font("Arial", Font.PLAIN, BIG_BUTTON_FONT_SIZE));
+			}
+						
 			resetButton.setText("Reset");
 			saveButton.setText("Save");
 			evolveButton.setText("Evolve");
 			//lineageButton.setText("Lineage");
 			if(evolveCPPNs) networkButton.setText("Network");
 			undoButton.setText("Undo");
-			//closeButton.setText("Close");
-
+			
 			//adds slider for mutation rate change
 			JSlider mutationsPerGeneration = new JSlider(JSlider.HORIZONTAL, MPG_MIN, MPG_MAX, MPG_DEFAULT);
 
@@ -263,12 +280,18 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 
 			mutationsPerGeneration.setMinorTickSpacing(1);
 			mutationsPerGeneration.setPaintTicks(true);
-			labels.put(0, new JLabel("Fewer Mutations"));
-			labels.put(10, new JLabel("More Mutations"));
+			JLabel fewer = new JLabel("Fewer Mutations");
+			JLabel more = new JLabel("More Mutations");
+			if(Parameters.parameters.booleanParameter("bigInteractiveButtons")) {
+				fewer.setFont(new Font("Arial", Font.PLAIN, 23));
+				more.setFont(new Font("Arial", Font.PLAIN, 23));
+			}
+			labels.put(0, fewer);
+			labels.put(10, more);
 			mutationsPerGeneration.setLabelTable(labels);
 			mutationsPerGeneration.setPaintLabels(true);
 			mutationsPerGeneration.setToolTipText("The number of mutation chances per offspring when clicking Evolve. A higher value will result in larger differences between parents and offspring.");
-			mutationsPerGeneration.setPreferredSize(new Dimension(200, 40));
+			mutationsPerGeneration.setPreferredSize(new Dimension((int)(200 * (Parameters.parameters.booleanParameter("bigInteractiveButtons") ? 1.7 : 1)), 40 * (Parameters.parameters.booleanParameter("bigInteractiveButtons") ? 2 : 1)));
 
 			//add action listeners to buttons
 			resetButton.addActionListener(this);

@@ -1,6 +1,7 @@
 package edu.southwestern.tasks.interactive;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -93,7 +94,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		this.isPlayable = isPlayable;
 
 		JButton fileLoadButton = new JButton();
-		fileLoadButton.setText("SelectGANModel");
+		fileLoadButton.setText("SetGANModel");
 		fileLoadButton.setName("" + FILE_LOADER_BUTTON_INDEX);
 		fileLoadButton.addActionListener(this);
 
@@ -119,6 +120,13 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		JSlider heightFilterSlider = klDivSlider("receptiveFieldHeight",1,6,"KL filter height");
 		JSlider strideFilterSlider = klDivSlider("stride",1,6,"KL filter stride");
 
+		if(Parameters.parameters.booleanParameter("bigInteractiveButtons")) {
+			fileLoadButton.setFont(new Font("Arial", Font.PLAIN, BIG_BUTTON_FONT_SIZE));
+			vectorExplorerButton.setFont(new Font("Arial", Font.PLAIN, BIG_BUTTON_FONT_SIZE));
+			interpolationButton.setFont(new Font("Arial", Font.PLAIN, BIG_BUTTON_FONT_SIZE));
+			randomizeButton.setFont(new Font("Arial", Font.PLAIN, BIG_BUTTON_FONT_SIZE));
+		}
+		
 		if(!Parameters.parameters.booleanParameter("simplifiedInteractiveInterface")) {
 			if(Parameters.parameters.booleanParameter("showInteractiveGANModelLoader")) {
 				top.add(fileLoadButton);
@@ -153,6 +161,11 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			play.setName("" + PLAY_BUTTON_INDEX);
 			play.setToolTipText("Play a selected level.");
 			play.addActionListener(this);
+			
+			if(Parameters.parameters.booleanParameter("bigInteractiveButtons")) {
+				play.setFont(new Font("Arial", Font.PLAIN, BIG_BUTTON_FONT_SIZE));
+			}
+			
 			top.add(play);
 		}
 	}
