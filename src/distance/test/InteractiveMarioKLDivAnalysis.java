@@ -28,20 +28,28 @@ import java.util.Scanner;
 import static distance.util.MarioReader.readLevel;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.mario.gan.MarioGANUtil;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
+import java.io.PrintWriter;
 import java.util.HashMap;
 
 public class InteractiveMarioKLDivAnalysis {
     static String trainingInputPath = "data/mario/levelsNewEncodingTest/";
-    static String interactiveInputPath= "data/mario/MarioInteractive/";
+    static String interactiveInputPath= "data/mario/MarioInteractiveLast/";
     static String initialVectors = "data/mario/initialVectors.txt";
+    static String logPath = "data/mario/";
     
-    static int filterWidth = 2;
-    static int filterHeight = 2;
+    static int filterWidth = 5;
+    static int filterHeight = 5;
     static int stride = 1;
     
     
     public static void main(String[] args) throws Exception {
+        String filename;
+        filename = "KLDivLog-fw"+filterWidth+"-fH"+filterHeight+"-s"+stride+".txt";
+        FileWriter write = new FileWriter(logPath+filename , true);
+        PrintWriter print_line = new PrintWriter( write );
+        
         //Build ConvNTuples for training Levels        
         File folderTrain = new File(trainingInputPath);
         File[] listOfFilesTrain = folderTrain.listFiles();
@@ -101,7 +109,7 @@ public class InteractiveMarioKLDivAnalysis {
         
         
 
-        //Build ConvNTuples for interactive generated data
+        //Build ConvNTuples for interactive generated data - only last generation
         File folderInt = new File(interactiveInputPath);
         File[] listOfRuns = folderInt.listFiles();
         ArrayList<int[][]> intLevels = new ArrayList<>();
@@ -110,7 +118,6 @@ public class InteractiveMarioKLDivAnalysis {
         ArrayList<ConvNTuple>  intLevelsExp = new ArrayList<>(); //(interactive - per user)
         ArrayList<ConvNTuple>  intLevelsType = new ArrayList<>(); //(interactive - per type)
         //ArrayList<ConvNTuple>  intLevelsExpType = new ArrayList<>(); //(interactive - per user - per type)
-        //TODO look only at last iteration (or at least have that option
        
         
         FilenameFilter genFilter = new FilenameFilter() {
@@ -134,6 +141,7 @@ public class InteractiveMarioKLDivAnalysis {
             }
         };
         
+        
         int id = 0;
         for (int run=0; run< listOfRuns.length; run++){
             File folderIntExp = new File(listOfRuns[run].getAbsolutePath());
@@ -148,7 +156,7 @@ public class InteractiveMarioKLDivAnalysis {
                     for(int vec=0; vec < listOfVectors.length; vec++){
                         File levelFile = new File(listOfVectors[vec].getAbsolutePath());
                         int vector = Integer.parseInt(levelFile.getName().replaceAll("\\D+",""));
-                        System.out.println(id + "\t" + run + "\t" + type + "\t" + generation + "\t" + vector + "\t" + levelFile.getPath());
+                        print_line.println(id + "\t" + run + "\t" + type + "\t" + generation + "\t" + vector + "\t" + levelFile.getPath());
                         ArrayList<String> lines = new ArrayList<>();
                         Scanner scanner = new Scanner(new FileInputStream(levelFile));
                         while (scanner.hasNext()) {
@@ -197,6 +205,57 @@ public class InteractiveMarioKLDivAnalysis {
             }
         }
 
+        print_line.println("1 KL-Div to general distribution of training levels (overworld)");
+        print_line.println("1-1 from single training levels");
+        for(int i=0; i<trainingLevelsConv.size(); i++){
+            print_line.println("1-1\t"+KLDiv.klDiv(trainingLevelsConv.get(i).sampleDis, trainingLevelsAllConv.sampleDis));
+        }
+        print_line.println("1-2 from single generated levels (interactive)");
+        for(int i=0; i<intLevelsConv.size(); i++){
+            print_line.println("1-2\t"+KLDiv.klDiv(intLevelsConv.get(i).sampleDis, trainingLevelsAllConv.sampleDis));
+        }
+        print_line.println("1-3 from random generated levels");
+        for(int i=0; i<initLevelsConv.size(); i++){
+            print_line.println("1-3\t"+KLDiv.klDiv(initLevelsConv.get(i).sampleDis, trainingLevelsAllConv.sampleDis));
+        }
+        print_line.println("1-4 from general distribution of generated levels (interactive - per user)");
+        for(int i=0; i<intLevelsExp.size(); i++){
+            print_line.println("1-4\t"+KLDiv.klDiv(intLevelsExp.get(i).sampleDis, trainingLevelsAllConv.sampleDis));
+        }
+        print_line.println("1-5 from general distribution of generated levels (interactive - per type)");
+        for(int i=0; i<intLevelsType.size(); i++){
+            print_line.println("1-5\t"+KLDiv.klDiv(intLevelsType.get(i).sampleDis, trainingLevelsAllConv.sampleDis));
+        }
+        print_line.println("1-6 from general distribution of generated levels (interactive - per user - per type)");
+        print_line.println("1-7 from general distribution of generated levels (interactive - all experiments)");
+        print_line.println("1-7\t"+KLDiv.klDiv(intLevelsAll.sampleDis, trainingLevelsAllConv.sampleDis));
+        print_line.println("1-8 from general distribution of randomly generated levels");
+        print_line.println("1-8\t"+KLDiv.klDiv(initLevelsAllConv.sampleDis, trainingLevelsAllConv.sampleDis));
+        
+        print_line.println("2 KL-Div between single levels (distance matrix)");
+        for(int i=0; i<trainingLevelsConv.size(); i++){
+            for(int j=0; j<trainingLevelsConv.size(); j++){
+                print_line.println("2\tt"+i+"\tt"+j+"\t"+KLDiv.klDiv(trainingLevelsConv.get(i).sampleDis, trainingLevelsConv.get(j).sampleDis));
+            }
+            for(int j=0; j<intLevelsConv.size(); j++){
+                print_line.println("2\tt"+i+"\ti"+j+"\t"+KLDiv.klDiv(trainingLevelsConv.get(i).sampleDis, intLevelsConv.get(j).sampleDis));
+            }
+        }
+        for(int i=0; i<intLevelsConv.size(); i++){
+            for(int j=0; j<trainingLevelsConv.size(); j++){
+                print_line.println("2\ti"+i+"\tt"+j+"\t"+KLDiv.klDiv(intLevelsConv.get(i).sampleDis, trainingLevelsConv.get(j).sampleDis));
+            }
+            for(int j=0; j<intLevelsConv.size(); j++){
+                print_line.println("2\ti"+i+"\ti"+j+"\t"+KLDiv.klDiv(intLevelsConv.get(i).sampleDis, intLevelsConv.get(j).sampleDis));
+            }
+        }
+        
+        
+        
+        print_line.close();
+        write.close();
+        
+        
         
         //ArrayList<ConvNTuple> trainingLevelsConv = new ArrayList<>(listOfRuns.length);
         //ConvNTuple trainingLevelsAllConv = new ConvNTuple();
