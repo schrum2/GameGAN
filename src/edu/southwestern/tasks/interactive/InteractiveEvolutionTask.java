@@ -100,7 +100,8 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 
 	//Private final variables
 	private static int numRows;
-	protected static int picSize;
+	protected static int buttonHeight;
+	protected static int buttonWidth;
 	private static int numButtonOptions;
 
 	//Private graphic objects
@@ -131,10 +132,18 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	public LinkedList<Integer> selectedItems;
 	private boolean stretchToFitButtons;
 
+	/**
+	 * Gets button width, but has alternate setting if large-font buttons are desired.
+	 * @return Width of interface buttons in pixels
+	 */
 	private static int getActionButtonWidth() {
 		return (int)(ACTION_BUTTON_WIDTH * (Parameters.parameters.booleanParameter("bigInteractiveButtons") ? 1.6 : 1));
 	}
 
+	/**
+	 * Gets button height, but has alternate setting if large-font buttons are desired.
+	 * @return Height of interface buttons in pixels
+	 */
 	private static int getActionButtonHeight() {
 		return (int)(ACTION_BUTTON_HEIGHT * (Parameters.parameters.booleanParameter("bigInteractiveButtons") ? 1.6 : 1));
 	}
@@ -164,7 +173,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		//Global variable instantiations
 		numButtonOptions	= Parameters.parameters.integerParameter("mu");
 		numRows = numButtonOptions / NUM_COLUMNS;
-		picSize = Parameters.parameters.integerParameter("imageSize");
+		buttonHeight = Parameters.parameters.integerParameter("imageSize");
 		chosen = new boolean[numButtonOptions];
 		//showLineage = false;
 		showNetwork = false;
@@ -188,7 +197,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 
 		//frame.setSize(PIC_SIZE * NUM_COLUMNS + 200, PIC_SIZE * NUM_ROWS + 700);
 		frame.setSize(Toolkit.getDefaultToolkit().getScreenSize());
-		picSize = Math.min(picSize, frame.getWidth() / NUM_COLUMNS);
+		buttonHeight = Math.min(buttonHeight, frame.getWidth() / NUM_COLUMNS);
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLayout(new GridLayout(numRows + 1, 0));// the + 1 includes room for the title panel
@@ -347,6 +356,10 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		topper.add(top);
 		topper.add(bottom);
 		panels.add(topper);
+		
+		// Allows for better display ratio on buttons
+		buttonWidth = (frame.getHeight() - topper.getHeight())/numRows;
+
 		//adds button panels
 		addButtonPanels();	
 
@@ -408,7 +421,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		for(int i = 1; i <= numRows; i++) {
 			for(int j = 0; j < NUM_COLUMNS; j++) {
 				if(x < numButtonOptions) {
-					JButton image = getImageButton(GraphicsUtil.solidColorImage(Color.BLACK, picSize,( frame.getHeight() - topper.getHeight())/numRows), "x");
+					JButton image = getImageButton(GraphicsUtil.solidColorImage(Color.BLACK, buttonWidth, buttonHeight), "x");
 					image.setName("" + x);
 					image.addActionListener(this);
 					panels.get(i).add(image);
@@ -425,8 +438,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	private void addButtonPanels() { 
 		for(int i = 1; i <= numRows; i++) {
 			JPanel row = new JPanel();
-			row.setSize(frame.getWidth(), picSize);
-			row.setSize(frame.getWidth(), picSize);
+			row.setSize(frame.getWidth(), buttonHeight);
 			row.setLayout(new GridLayout(1, NUM_COLUMNS));
 			panels.add(row);
 		}
@@ -493,8 +505,8 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 * @param buttonIndex index of button 
 	 */
 	protected void setButtonImage(BufferedImage gmi, int buttonIndex){ 
-		int width = picSize;
-		int height = picSize;
+		int width = buttonWidth;
+		int height = buttonHeight;
 		if(stretchToFitButtons) {
 			width = frame.getWidth() / NUM_COLUMNS;
 		}
@@ -560,7 +572,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 */
 	protected void resetButton(Genotype<T> individual, int x, boolean selected) { 
 		if(!selected) scores.add(new Score<T>(individual, new double[]{0}, null));
-		setButtonImage(showNetwork ? getNetwork(individual) : getButtonImage(true, individual.getPhenotype(),  picSize, picSize, inputMultipliers), x);
+		setButtonImage(showNetwork ? getNetwork(individual) : getButtonImage(true, individual.getPhenotype(), buttonWidth, buttonHeight, inputMultipliers), x);
 		if(!selected) chosen[x] = false;
 		buttons.get(x).setBorder(BorderFactory.createLineBorder(selected ? Color.BLUE : Color.lightGray, BORDER_THICKNESS));
 	}
@@ -616,7 +628,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 */
 	private BufferedImage getNetwork(Genotype<T> tg) {
 		T pheno = tg.getPhenotype();
-		return ((TWEANN) pheno).getNetworkImage(picSize, (frame.getHeight() - topper.getHeight())/numRows, false, false);
+		return ((TWEANN) pheno).getNetworkImage(buttonWidth, buttonHeight, false, false);
 	}
 
 	/**
@@ -634,7 +646,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		}	
 		// Because image loading may take a while, blank all images first so that it is clear
 		// when the images have loaded.
-		BufferedImage blank = new BufferedImage(picSize, picSize, BufferedImage.TYPE_INT_RGB);
+		BufferedImage blank = new BufferedImage(buttonWidth, buttonHeight, BufferedImage.TYPE_INT_RGB);
 		for(int i = 0; i < buttons.size(); i++) {
 			setButtonImage(blank, i);
 		}	
@@ -745,7 +757,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		if(showNetwork) {//puts images back on buttons
 			showNetwork = false;
 			for(int i = 0; i < scores.size(); i++) {
-				setButtonImage(getButtonImage(scores.get(i).individual.getPhenotype(), picSize, picSize, inputMultipliers), i);
+				setButtonImage(getButtonImage(scores.get(i).individual.getPhenotype(), buttonWidth, buttonHeight, inputMultipliers), i);
 			}
 		} else {//puts networks on buttons
 			showNetwork = true;
@@ -801,7 +813,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		}
 		for(int i = 0; i < scores.size(); i++) {
 			// If not doing hard reset, there is a chance to load from cache
-			setButtonImage(getButtonImage(!hardReset, scores.get(i).individual.getPhenotype(),  picSize, picSize, inputMultipliers), i);
+			setButtonImage(getButtonImage(!hardReset, scores.get(i).individual.getPhenotype(),  buttonWidth, buttonHeight, inputMultipliers), i);
 		}		
 	}
 
@@ -983,10 +995,10 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	private void drawLineage(Offspring o, long id, int x, int y) { 
 		int depth = 0;
 		if(o.parentId1 > -1) {
-			drawLineage(o.parentId1, id, x, y - picSize/4, depth++);
+			drawLineage(o.parentId1, id, x, y - buttonHeight/4, depth++);
 		}
 		if(o.parentId2 > -1) {
-			drawLineage(o.parentId2, id, x, y + picSize/4, depth++);
+			drawLineage(o.parentId2, id, x, y + buttonHeight/4, depth++);
 		}	
 	}
 
@@ -1005,11 +1017,11 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		Offspring o = Offspring.lineage.get((int) id);
 		if(o != null && !drawnOffspring.contains(id)) { // Don't draw if already drawn
 			Genotype<T> g = (Genotype<T>) Offspring.getGenotype(o.xmlNetwork);
-			BufferedImage bi = getButtonImage(g.getPhenotype(), picSize/2, picSize/2, inputMultipliers);
-			DrawingPanel p = GraphicsUtil.drawImage(bi, id + " -> " + childId, picSize/2, picSize/2);
+			BufferedImage bi = getButtonImage(g.getPhenotype(), buttonWidth/2, buttonHeight/2, inputMultipliers);
+			DrawingPanel p = GraphicsUtil.drawImage(bi, id + " -> " + childId, buttonWidth/2, buttonHeight/2);
 			p.setLocation(x, y);
 			savedLineage.put(depth, savedLineage.get(depth) == null ? 0 : savedLineage.get(depth) + 1);
-			drawLineage(o, id, x + picSize/2, y);
+			drawLineage(o, id, x + buttonHeight/2, y);
 			p.setTitle(id + "ancestor" + depth + savedLineage.get(depth));
 			p.save(p.getFrame().getTitle());
 			dPanels.add(p);

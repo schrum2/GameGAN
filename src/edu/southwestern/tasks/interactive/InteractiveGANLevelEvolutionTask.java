@@ -187,7 +187,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 					System.exit(1);
 				}
 				
-				BufferedImage image = getButtonImage(false, vector,  picSize, picSize, inputMultipliers);
+				BufferedImage image = getButtonImage(false, vector, buttonWidth, buttonHeight, inputMultipliers);
 				GraphicsUtil.saveImage(image, saveDir + File.separator + "level"+i+".png");
 
 			}
@@ -379,11 +379,11 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 
 			// The interpolated result starts as the left level/vector
 			interpolatedPhenotype = (ArrayList<Double>) leftPhenotype.clone();			
-			final JLabel interpolatedImageLabel = getLevelImageLabel(2*picSize, interpolatedPhenotype);		
+			final JLabel interpolatedImageLabel = getLevelImageLabel(2*buttonHeight, 2*buttonWidth, interpolatedPhenotype);		
 
 			// Show one level on the left
-			final JLabel leftImageLabel = getLevelImageLabel(leftItem, picSize);
-			final JLabel rightImageLabel = getLevelImageLabel(rightItem, picSize);
+			final JLabel leftImageLabel = getLevelImageLabel(leftItem, buttonHeight, buttonWidth);
+			final JLabel rightImageLabel = getLevelImageLabel(rightItem, buttonHeight, buttonWidth);
 
 			// Add left image now. Right image added below.
 			explorer.getContentPane().add(leftImageLabel);
@@ -426,7 +426,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 						}
 
 						// Update image
-						ImageIcon img = getLevelImageIcon(2*picSize, interpolatedPhenotype);
+						ImageIcon img = getLevelImageIcon(2*buttonHeight, 2*buttonWidth, interpolatedPhenotype);
 						interpolatedImageLabel.setIcon(img);
 					}
 				}
@@ -453,7 +453,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 					for(int i = 0; i < interpolatedPhenotype.size(); i++) {
 						leftPhenotype.set(i, interpolatedPhenotype.get(i));
 					}
-					ImageIcon img = getLevelImageIcon(picSize, leftPhenotype);
+					ImageIcon img = getLevelImageIcon(buttonHeight, buttonWidth, leftPhenotype);
 					leftImageLabel.setIcon(img);
 					resetButton(scores.get(selectedItems.get(leftItem)).individual, selectedItems.get(leftItem),true);
 					slider.setValue(0); // Move slider to left
@@ -469,7 +469,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 					for(int i = 0; i < interpolatedPhenotype.size(); i++) {
 						rightPhenotype.set(i, interpolatedPhenotype.get(i));
 					}
-					ImageIcon img = getLevelImageIcon(picSize, rightPhenotype);
+					ImageIcon img = getLevelImageIcon(buttonHeight, buttonWidth, rightPhenotype);
 					rightImageLabel.setIcon(img);
 					resetButton(scores.get(selectedItems.get(rightItem)).individual, selectedItems.get(rightItem),true);
 					slider.setValue(SLIDER_RANGE); // Move slider to right
@@ -511,37 +511,37 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 	/**
 	 * Generate the Level Image to go on the Buttons
 	 * @param itemIndex Index in population
-	 * @param picSize Size of image
+	 * @param picHeight Size of image
 	 * @return JLabel representing an image of the level
 	 */
-	private JLabel getLevelImageLabel(int itemIndex, int picSize) {
+	private JLabel getLevelImageLabel(int itemIndex, int picHeight, int picWidth) {
 		int leftPopulationIndex = selectedItems.get(itemIndex);
 		ArrayList<Double> leftPhenotype = scores.get(leftPopulationIndex).individual.getPhenotype();
 		// Image of level
-		return getLevelImageLabel(picSize, leftPhenotype);
+		return getLevelImageLabel(picHeight, picWidth, leftPhenotype);
 	}
 
 	/**
 	 * Generate the Zelda level based on the phenotype
-	 * @param picSize Size of image
+	 * @param picHeight Size of image
 	 * @param phenotype Latent vector
 	 * @return JLabel representation of the given Zelda level to be used in the GUI
 	 */
-	public JLabel getLevelImageLabel(int picSize, ArrayList<Double> phenotype) {
-		ImageIcon img = getLevelImageIcon(picSize, phenotype);
+	public JLabel getLevelImageLabel(int picHeight, int picWidth, ArrayList<Double> phenotype) {
+		ImageIcon img = getLevelImageIcon(picHeight, picWidth, phenotype);
 		JLabel leftImageLabel = new JLabel(img);
 		return leftImageLabel;
 	}
 
 	/**
 	 * Get the ImageIcon to put on a JLabel
-	 * @param picSize Image size
+	 * @param picHeight Image size
 	 * @param phenotype latent vector
 	 * @return ImageIcon representing the Zelda level
 	 */
-	public ImageIcon getLevelImageIcon(int picSize, ArrayList<Double> phenotype) {
-		BufferedImage leftLevel = getButtonImage(false, phenotype, picSize,picSize, inputMultipliers);
-		ImageIcon img = new ImageIcon(leftLevel.getScaledInstance(picSize,picSize,Image.SCALE_DEFAULT));
+	public ImageIcon getLevelImageIcon(int picHeight, int picWidth, ArrayList<Double> phenotype) {
+		BufferedImage leftLevel = getButtonImage(false, phenotype, picWidth, picHeight, inputMultipliers);
+		ImageIcon img = new ImageIcon(leftLevel.getScaledInstance(picWidth,picHeight,Image.SCALE_DEFAULT));
 		return img;
 	}
 
@@ -559,7 +559,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 		final boolean compare = compareTwo;
 		ArrayList<Double> phenotype = scores.get(populationIndex).individual.getPhenotype();
 		// Image of level
-		final JLabel imageLabel = getLevelImageLabel(2*picSize, phenotype);
+		final JLabel imageLabel = getLevelImageLabel(2*buttonHeight, 2*buttonWidth, phenotype);
 
 		JPanel bothKLDivStrings = new JPanel();
 		bothKLDivStrings.setLayout(new GridLayout(3,1));
@@ -612,7 +612,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 						// Actually change the value of the phenotype in the population
 						phenotype.set(latentVariableIndex, scaledValue);
 						// Update image
-						ImageIcon img = getLevelImageIcon(2*picSize, phenotype); 
+						ImageIcon img = getLevelImageIcon(2*buttonHeight, 2*buttonWidth, phenotype); 
 						imageLabel.setIcon(img);
 						// Genotype references the phenotype, so it is changed by the modifications above
 						resetButton(scores.get(populationIndex).individual, populationIndex,true);
