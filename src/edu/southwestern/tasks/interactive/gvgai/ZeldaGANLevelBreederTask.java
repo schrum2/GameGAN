@@ -280,12 +280,18 @@ public class ZeldaGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 				phenotypes.add(scores.get(i).individual.getPhenotype());
 			}
 			
-			try {
-				// TODO: Fix: This 5 seems to be completely ignored by both Simple and Graph Dungeon
-				sd.showDungeon(phenotypes, 10);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			int exceptionCount = 0;
+			boolean success = false;
+			// Give 3 chances to get it right
+			while(exceptionCount < 3 && ! success) {
+				try {
+					sd.showDungeon(phenotypes, 10);
+					success = true;
+				} catch (Exception e) {
+					// On failure, just try again ... there seem to be occasional crashes. Need to fix eventually.
+					exceptionCount++;
+					e.printStackTrace();
+				}
 			}
 		}
 		return false;
