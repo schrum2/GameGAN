@@ -1,5 +1,6 @@
 package edu.southwestern.tasks.interactive.gvgai;
 
+import java.awt.Font;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -63,6 +64,11 @@ public class ZeldaGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 		dungeonize.setName("" + DUNGEONIZE_BUTTON_INDEX);
 		dungeonize.setToolTipText("Take selected rooms and randomly combine them into a playable dungeon (may not use all rooms).");
 		dungeonize.addActionListener(this);
+		
+		if(Parameters.parameters.booleanParameter("bigInteractiveButtons")) {
+			dungeonize.setFont(new Font("Arial", Font.PLAIN, BIG_BUTTON_FONT_SIZE));
+		}
+		
 		top.add(dungeonize);
 		
 		VGDLFactory.GetInstance().init(); // Get an instant of VGDL Factor and initialize the characters cache
@@ -274,12 +280,18 @@ public class ZeldaGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 				phenotypes.add(scores.get(i).individual.getPhenotype());
 			}
 			
-			try {
-				// TODO: Fix: This 5 seems to be completely ignored by both Simple and Graph Dungeon
-				sd.showDungeon(phenotypes, 10);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			int exceptionCount = 0;
+			boolean success = false;
+			// Give 3 chances to get it right
+			while(exceptionCount < 3 && ! success) {
+				try {
+					sd.showDungeon(phenotypes, 10);
+					success = true;
+				} catch (Exception e) {
+					// On failure, just try again ... there seem to be occasional crashes. Need to fix eventually.
+					exceptionCount++;
+					e.printStackTrace();
+				}
 			}
 		}
 		return false;
@@ -290,7 +302,7 @@ public class ZeldaGANLevelBreederTask extends InteractiveGANLevelEvolutionTask {
 			// Run the MMNeat Main method with parameters specifying that we want to run the Zedla GAN 
 			//MMNEAT.main(new String[]{"runNumber:0","randomSeed:1","showKLOptions:false","allowInteractiveEvolution:false","trials:1","mu:16","zeldaGANModel:ZeldaFixedDungeonsAll_5000_10.pth","maxGens:500","io:false","netio:false","GANInputSize:10","mating:true","fs:false","task:edu.southwestern.tasks.interactive.gvgai.ZeldaGANLevelBreederTask","genotype:edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype","watch:false","cleanFrequency:-1","simplifiedInteractiveInterface:false","saveAllChampions:true","cleanOldNetworks:false","ea:edu.southwestern.evolution.selectiveBreeding.SelectiveBreedingEA","imageWidth:2000","imageHeight:2000","imageSize:200", "zeldaGANUsesOriginalEncoding:false"});
 			//MMNEAT.main(new String[]{"runNumber:0","randomSeed:1","showKLOptions:false","showLatentSpaceOptions:false","trials:1","mu:16","zeldaGANModel:ZeldaFixedDungeonsAll_5000_10.pth","maxGens:500","io:false","netio:false","GANInputSize:10","mating:true","fs:false","task:edu.southwestern.tasks.interactive.gvgai.ZeldaGANLevelBreederTask","genotype:edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype","watch:false","cleanFrequency:-1","simplifiedInteractiveInterface:false","saveAllChampions:true","cleanOldNetworks:false","ea:edu.southwestern.evolution.selectiveBreeding.SelectiveBreedingEA","imageWidth:2000","imageHeight:2000","imageSize:200", "zeldaGANUsesOriginalEncoding:false"});
-			MMNEAT.main(new String[]{"runNumber:0","randomSeed:1","showKLOptions:false","trials:1","mu:16","zeldaGANModel:ZeldaFixedDungeonsAll_5000_10.pth","maxGens:500","io:false","netio:false","GANInputSize:10","mating:true","fs:false","task:edu.southwestern.tasks.interactive.gvgai.ZeldaGANLevelBreederTask","genotype:edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype","watch:false","cleanFrequency:-1","simplifiedInteractiveInterface:false","saveAllChampions:true","cleanOldNetworks:false","ea:edu.southwestern.evolution.selectiveBreeding.SelectiveBreedingEA","imageWidth:2000","imageHeight:2000","imageSize:200", "zeldaGANUsesOriginalEncoding:false"});
+			MMNEAT.main(new String[]{"runNumber:0","randomSeed:1","bigInteractiveButtons:true","showKLOptions:false","trials:1","mu:16","zeldaGANModel:ZeldaFixedDungeonsAll_5000_10.pth","maxGens:500","io:false","netio:false","GANInputSize:10","mating:true","fs:false","task:edu.southwestern.tasks.interactive.gvgai.ZeldaGANLevelBreederTask","genotype:edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype","watch:false","cleanFrequency:-1","simplifiedInteractiveInterface:false","saveAllChampions:true","cleanOldNetworks:false","ea:edu.southwestern.evolution.selectiveBreeding.SelectiveBreedingEA","imageWidth:2000","imageHeight:2000","imageSize:200", "zeldaGANUsesOriginalEncoding:false"});
 		} catch (FileNotFoundException | NoSuchMethodException e) {
 			e.printStackTrace();
 		}

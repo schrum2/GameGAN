@@ -235,17 +235,23 @@ public abstract class ZeldaDungeon<T> {
 		newDungeon.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				try {
-					dungeonInstance = makeDungeon(originalPhenotypes, numRooms);
-					container.remove(dungeonGrid); 
-					dungeonGrid = getDungeonGrid(numRooms);
-					container.add(dungeonGrid);
-					frame.validate();
-					frame.repaint();
-				} catch (Exception e) {
-					e.printStackTrace();
+				int exceptionCount = 0;
+				boolean success = false;
+				// Fails sometimes. Give three chances to get it right (need to find root cause and fix)
+				while(exceptionCount < 3 && ! success) {
+					try {
+						dungeonInstance = makeDungeon(originalPhenotypes, numRooms);
+						container.remove(dungeonGrid); 
+						dungeonGrid = getDungeonGrid(numRooms);
+						container.add(dungeonGrid);
+						frame.validate();
+						frame.repaint();
+						success = true;
+					} catch (Exception e) {
+						exceptionCount++;
+						e.printStackTrace();
+					}
 				}
-				
 			}
 
 		});
