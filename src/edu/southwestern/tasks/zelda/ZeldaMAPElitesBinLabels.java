@@ -6,7 +6,7 @@ import java.util.List;
 import edu.southwestern.evolution.mapelites.BinLabels;
 import edu.southwestern.parameters.Parameters;
 
-public class ZeldaMAPElitesBinLabelling implements BinLabels {
+public class ZeldaMAPElitesBinLabels implements BinLabels {
 
 	public static final int TILE_GROUPS = 10;
 	
