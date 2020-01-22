@@ -259,7 +259,7 @@ public class ZeldaState extends State<ZeldaState.GridAction>{
 					if(nextTile.playerPassable() && !nextTile.isMovable()) {
 						legal.add(possible);
 					}
-					else if (nextTile.equals(Tile.BLOCK) && hasLadder && !tile.equals(Tile.BLOCK))
+					else if (nextTile.equals(Tile.WATER) && hasLadder && !tile.equals(Tile.WATER))
 						legal.add(possible);
 				
 				}

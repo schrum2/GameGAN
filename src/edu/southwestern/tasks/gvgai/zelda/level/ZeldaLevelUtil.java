@@ -280,7 +280,7 @@ public class ZeldaLevelUtil {
 		rP.y += d.getPoint().y;
 		rP.x += d.getPoint().x;
 		level.get(rP.y).set(rP.x, Tile.FLOOR.getNum());
-		placeAround(level, rP, Tile.BLOCK);
+		placeAround(level, rP, Tile.WATER);
 	}
 
 	/**

@@ -920,4 +920,21 @@ public class ArrayUtil {
 		}
 		return result;
 	}
+
+	/**
+	 * Turn 3D array into 1D array in row major order
+	 * @param array 3D array, NOT jagged in any dimension
+	 * @return corresponding 1D array in row major order
+	 */
+	public static double[] flatten3DDoubleArray(double[][][] array) {
+		double[] result = new double[array.length*array[0].length*array[0][0].length];
+		int index = 0;
+		for(double[][] slice: array) {
+			for(double[] row: slice) {
+				System.arraycopy(row, 0, result, index, row.length);
+				index += row.length;
+			}
+		}
+		return result;
+	}
 }

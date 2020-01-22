@@ -102,7 +102,7 @@ public class DungeonAi extends CreatureAi{
 		if(tile.equals(Tile.TRIFORCE)) {
 			creature.setWin(true);
 		}
-		if(tile.equals(Tile.BLOCK) && creature.hasItem('#') && !creature.getWorld().tile(creature.x, creature.y).equals(Tile.BLOCK)) {
+		if(tile.equals(Tile.WATER) && creature.hasItem('#') && !creature.getWorld().tile(creature.x, creature.y).equals(Tile.WATER)) {
 			creature.x = x;
 			creature.y = y;
 		}

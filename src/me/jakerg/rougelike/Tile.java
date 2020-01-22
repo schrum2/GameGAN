@@ -18,7 +18,7 @@ public enum Tile {
 	CURRENT((char)219, AsciiPanel.brightYellow, -99),
 	EXIT((char)239, AsciiPanel.green, 4),
 	DOOR((char)239, AsciiPanel.green, 3),
-	BLOCK((char)177, AsciiPanel.cyan, 5), // this is the 'P' water block thing
+	WATER((char)177, AsciiPanel.cyan, 5), // this is the 'P' water block thing
 	LOCKED_DOOR((char)239, AsciiPanel.red, -5),
 	SOFT_LOCK_DOOR((char)239, AsciiPanel.brightBlue, -55),
 	HIDDEN((char)178, AsciiPanel.yellow, -7),
@@ -76,7 +76,7 @@ public enum Tile {
 	}
 	
 	public boolean isBlock() {
-		return this == BLOCK || this.isMovable();
+		return this == WATER || this.isMovable();
 	}
 	
 	public boolean playerPassable() {

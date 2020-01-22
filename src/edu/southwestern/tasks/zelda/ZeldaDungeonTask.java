@@ -1,5 +1,6 @@
 package edu.southwestern.tasks.zelda;
 
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -13,13 +14,14 @@ import edu.southwestern.parameters.Parameters;
 import edu.southwestern.scores.MultiObjectiveScore;
 import edu.southwestern.scores.Score;
 import edu.southwestern.tasks.LonerTask;
-import edu.southwestern.tasks.NoisyLonerTask;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.Dungeon;
+import edu.southwestern.tasks.gvgai.zelda.dungeon.Dungeon.Node;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.DungeonUtil;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaLevelUtil;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaState;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaState.GridAction;
 import edu.southwestern.util.MiscUtil;
+import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.datastructures.Pair;
 import edu.southwestern.util.file.FileUtilities;
 import edu.southwestern.util.graphics.GraphicsUtil;
@@ -27,6 +29,7 @@ import edu.southwestern.util.random.RandomNumbers;
 import edu.southwestern.util.search.AStarSearch;
 import edu.southwestern.util.search.Search;
 import me.jakerg.rougelike.RougelikeApp;
+import me.jakerg.rougelike.Tile;
 
 public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 
@@ -67,13 +70,34 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 
 	@Override
 	public Score<T> evaluate(Genotype<T> individual) {
+		// Defines the floor space (excluding walls)
+		final int ROWS = 7; // Number of rows to look through
+		final int COLUMNS = 12; // Number of columns to look through
+		
 		Dungeon dungeon = getZeldaDungeonFromGenotype(individual);
 		int distanceToTriforce = -100; // Very bad fitness if level is not beatable 
 		int numRooms = 0;
 		int searchStatesVisited = 0;
 		int numRoomsTraversed = 0;
+		int waterTileCount = 0;
+		int wallTileCount = 0;
 		if(dungeon != null) {
 			try {
+				final Point START = new Point(2, 2);
+				// Count occurrence of water and wall tiles in the dungeons for MAP Elites binning
+				for(Node room: dungeon.getLevels().values()) {					
+					for(int x = START.x; x < START.x+ROWS; x++) {
+						for(int y = START.y; y < START.y+COLUMNS; y++) {
+							Tile tile = room.level.rougeTiles[y][x];
+							if(tile.equals(Tile.WALL)) {
+								wallTileCount++;
+							} else if(tile.equals(Tile.WATER)) {
+								waterTileCount++;
+							}
+						}
+					}
+				}
+				
 				numRooms = dungeon.getLevels().size();
 				// A* should already have been run during creation to assure beat-ability, but it is run again here to get the action sequence.
 				ArrayList<GridAction> actionSequence;
@@ -159,8 +183,18 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 			scores[i] = fitness.get(i);
 		}
 		
-		// TODO: Need to assign to the behavior vector before using MAP-Elites
-		ArrayList<Double> behaviorVector = null;
+		// Assign to the behavior vector before using MAP-Elites
+		int maxNumRooms = Parameters.parameters.integerParameter("zeldaGANLevelWidthChunks") * Parameters.parameters.integerParameter("zeldaGANLevelHeightChunks");
+		double wallTilePercentage = (wallTileCount*1.0)/(numRooms*ROWS*COLUMNS);
+		double waterTilePercentage = (waterTileCount*1.0)/(numRooms*ROWS*COLUMNS);
+		int wallTileGroups = 10;
+		int waterTileGroups = 10;
+		int wallTileIndex = (int)(wallTilePercentage*wallTileGroups); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
+		int waterTileIndex = (int)(waterTilePercentage*waterTileGroups); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
+		
+		double[][][] roomsTraversedAccordingToRoomCount = new double[wallTileGroups][waterTileGroups][maxNumRooms+1];
+		roomsTraversedAccordingToRoomCount[wallTileIndex][waterTileIndex][numRooms] = numRooms == 0 ? 0 : (numRoomsTraversed*1.0)/numRooms; // Percent rooms traversed
+		ArrayList<Double> behaviorVector = ArrayUtil.doubleVectorFromArray(ArrayUtil.flatten3DDoubleArray(roomsTraversedAccordingToRoomCount));
 		
 		double[] other = new double[] {numRooms, numRoomsTraversed, searchStatesVisited};
 		return new MultiObjectiveScore<T>(individual, scores, behaviorVector, other);

@@ -100,7 +100,7 @@ public class World {
 			Point p = move.getDirection().getPoint();
 			x += p.x;
 			y += p.y;
-			tiles[x][y] = Tile.BLOCK;
+			tiles[x][y] = Tile.WATER;
 			return true;
 		}
 		return false;
