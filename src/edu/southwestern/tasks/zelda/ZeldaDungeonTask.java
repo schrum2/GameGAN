@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -73,6 +74,7 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 
 	@Override
 	public Score<T> evaluate(Genotype<T> individual) {
+		System.out.println("evaluate");
 		// Defines the floor space (excluding walls)
 		final int ROWS = 7; // Number of rows to look through
 		final int COLUMNS = 12; // Number of columns to look through
@@ -87,6 +89,7 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 		int wallTileCount = 0;
 		if(dungeon != null) {
 			try {
+				System.out.println("Check Dungeon");
 				final Point START = new Point(2, 2);
 				// Count occurrence of water and wall tiles in the dungeons for MAP Elites binning
 				for(Node room: dungeon.getLevels().values()) {					
@@ -173,32 +176,38 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 				int wallTileIndex = (int)(wallTilePercentage*ZeldaMAPElitesBinLabels.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
 				int waterTileIndex = (int)(waterTilePercentage*ZeldaMAPElitesBinLabels.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
 				
-				double[][][] roomsTraversedAccordingToRoomCount = new double[ZeldaMAPElitesBinLabels.TILE_GROUPS][ZeldaMAPElitesBinLabels.TILE_GROUPS][maxNumRooms+1];
+				// Row-major order lookup in 3D archive
+				int binIndex = (wallTileIndex*ZeldaMAPElitesBinLabels.TILE_GROUPS + waterTileIndex)*(maxNumRooms+1) + numRooms;
+				double[] archiveArray = new double[ZeldaMAPElitesBinLabels.TILE_GROUPS*ZeldaMAPElitesBinLabels.TILE_GROUPS*(maxNumRooms+1)];
+				Arrays.fill(archiveArray, Double.NEGATIVE_INFINITY); // Worst score in all dimensions
 				double binScore = numRooms == 0 ? 0 : (numRoomsTraversed*1.0)/numRooms;
-				roomsTraversedAccordingToRoomCount[wallTileIndex][waterTileIndex][numRooms] = binScore; // Percent rooms traversed
-				behaviorVector = ArrayUtil.doubleVectorFromArray(ArrayUtil.flatten3DDoubleArray(roomsTraversedAccordingToRoomCount));
+				archiveArray[binIndex] = binScore; // Percent rooms traversed
+
+				System.out.println("["+wallTileIndex+"]["+waterTileIndex+"]["+numRooms+"] = "+binScore + " ("+numRoomsTraversed+" rooms)");
+				
+				behaviorVector = ArrayUtil.doubleVectorFromArray(archiveArray);
 				
 				if(CommonConstants.netio) {
+					System.out.println("Save archive images");
 					@SuppressWarnings("unchecked")
 					Archive<T> archive = ((MAPElites<T>) MMNEAT.ea).getArchive();
 					List<String> binLabels = archive.getBinMapping().binLabels();
 					
 					// Index in flattened bin array
-					int i = (wallTileIndex*ZeldaMAPElitesBinLabels.TILE_GROUPS + waterTileIndex)*(maxNumRooms+1) + numRooms;
-					Score<T> elite = archive.getElite(i);
+					Score<T> elite = archive.getElite(binIndex);
 					// If the bin is empty, or the candidate is better than the elite for that bin's score
-					if(elite == null || binScore > elite.behaviorVector.get(i)) {
+					if(elite == null || binScore > elite.behaviorVector.get(binIndex)) {
 						
 						// CHANGE!
 						BufferedImage imagePath = DungeonUtil.imageOfDungeon(dungeon, mostRecentVisited, solutionPath);
 						BufferedImage imagePlain = DungeonUtil.imageOfDungeon(dungeon, null, null);
 						
-						String fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(i) +"-"+ individual.getId() + ".png";
-						String binPath = archive.getArchiveDirectory() + File.separator + binLabels.get(i);
+						String fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(binIndex) +"-"+ individual.getId() + ".png";
+						String binPath = archive.getArchiveDirectory() + File.separator + binLabels.get(binIndex);
 						String fullName = binPath + File.separator + fileName;
 						System.out.println(fullName);
 						GraphicsUtil.saveImage(imagePlain, fullName);	
-						fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(i) +"-"+ individual.getId() + "-solution.png";
+						fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(binIndex) +"-"+ individual.getId() + "-solution.png";
 						fullName = binPath + File.separator + fileName;
 						System.out.println(fullName);
 						GraphicsUtil.saveImage(imagePath, fullName);	
