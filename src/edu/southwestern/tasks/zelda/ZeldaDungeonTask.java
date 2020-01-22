@@ -10,6 +10,9 @@ import edu.southwestern.evolution.GenerationalEA;
 import edu.southwestern.evolution.genotypes.Genotype;
 import edu.southwestern.parameters.CommonConstants;
 import edu.southwestern.parameters.Parameters;
+import edu.southwestern.scores.MultiObjectiveScore;
+import edu.southwestern.scores.Score;
+import edu.southwestern.tasks.LonerTask;
 import edu.southwestern.tasks.NoisyLonerTask;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.Dungeon;
 import edu.southwestern.tasks.gvgai.zelda.dungeon.DungeonUtil;
@@ -25,7 +28,7 @@ import edu.southwestern.util.search.AStarSearch;
 import edu.southwestern.util.search.Search;
 import me.jakerg.rougelike.RougelikeApp;
 
-public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
+public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 
 	public ZeldaDungeonTask() {
 		// Objective functions
@@ -63,7 +66,7 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 	public abstract Dungeon getZeldaDungeonFromGenotype(Genotype<T> individual);
 
 	@Override
-	public Pair<double[], double[]> oneEval(Genotype<T> individual, int num) {
+	public Score<T> evaluate(Genotype<T> individual) {
 		Dungeon dungeon = getZeldaDungeonFromGenotype(individual);
 		int distanceToTriforce = -100; // Very bad fitness if level is not beatable 
 		int numRooms = 0;
@@ -156,6 +159,10 @@ public abstract class ZeldaDungeonTask<T> extends NoisyLonerTask<T> {
 			scores[i] = fitness.get(i);
 		}
 		
-		return new Pair<double[], double[]>(scores, new double[] {numRooms, numRoomsTraversed, searchStatesVisited});
+		// TODO: Need to assign to the behavior vector before using MAP-Elites
+		ArrayList<Double> behaviorVector = null;
+		
+		double[] other = new double[] {numRooms, numRoomsTraversed, searchStatesVisited};
+		return new MultiObjectiveScore<T>(individual, scores, behaviorVector, other);
 	}
 }
