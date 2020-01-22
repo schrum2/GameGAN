@@ -3,6 +3,7 @@ package edu.southwestern.tasks.zelda;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -78,7 +79,7 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 		// Defines the floor space (excluding walls)
 		final int ROWS = 7; // Number of rows to look through
 		final int COLUMNS = 12; // Number of columns to look through
-		
+
 		ArrayList<Double> behaviorVector = null; // Filled in later
 		Dungeon dungeon = getZeldaDungeonFromGenotype(individual);
 		int distanceToTriforce = -100; // Very bad fitness if level is not beatable 
@@ -104,7 +105,7 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 						}
 					}
 				}
-				
+
 				numRooms = dungeon.getLevels().size();
 				// A* should already have been run during creation to assure beat-ability, but it is run again here to get the action sequence.
 				ArrayList<GridAction> actionSequence;
@@ -125,7 +126,7 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 							currentState = (ZeldaState) currentState.getSuccessor(a);
 							solutionPath.add(currentState);
 						}
-						
+
 						HashSet<Pair<Integer,Integer>> visitedRoomCoordinates = new HashSet<>();
 						for(ZeldaState zs: solutionPath) {
 							// Set does not allow duplicates: one Pair per room
@@ -167,7 +168,7 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 						MiscUtil.waitForReadStringAndEnterKeyPress();
 					}
 				}
-				
+
 				// Assign to the behavior vector before using MAP-Elites
 				int maxNumRooms = Parameters.parameters.integerParameter("zeldaGANLevelWidthChunks") * Parameters.parameters.integerParameter("zeldaGANLevelHeightChunks");
 				double wallTilePercentage = (wallTileCount*1.0)/(numRooms*ROWS*COLUMNS);
@@ -175,7 +176,7 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 
 				int wallTileIndex = (int)(wallTilePercentage*ZeldaMAPElitesBinLabels.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
 				int waterTileIndex = (int)(waterTilePercentage*ZeldaMAPElitesBinLabels.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
-				
+
 				// Row-major order lookup in 3D archive
 				int binIndex = (wallTileIndex*ZeldaMAPElitesBinLabels.TILE_GROUPS + waterTileIndex)*(maxNumRooms+1) + numRooms;
 				double[] archiveArray = new double[ZeldaMAPElitesBinLabels.TILE_GROUPS*ZeldaMAPElitesBinLabels.TILE_GROUPS*(maxNumRooms+1)];
@@ -184,24 +185,24 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 				archiveArray[binIndex] = binScore; // Percent rooms traversed
 
 				System.out.println("["+wallTileIndex+"]["+waterTileIndex+"]["+numRooms+"] = "+binScore + " ("+numRoomsTraversed+" rooms)");
-				
+
 				behaviorVector = ArrayUtil.doubleVectorFromArray(archiveArray);
-				
+
 				if(CommonConstants.netio) {
 					System.out.println("Save archive images");
 					@SuppressWarnings("unchecked")
 					Archive<T> archive = ((MAPElites<T>) MMNEAT.ea).getArchive();
 					List<String> binLabels = archive.getBinMapping().binLabels();
-					
+
 					// Index in flattened bin array
 					Score<T> elite = archive.getElite(binIndex);
 					// If the bin is empty, or the candidate is better than the elite for that bin's score
 					if(elite == null || binScore > elite.behaviorVector.get(binIndex)) {
-						
+
 						// CHANGE!
 						BufferedImage imagePath = DungeonUtil.imageOfDungeon(dungeon, mostRecentVisited, solutionPath);
 						BufferedImage imagePlain = DungeonUtil.imageOfDungeon(dungeon, null, null);
-						
+
 						String fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(binIndex) +"-"+ individual.getId() + ".png";
 						String binPath = archive.getArchiveDirectory() + File.separator + binLabels.get(binIndex);
 						String fullName = binPath + File.separator + fileName;
@@ -213,13 +214,13 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 						GraphicsUtil.saveImage(imagePath, fullName);	
 					}
 				}
-				
+
 
 			} catch(IllegalStateException e) {
 				// Sometimes this exception occurs from A*. Not sure why, but we can take this to mean the level has a problem and deserves bad fitness.
 			}
 		}
-		
+
 		ArrayList<Double> fitness = new ArrayList<Double>(5);
 		if(Parameters.parameters.booleanParameter("zeldaDungeonDistanceFitness")) 
 			fitness.add(new Double(distanceToTriforce));
@@ -231,14 +232,18 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 			fitness.add(new Double(numRoomsTraversed));
 		if(Parameters.parameters.booleanParameter("zeldaDungeonRandomFitness")) 
 			fitness.add(new Double(RandomNumbers.fullSmallRand()));
-			
+
 		double[] scores = new double[fitness.size()];
-		
+
 		for(int i = 0; i < scores.length; i++) {
 			scores[i] = fitness.get(i);
 		}
-		
+
 		double[] other = new double[] {numRooms, numRoomsTraversed, searchStatesVisited};
 		return new MultiObjectiveScore<T>(individual, scores, behaviorVector, other);
+	}
+
+	public static void main(String[] args) throws FileNotFoundException, NoSuchMethodException{
+		MMNEAT.main("runNumber:0 randomSeed:0 zeldaDungeonDistanceFitness:false zeldaDungeonFewRoomFitness:false zeldaDungeonTraversedRoomFitness:true zeldaPercentDungeonTraversedRoomFitness:true zeldaDungeonRandomFitness:false watch:false trials:1 mu:10 makeZeldaLevelsPlayable:false base:zeldagan log:ZeldaGAN-MAPElites saveTo:MAPElites zeldaGANLevelWidthChunks:10 zeldaGANLevelHeightChunks:10 zeldaGANModel:ZeldaDungeonsAll3Tiles_10000_10.pth maxGens:5000000 io:true netio:true GANInputSize:10 mating:true fs:false task:edu.southwestern.tasks.zelda.ZeldaGANDungeonTask cleanOldNetworks:false zeldaGANUsesOriginalEncoding:false cleanFrequency:-1 saveAllChampions:true genotype:edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype ea:edu.southwestern.evolution.mapelites.MAPElites experiment:edu.southwestern.experiment.evolution.SteadyStateExperiment mapElitesBinLabels:edu.southwestern.tasks.zelda.ZeldaMAPElitesBinLabels".split(" "));
 	}
 }

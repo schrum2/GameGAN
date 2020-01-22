@@ -88,8 +88,8 @@ public class Archive<T> {
 		long newElites = stream.parallel().filter((i) -> {
 			Score<T> elite = archive.get(i);
 			double candidateScore = candidate.behaviorVector.get(i);
-			// If the bin is empty, or the candidate is better than the elite for that bin's score
-			if(elite == null || candidateScore > elite.behaviorVector.get(i)) {
+			// Score cannot be negative infinity. Next, check if the bin is empty, or the candidate is better than the elite for that bin's score
+			if(candidateScore > Double.NEGATIVE_INFINITY && (elite == null || candidateScore > elite.behaviorVector.get(i))) {
 				archive.set(i, candidate.copy()); // Replace elite
 				// Need to save all elites so that re-load on resume works
 				if(saveElites) {

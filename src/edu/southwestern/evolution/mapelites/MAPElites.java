@@ -75,7 +75,7 @@ public class MAPElites<T> implements SteadyStateEA<T> {
 		this.mating = Parameters.parameters.booleanParameter("mating");
 		this.crossoverRate = Parameters.parameters.doubleParameter("crossoverRate");
 		this.iterations = Parameters.parameters.integerParameter("lastSavedGeneration");
-		this.iterationsWithoutElite = 0; // Not accurate on resume
+		this.iterationsWithoutElite = 0; // Not accurate on resume		
 	}
 	
 	/**
@@ -92,7 +92,7 @@ public class MAPElites<T> implements SteadyStateEA<T> {
 	 * @param example Starting genotype used to derive new instances
 	 */
 	@Override
-	public void initialize(Genotype<T> example) {
+	public void initialize(Genotype<T> example) {		
 		if(iterations > 0) {
 			int numLabels = archive.getBinMapping().binLabels().size();
 			// Loading from saved archive
