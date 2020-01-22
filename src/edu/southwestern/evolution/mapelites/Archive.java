@@ -15,16 +15,15 @@ import wox.serial.Easy;
 public class Archive<T> {
 	
 	Vector<Score<T>> archive; // Vector is used because it is thread-safe
-	private BinLabels<T> mapping;
+	private BinLabels mapping;
 	private boolean saveElites;
 	private String archiveDir;
 
-	@SuppressWarnings("unchecked")
 	public Archive(boolean saveElites) {
 		this.saveElites = saveElites;
 		// Initialize mapping
 		try {
-			mapping = (BinLabels<T>) ClassCreation.createObject("mapElitesBinLabels");
+			mapping = (BinLabels) ClassCreation.createObject("mapElitesBinLabels");
 		} catch (NoSuchMethodException e) {
 			System.out.println("Failed to get Bin Mapping for MAP Elites!");
 			e.printStackTrace();
@@ -72,7 +71,7 @@ public class Archive<T> {
 	 * Method for putting individuals in bins
 	 * @return
 	 */
-	public BinLabels<T> getBinMapping() { 
+	public BinLabels getBinMapping() { 
 		return mapping;
 	}
 		

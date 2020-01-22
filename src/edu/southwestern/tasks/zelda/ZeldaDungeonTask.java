@@ -187,12 +187,11 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 		int maxNumRooms = Parameters.parameters.integerParameter("zeldaGANLevelWidthChunks") * Parameters.parameters.integerParameter("zeldaGANLevelHeightChunks");
 		double wallTilePercentage = (wallTileCount*1.0)/(numRooms*ROWS*COLUMNS);
 		double waterTilePercentage = (waterTileCount*1.0)/(numRooms*ROWS*COLUMNS);
-		int wallTileGroups = 10;
-		int waterTileGroups = 10;
-		int wallTileIndex = (int)(wallTilePercentage*wallTileGroups); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
-		int waterTileIndex = (int)(waterTilePercentage*waterTileGroups); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
+
+		int wallTileIndex = (int)(wallTilePercentage*ZeldaMAPElitesBinLabelling.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
+		int waterTileIndex = (int)(waterTilePercentage*ZeldaMAPElitesBinLabelling.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
 		
-		double[][][] roomsTraversedAccordingToRoomCount = new double[wallTileGroups][waterTileGroups][maxNumRooms+1];
+		double[][][] roomsTraversedAccordingToRoomCount = new double[ZeldaMAPElitesBinLabelling.TILE_GROUPS][ZeldaMAPElitesBinLabelling.TILE_GROUPS][maxNumRooms+1];
 		roomsTraversedAccordingToRoomCount[wallTileIndex][waterTileIndex][numRooms] = numRooms == 0 ? 0 : (numRoomsTraversed*1.0)/numRooms; // Percent rooms traversed
 		ArrayList<Double> behaviorVector = ArrayUtil.doubleVectorFromArray(ArrayUtil.flatten3DDoubleArray(roomsTraversedAccordingToRoomCount));
 		
