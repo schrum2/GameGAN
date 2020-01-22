@@ -5,10 +5,13 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.GenerationalEA;
 import edu.southwestern.evolution.genotypes.Genotype;
+import edu.southwestern.evolution.mapelites.Archive;
+import edu.southwestern.evolution.mapelites.MAPElites;
 import edu.southwestern.parameters.CommonConstants;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.scores.MultiObjectiveScore;
@@ -74,6 +77,7 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 		final int ROWS = 7; // Number of rows to look through
 		final int COLUMNS = 12; // Number of columns to look through
 		
+		ArrayList<Double> behaviorVector = null; // Filled in later
 		Dungeon dungeon = getZeldaDungeonFromGenotype(individual);
 		int distanceToTriforce = -100; // Very bad fitness if level is not beatable 
 		int numRooms = 0;
@@ -160,6 +164,48 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 						MiscUtil.waitForReadStringAndEnterKeyPress();
 					}
 				}
+				
+				// Assign to the behavior vector before using MAP-Elites
+				int maxNumRooms = Parameters.parameters.integerParameter("zeldaGANLevelWidthChunks") * Parameters.parameters.integerParameter("zeldaGANLevelHeightChunks");
+				double wallTilePercentage = (wallTileCount*1.0)/(numRooms*ROWS*COLUMNS);
+				double waterTilePercentage = (waterTileCount*1.0)/(numRooms*ROWS*COLUMNS);
+
+				int wallTileIndex = (int)(wallTilePercentage*ZeldaMAPElitesBinLabels.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
+				int waterTileIndex = (int)(waterTilePercentage*ZeldaMAPElitesBinLabels.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
+				
+				double[][][] roomsTraversedAccordingToRoomCount = new double[ZeldaMAPElitesBinLabels.TILE_GROUPS][ZeldaMAPElitesBinLabels.TILE_GROUPS][maxNumRooms+1];
+				double binScore = numRooms == 0 ? 0 : (numRoomsTraversed*1.0)/numRooms;
+				roomsTraversedAccordingToRoomCount[wallTileIndex][waterTileIndex][numRooms] = binScore; // Percent rooms traversed
+				behaviorVector = ArrayUtil.doubleVectorFromArray(ArrayUtil.flatten3DDoubleArray(roomsTraversedAccordingToRoomCount));
+				
+				if(CommonConstants.netio) {
+					@SuppressWarnings("unchecked")
+					Archive<T> archive = ((MAPElites<T>) MMNEAT.ea).getArchive();
+					List<String> binLabels = archive.getBinMapping().binLabels();
+					
+					// Index in flattened bin array
+					int i = (wallTileIndex*ZeldaMAPElitesBinLabels.TILE_GROUPS + waterTileIndex)*(maxNumRooms+1) + numRooms;
+					Score<T> elite = archive.getElite(i);
+					// If the bin is empty, or the candidate is better than the elite for that bin's score
+					if(elite == null || binScore > elite.behaviorVector.get(i)) {
+						
+						// CHANGE!
+						BufferedImage imagePath = DungeonUtil.imageOfDungeon(dungeon, mostRecentVisited, solutionPath);
+						BufferedImage imagePlain = DungeonUtil.imageOfDungeon(dungeon, null, null);
+						
+						String fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(i) +"-"+ individual.getId() + ".png";
+						String binPath = archive.getArchiveDirectory() + File.separator + binLabels.get(i);
+						String fullName = binPath + File.separator + fileName;
+						System.out.println(fullName);
+						GraphicsUtil.saveImage(imagePlain, fullName);	
+						fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(i) +"-"+ individual.getId() + "-solution.png";
+						fullName = binPath + File.separator + fileName;
+						System.out.println(fullName);
+						GraphicsUtil.saveImage(imagePath, fullName);	
+					}
+				}
+				
+
 			} catch(IllegalStateException e) {
 				// Sometimes this exception occurs from A*. Not sure why, but we can take this to mean the level has a problem and deserves bad fitness.
 			}
@@ -182,18 +228,6 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 		for(int i = 0; i < scores.length; i++) {
 			scores[i] = fitness.get(i);
 		}
-		
-		// Assign to the behavior vector before using MAP-Elites
-		int maxNumRooms = Parameters.parameters.integerParameter("zeldaGANLevelWidthChunks") * Parameters.parameters.integerParameter("zeldaGANLevelHeightChunks");
-		double wallTilePercentage = (wallTileCount*1.0)/(numRooms*ROWS*COLUMNS);
-		double waterTilePercentage = (waterTileCount*1.0)/(numRooms*ROWS*COLUMNS);
-
-		int wallTileIndex = (int)(wallTilePercentage*ZeldaMAPElitesBinLabels.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
-		int waterTileIndex = (int)(waterTilePercentage*ZeldaMAPElitesBinLabels.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
-		
-		double[][][] roomsTraversedAccordingToRoomCount = new double[ZeldaMAPElitesBinLabels.TILE_GROUPS][ZeldaMAPElitesBinLabels.TILE_GROUPS][maxNumRooms+1];
-		roomsTraversedAccordingToRoomCount[wallTileIndex][waterTileIndex][numRooms] = numRooms == 0 ? 0 : (numRoomsTraversed*1.0)/numRooms; // Percent rooms traversed
-		ArrayList<Double> behaviorVector = ArrayUtil.doubleVectorFromArray(ArrayUtil.flatten3DDoubleArray(roomsTraversedAccordingToRoomCount));
 		
 		double[] other = new double[] {numRooms, numRoomsTraversed, searchStatesVisited};
 		return new MultiObjectiveScore<T>(individual, scores, behaviorVector, other);
