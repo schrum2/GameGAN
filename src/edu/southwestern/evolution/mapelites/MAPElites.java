@@ -75,7 +75,7 @@ public class MAPElites<T> implements SteadyStateEA<T> {
 				ps.close();
 				
 				// Fill percentage plot
-				ps = new PrintStream(plot);
+				ps = new PrintStream(fillPlot);
 				ps.println("set term pdf enhanced");
 				ps.println("unset key");
 				// Here, maxGens is actually the number of iterations, but dividing by individualsPerGeneration scales it to represent "generations"
