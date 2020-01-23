@@ -300,11 +300,9 @@ public class Parameters {
 		integerOptions.add("syllabusSize", 10, "Number of examples in BD syllabus");
 		integerOptions.add("teams", 1, "Number of teams each individual is evaluated in for coevolution");
 		integerOptions.add("threads", 4, "Number of threads if evaluating in parallel");
-		integerOptions.add("aStarSearchBudget", 50000, "Number of iterations after which A* gives up with exception");
+		integerOptions.add("aStarSearchBudget", 100000, "Number of iterations after which A* gives up with exception");
 		integerOptions.add("dungeonGenerationFailChances", 10, "If dungeon cannot be created in 10 tries, then assign worst fitness.");
-		//TODO
 		integerOptions.add("tickLimit", 4000, "used in customExecutor. Number of ticks permitted?");
-		//TODO
 		integerOptions.add("timeLimit", 40, "used in customExecutor. Length of time permitted per round?");
 		integerOptions.add("torusPredators", 3, "Number of torus predators");
 		integerOptions.add("torusPreys", 2, "Number of torus preys");

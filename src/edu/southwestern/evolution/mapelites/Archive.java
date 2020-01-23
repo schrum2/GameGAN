@@ -85,6 +85,9 @@ public class Archive<T> {
 	 * @return Whether organism was a new elite
 	 */
 	public boolean add(Score<T> candidate) {
+		// In some domains, a flawed genotype can emerge which cannot produce a behavior vector. Obviously cannot be added to archive.
+		if(candidate.behaviorVector == null)
+			return false;
 		// Java's new stream features allow for easy parallelism
 		IntStream stream = IntStream.range(0, archive.size());
 		long newElites = stream.parallel().filter((i) -> {
