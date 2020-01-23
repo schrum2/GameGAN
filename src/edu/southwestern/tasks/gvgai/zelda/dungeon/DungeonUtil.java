@@ -613,7 +613,7 @@ public class DungeonUtil {
 						queue.add(adjNode);
 					} else {
 						print2DArray(ZeldaLevelUtil.trimLevelThere(levelThere));
-						throw new Exception("Didn't get a legal point for node: " + adjNode.getID() + " from node : " + node.getID());
+						throw new IllegalStateException("Didn't get a legal point for node: " + adjNode.getID() + " from node : " + node.getID());
 					}
 				} else if (visited.contains(adjNode) && node.getData().isCyclable()
 						&& adjNode.getData().isCyclable()) {

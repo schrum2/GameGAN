@@ -12,6 +12,9 @@ python/GAN/models/__pycache__/dcgan.cpython-36.pyc
 .idea/workspace.xml
 *.pyc
 
+data/VGLC/graph.dot
+data/rouge/tmp/dungeon.json
+
 mariogan/
 mariocppntogan/
 zeldacppntogan/
