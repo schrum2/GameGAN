@@ -38,32 +38,46 @@ import me.jakerg.rougelike.Tile;
 
 public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 
+	private int numObjectives;
+	
 	public ZeldaDungeonTask() {
 		// Objective functions
-		if(Parameters.parameters.booleanParameter("zeldaDungeonDistanceFitness")) 
+		numObjectives = 0;
+		if(Parameters.parameters.booleanParameter("zeldaDungeonDistanceFitness")) {
 			MMNEAT.registerFitnessFunction("DistanceToTriforce");
-		if(Parameters.parameters.booleanParameter("zeldaDungeonFewRoomFitness")) 
+			numObjectives++;
+		}
+		if(Parameters.parameters.booleanParameter("zeldaDungeonFewRoomFitness")) {
 			MMNEAT.registerFitnessFunction("NegativeRooms"); // Fewer rooms means more interesting shapes
-		if(Parameters.parameters.booleanParameter("zeldaPercentDungeonTraversedRoomFitness")) 
+			numObjectives++;
+		}
+		if(Parameters.parameters.booleanParameter("zeldaPercentDungeonTraversedRoomFitness")) {
 			MMNEAT.registerFitnessFunction("PercentRoomsTraversed"); // Avoid superfluous rooms
-		if(Parameters.parameters.booleanParameter("zeldaDungeonTraversedRoomFitness")) 
+			numObjectives++;
+		}
+		if(Parameters.parameters.booleanParameter("zeldaDungeonTraversedRoomFitness")) {
 			MMNEAT.registerFitnessFunction("NumRoomsTraversed"); // Visit as many rooms as possible
-		if(Parameters.parameters.booleanParameter("zeldaDungeonRandomFitness")) 
+			numObjectives++;
+		}
+		if(Parameters.parameters.booleanParameter("zeldaDungeonRandomFitness")) {
 			MMNEAT.registerFitnessFunction("RandomFitness");
+			numObjectives++;
+		}
 		// Additional information tracked about each dungeon
 		MMNEAT.registerFitnessFunction("NumRooms",false);
 		MMNEAT.registerFitnessFunction("NumRoomsTraversed",false);
+		MMNEAT.registerFitnessFunction("NumRoomsReachable",false);
 		MMNEAT.registerFitnessFunction("NumSearchStatesVisited",false);
 		// More?
 	}
 
 	@Override
 	public int numObjectives() {
-		return 1;  
+		return numObjectives;  
 	}
 
 	public int numOtherScores() {
-		return 2;
+		return 4;
 	}
 
 	@Override
@@ -75,7 +89,6 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 
 	@Override
 	public Score<T> evaluate(Genotype<T> individual) {
-		System.out.println("evaluate");
 		// Defines the floor space (excluding walls)
 		final int ROWS = 7; // Number of rows to look through
 		final int COLUMNS = 12; // Number of columns to look through
@@ -88,19 +101,25 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 		int numRoomsTraversed = 0;
 		int waterTileCount = 0;
 		int wallTileCount = 0;
+		int numRoomsReachable = 0;
 		if(dungeon != null) {
 			try {
-				System.out.println("Check Dungeon");
+				// Determine which rooms actually connect with doors (but ignores blockage from inner walls
+				dungeon.markReachableRooms();
+				// Upper left corner of floor area (ignore surrounding walls)
 				final Point START = new Point(2, 2);
 				// Count occurrence of water and wall tiles in the dungeons for MAP Elites binning
-				for(Node room: dungeon.getLevels().values()) {					
-					for(int x = START.x; x < START.x+ROWS; x++) {
-						for(int y = START.y; y < START.y+COLUMNS; y++) {
-							Tile tile = room.level.rougeTiles[y][x];
-							if(tile.equals(Tile.WALL)) {
-								wallTileCount++;
-							} else if(tile.equals(Tile.WATER)) {
-								waterTileCount++;
+				for(Node room: dungeon.getLevels().values()) {
+					if(room.reachable) { // Only include reachable rooms in feature calculation
+						numRoomsReachable++;
+						for(int x = START.x; x < START.x+ROWS; x++) {
+							for(int y = START.y; y < START.y+COLUMNS; y++) {
+								Tile tile = room.level.rougeTiles[y][x];
+								if(tile.equals(Tile.WALL)) {
+									wallTileCount++;
+								} else if(tile.equals(Tile.WATER)) {
+									waterTileCount++;
+								}
 							}
 						}
 					}
@@ -145,6 +164,7 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 				if(CommonConstants.watch) {
 					System.out.println("Distance to Triforce: "+distanceToTriforce);
 					System.out.println("Number of rooms: "+numRooms);
+					System.out.println("Number of reachable rooms: "+numRoomsReachable);
 					System.out.println("Number of rooms traversed: "+numRoomsTraversed);
 					System.out.println("Number of states visited: "+searchStatesVisited);
 					// View whole dungeon layout
@@ -169,52 +189,55 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 					}
 				}
 
-				// Assign to the behavior vector before using MAP-Elites
-				int maxNumRooms = Parameters.parameters.integerParameter("zeldaGANLevelWidthChunks") * Parameters.parameters.integerParameter("zeldaGANLevelHeightChunks");
-				double wallTilePercentage = (wallTileCount*1.0)/(numRooms*ROWS*COLUMNS);
-				double waterTilePercentage = (waterTileCount*1.0)/(numRooms*ROWS*COLUMNS);
+				// Could conceivably also be used for behavioral diversity instead of map elites, but this would be a weird behavior vector from a BD perspective
+				if(MMNEAT.ea instanceof MAPElites) {
+					// Assign to the behavior vector before using MAP-Elites
+					int maxNumRooms = Parameters.parameters.integerParameter("zeldaGANLevelWidthChunks") * Parameters.parameters.integerParameter("zeldaGANLevelHeightChunks");
+					double wallTilePercentage = (wallTileCount*1.0)/(numRoomsReachable*ROWS*COLUMNS);
+					double waterTilePercentage = (waterTileCount*1.0)/(numRoomsReachable*ROWS*COLUMNS);
 
-				int wallTileIndex = (int)(wallTilePercentage*ZeldaMAPElitesBinLabels.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
-				int waterTileIndex = (int)(waterTilePercentage*ZeldaMAPElitesBinLabels.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
+					int wallTileIndex = (int)(wallTilePercentage*ZeldaMAPElitesBinLabels.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
+					int waterTileIndex = (int)(waterTilePercentage*ZeldaMAPElitesBinLabels.TILE_GROUPS); // [0,10), [10,20), [20,30), ... , [80,90), [90,100] <-- Assume 100% of one tile type is impossible
 
-				// Row-major order lookup in 3D archive
-				int binIndex = (wallTileIndex*ZeldaMAPElitesBinLabels.TILE_GROUPS + waterTileIndex)*(maxNumRooms+1) + numRooms;
-				double[] archiveArray = new double[ZeldaMAPElitesBinLabels.TILE_GROUPS*ZeldaMAPElitesBinLabels.TILE_GROUPS*(maxNumRooms+1)];
-				Arrays.fill(archiveArray, Double.NEGATIVE_INFINITY); // Worst score in all dimensions
-				double binScore = numRooms == 0 ? 0 : (numRoomsTraversed*1.0)/numRooms;
-				archiveArray[binIndex] = binScore; // Percent rooms traversed
+					// Row-major order lookup in 3D archive
+					int binIndex = (wallTileIndex*ZeldaMAPElitesBinLabels.TILE_GROUPS + waterTileIndex)*(maxNumRooms+1) + numRoomsReachable;
+					double[] archiveArray = new double[ZeldaMAPElitesBinLabels.TILE_GROUPS*ZeldaMAPElitesBinLabels.TILE_GROUPS*(maxNumRooms+1)];
+					Arrays.fill(archiveArray, Double.NEGATIVE_INFINITY); // Worst score in all dimensions
+					double binScore = (numRoomsTraversed*1.0)/numRoomsReachable;
+					archiveArray[binIndex] = binScore; // Percent rooms traversed
 
-				System.out.println("["+wallTileIndex+"]["+waterTileIndex+"]["+numRooms+"] = "+binScore + " ("+numRoomsTraversed+" rooms)");
+					System.out.println("["+wallTileIndex+"]["+waterTileIndex+"]["+numRoomsReachable+"] = "+binScore+" ("+numRoomsTraversed+" rooms)");
 
-				behaviorVector = ArrayUtil.doubleVectorFromArray(archiveArray);
+					behaviorVector = ArrayUtil.doubleVectorFromArray(archiveArray);
 
-				if(CommonConstants.netio) {
-					System.out.println("Save archive images");
-					@SuppressWarnings("unchecked")
-					Archive<T> archive = ((MAPElites<T>) MMNEAT.ea).getArchive();
-					List<String> binLabels = archive.getBinMapping().binLabels();
+					// Saving map elites bin images
+					if(CommonConstants.netio) {
+						System.out.println("Save archive images");
+						@SuppressWarnings("unchecked")
+						Archive<T> archive = ((MAPElites<T>) MMNEAT.ea).getArchive();
+						List<String> binLabels = archive.getBinMapping().binLabels();
 
-					// Index in flattened bin array
-					Score<T> elite = archive.getElite(binIndex);
-					// If the bin is empty, or the candidate is better than the elite for that bin's score
-					if(elite == null || binScore > elite.behaviorVector.get(binIndex)) {
+						// Index in flattened bin array
+						Score<T> elite = archive.getElite(binIndex);
+						// If the bin is empty, or the candidate is better than the elite for that bin's score
+						if(elite == null || binScore > elite.behaviorVector.get(binIndex)) {
 
-						// CHANGE!
-						BufferedImage imagePath = DungeonUtil.imageOfDungeon(dungeon, mostRecentVisited, solutionPath);
-						BufferedImage imagePlain = DungeonUtil.imageOfDungeon(dungeon, null, null);
+							// CHANGE!
+							BufferedImage imagePath = DungeonUtil.imageOfDungeon(dungeon, mostRecentVisited, solutionPath);
+							BufferedImage imagePlain = DungeonUtil.imageOfDungeon(dungeon, null, null);
 
-						String fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(binIndex) +"-"+ individual.getId() + ".png";
-						String binPath = archive.getArchiveDirectory() + File.separator + binLabels.get(binIndex);
-						String fullName = binPath + File.separator + fileName;
-						System.out.println(fullName);
-						GraphicsUtil.saveImage(imagePlain, fullName);	
-						fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(binIndex) +"-"+ individual.getId() + "-solution.png";
-						fullName = binPath + File.separator + fileName;
-						System.out.println(fullName);
-						GraphicsUtil.saveImage(imagePath, fullName);	
+							String fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(binIndex) +"-"+ individual.getId() + ".png";
+							String binPath = archive.getArchiveDirectory() + File.separator + binLabels.get(binIndex);
+							String fullName = binPath + File.separator + fileName;
+							System.out.println(fullName);
+							GraphicsUtil.saveImage(imagePlain, fullName);	
+							fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(binIndex) +"-"+ individual.getId() + "-solution.png";
+							fullName = binPath + File.separator + fileName;
+							System.out.println(fullName);
+							GraphicsUtil.saveImage(imagePath, fullName);	
+						}
 					}
 				}
-
 
 			} catch(IllegalStateException e) {
 				// Sometimes this exception occurs from A*. Not sure why, but we can take this to mean the level has a problem and deserves bad fitness.
@@ -239,7 +262,7 @@ public abstract class ZeldaDungeonTask<T> extends LonerTask<T> {
 			scores[i] = fitness.get(i);
 		}
 
-		double[] other = new double[] {numRooms, numRoomsTraversed, searchStatesVisited};
+		double[] other = new double[] {numRooms, numRoomsTraversed, numRoomsReachable, searchStatesVisited};
 		return new MultiObjectiveScore<T>(individual, scores, behaviorVector, other);
 	}
 

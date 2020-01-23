@@ -810,17 +810,26 @@ public class DungeonUtil {
 		if(visited != null)
 			setUnvisited(visited, Tile.VISITED);
 	
-		for(int y = 0; y < levelThere.length; y++) {
-			for(int x = 0; x < levelThere[y].length; x++) {
+		for(int y = 0; y < levelThere.length; y++) { // Each row of rooms
+			for(int x = 0; x < levelThere[y].length; x++) { // Each column of rooms
 				Dungeon.Node n = dungeon.getNodeAt(x, y);
 				int oX = x * BLOCK_WIDTH;
 				int oY = y * BLOCK_HEIGHT;
-				if(n != null) {
-					
+				if(n != null) { // A room is present
+					// Image of one room
 					BufferedImage bi = getLevelImage(n, dungeon);
 					g.setColor(Color.GRAY);
 					g.fillRect(oX, oY, oX + BLOCK_WIDTH, oY + BLOCK_HEIGHT);
+					// Draw the one room
 					g.drawImage(bi, oX, oY, null);
+					
+					if(!n.reachable) {
+						// Can't reach the room: draw an X over it
+						g.setColor(Color.MAGENTA);
+						g.drawLine(oX, oY, oX + BLOCK_WIDTH, oY + BLOCK_HEIGHT);
+						g.drawLine(oX, oY + BLOCK_HEIGHT, oX + BLOCK_WIDTH, oY);
+					}
+					
 					if(debug) {
 						g.setColor(Color.WHITE);
 						oX = (oX + BLOCK_WIDTH) - (BLOCK_WIDTH / 2) - (BLOCK_WIDTH / 4);
