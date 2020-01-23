@@ -224,7 +224,9 @@ public class MAPElites<T> implements SteadyStateEA<T> {
 	public ArrayList<Genotype<T>> getPopulation() {
 		ArrayList<Genotype<T>> result = new ArrayList<Genotype<T>>(archive.archive.size());
 		for(Score<T> s : archive.archive) {
-			result.add(s.individual);
+			if(s != null) { // Not all bins are filled
+				result.add(s.individual);
+			}
 		}
 		return result;
 	}
