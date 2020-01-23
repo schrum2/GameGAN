@@ -26,6 +26,7 @@ import edu.southwestern.util.datastructures.Pair;
 import edu.southwestern.util.file.FileUtilities;
 import edu.southwestern.util.graphics.GraphicsUtil;
 import edu.southwestern.util.random.RandomNumbers;
+import org.apache.commons.lang.ArrayUtils;
 
 /**
  * 
@@ -97,6 +98,11 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
         MMNEAT.registerFitnessFunction("PercentDistance", false);
         MMNEAT.registerFitnessFunction("Time", false);
         MMNEAT.registerFitnessFunction("Jumps", false);
+        for(int i=0; i<Parameters.parameters.integerParameter("marioGANLevelChunks"); i++){
+            MMNEAT.registerFitnessFunction("DecorationFrequency-"+i,false);
+            MMNEAT.registerFitnessFunction("Leniency-"+i,false);
+            MMNEAT.registerFitnessFunction("NegativeSpace-"+i,false);
+        }
 
 	}
 	
@@ -106,7 +112,8 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 	}
 	
 	public int numOtherScores() {
-		return 4; // Distance, Percentage, Time, and Jumps
+		return 4 + Parameters.parameters.integerParameter("marioGANLevelChunks") * 3; // Distance, Percentage, Time, and Jumps 
+                //plus (decorationFrequency, leniency, negativeSpace) per level segment
 	}
 
 	@Override
@@ -158,17 +165,13 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		double time = info == null ? 0 : info.timeSpentOnLevel;
 		double jumps = info == null ? 0 : info.jumpActionsPerformed;
                 
+        	double[] otherScores = new double[] {distancePassed, percentLevelPassed, time, jumps};
                 ArrayList<double[]> levelStats = LevelParser.getLevelStats(oneLevel, 28);
-                /*for(double[] stats:levelStats){
-                    for(int i=0; i<stats.length; i++){
-                        System.out.print(stats[i]+ " ");
-                    }
+                                
+                for(double[] stats:levelStats){
+                    otherScores = ArrayUtils.addAll(otherScores, stats);
                 }
-                System.out.print("\n");*/
-                //TODO: test levelStats and output accordingly
-
-		double[] otherScores = new double[] {distancePassed, percentLevelPassed, time, jumps};
-
+   
 		ArrayList<Double> fitnesses = new ArrayList<>(numFitnessFunctions);
 		if(Parameters.parameters.booleanParameter("marioProgressPlusJumpsFitness")) {
 			if(percentLevelPassed < 1.0) {
