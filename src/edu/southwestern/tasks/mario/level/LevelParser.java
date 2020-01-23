@@ -6,6 +6,7 @@ import java.util.List;
 import ch.idsia.mario.engine.level.Level;
 import ch.idsia.mario.engine.level.SpriteTemplate;
 import ch.idsia.mario.engine.sprites.Enemy;
+import java.util.ArrayList;
 
 /**
  * This is the upgraded version of LevelParser that allows for more expressivity
@@ -35,6 +36,61 @@ public class LevelParser {
         tiles.put('r', 11); //red koopas + paratroopas
         tiles.put('s', 12); //spiny + winged spiny
     }
+    
+    private static final java.util.Map<Integer, Integer> prettyTiles = new HashMap<>();
+    
+    static {
+        prettyTiles.put(0, 0); //solid
+        prettyTiles.put(1, 1); //breakable
+        prettyTiles.put(2, 0); //passable
+        prettyTiles.put(3, 1); //question with coin
+        prettyTiles.put(4, 1); //question with power up
+        prettyTiles.put(5, 0); //coin
+        prettyTiles.put(6, 1); //tube
+        prettyTiles.put(7, 1); //piranha plant tube
+        prettyTiles.put(8, 1); //bullet bill
+        prettyTiles.put(9, 1); //goomba
+        prettyTiles.put(10, 1); //green koopas + paratroopas
+        prettyTiles.put(11, 1); //red koopas + paratroopas
+        prettyTiles.put(12, 1); //spiny + winged spiny
+    }
+    
+    private static final java.util.Map<Integer, Double> leniencyTiles = new HashMap<>();
+    
+    static {
+        leniencyTiles.put(0, 0.0); //solid
+        leniencyTiles.put(1, 0.0); //breakable
+        leniencyTiles.put(2, 0.0); //passable
+        leniencyTiles.put(3, 1.0); //question with coin
+        leniencyTiles.put(4, 1.0); //question with power up
+        leniencyTiles.put(5, 0.0); //coin
+        leniencyTiles.put(6, -0.5); //tube
+        leniencyTiles.put(7, -0.5); //piranha plant tube
+        leniencyTiles.put(8, -0.5); //bullet bill
+        leniencyTiles.put(9, -1.0); //goomba
+        leniencyTiles.put(10, -1.0); //green koopas + paratroopas
+        leniencyTiles.put(11, -1.0); //red koopas + paratroopas
+        leniencyTiles.put(12, -1.0); //spiny + winged spiny
+    }
+    
+    private static final java.util.Map<Integer, Integer> negativeSpaceTiles = new HashMap<>();
+    
+    static {
+        negativeSpaceTiles.put(0, 1); //solid
+        negativeSpaceTiles.put(1, 1); //breakable
+        negativeSpaceTiles.put(2, 0); //passable
+        negativeSpaceTiles.put(3, 1); //question with coin
+        negativeSpaceTiles.put(4, 1); //question with power up
+        negativeSpaceTiles.put(5, 0); //coin
+        negativeSpaceTiles.put(6, 1); //tube
+        negativeSpaceTiles.put(7, 1); //piranha plant tube
+        negativeSpaceTiles.put(8, 1); //bullet bill
+        negativeSpaceTiles.put(9, 0); //goomba
+        negativeSpaceTiles.put(10, 0); //green koopas + paratroopas
+        negativeSpaceTiles.put(11, 0); //red koopas + paratroopas
+        negativeSpaceTiles.put(12, 0); //spiny + winged spiny
+    }
+    
     
     public static final java.util.Map<Integer, Integer> tilesMario = new HashMap<>();
     //encoding can be found in LevelScene ZMap    
@@ -76,6 +132,40 @@ public class LevelParser {
 //    	int[][] level = MarioReader.readLevel(new Scanner(new FileInputStream(filename)));
 //        return createLevel(level);        
 //    }
+    
+    public static ArrayList<double[]> getLevelStats(ArrayList<List<Integer>> oneLevel, int segmentWidth){
+        if (oneLevel.get(0).size()%segmentWidth!=0){
+            System.out.println("getLevelStats: Level not multiple of segment width");
+            return null;
+        }      
+        ArrayList<double[]> statList = new ArrayList<>();
+        int height = oneLevel.size();
+        
+        for(int l=0; l<oneLevel.get(0).size()/segmentWidth; l++){
+            double[] vals = {0,0,0};
+            int gapCount = 0;
+            for(int i=0; i<height-1;i++){
+                for(int j=l*segmentWidth;j<(l+1)*segmentWidth;j++){
+                    int code = oneLevel.get(i).get(j);
+                    vals[0] +=prettyTiles.get(code);
+                    vals[1] +=leniencyTiles.get(code);
+                    vals[2] +=negativeSpaceTiles.get(code);
+                    if(code==2 && i==height-1){
+                        gapCount++;
+                    }
+                }
+            }
+            vals[0]/= segmentWidth*height;
+            vals[2]/= segmentWidth*height;
+
+            vals[1]+=gapCount*-0.5;
+            vals[1]/=segmentWidth*height;
+            statList.add(vals);
+        }
+                
+        return statList;
+    }
+    
 
     public static Level createLevel(int[][] input){
         int width = input[0].length;
@@ -94,6 +184,7 @@ public class LevelParser {
             level.setBlock(width+i+extraStones, height-1, (byte) 9);
         }
         
+       
         //set Level map
         //revert order of iterating rows bottom -> top (so that below tiles can be checked for building tubes etc)
         for(int i=height-1; i>=0; i--){
@@ -138,8 +229,7 @@ public class LevelParser {
                     level.setBlock(j+extraStones, i, tilesMario.get(code).byteValue());
                 }
             }
-        }
-                
+        }                
         return level;
     }
 

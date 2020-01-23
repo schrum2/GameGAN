@@ -157,6 +157,15 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		double percentLevelPassed = info == null ? 0 : distancePassed / totalPassableDistance(info);
 		double time = info == null ? 0 : info.timeSpentOnLevel;
 		double jumps = info == null ? 0 : info.jumpActionsPerformed;
+                
+                ArrayList<double[]> levelStats = LevelParser.getLevelStats(oneLevel, 28);
+                /*for(double[] stats:levelStats){
+                    for(int i=0; i<stats.length; i++){
+                        System.out.print(stats[i]+ " ");
+                    }
+                }
+                System.out.print("\n");*/
+                //TODO: test levelStats and output accordingly
 
 		double[] otherScores = new double[] {distancePassed, percentLevelPassed, time, jumps};
 
