@@ -19,6 +19,7 @@ import edu.southwestern.parameters.Parameters;
 import edu.southwestern.scores.Score;
 import edu.southwestern.tasks.LonerTask;
 import edu.southwestern.util.PopulationUtil;
+import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.file.FileUtilities;
 import edu.southwestern.util.random.RandomNumbers;
 import wox.serial.Easy;
@@ -26,7 +27,8 @@ import wox.serial.Easy;
 public class MAPElites<T> implements SteadyStateEA<T> {
 
 	private boolean io;
-	private MMNEATLog log = null;
+	private MMNEATLog archiveLog = null; // Archive elite scores
+	private MMNEATLog fillLog = null; // Archive fill amount
 	private LonerTask<T> task;
 	private Archive<T> archive;
 	private boolean mating;
@@ -43,17 +45,22 @@ public class MAPElites<T> implements SteadyStateEA<T> {
 		if(io) {
 			String infix = "MAPElites";
 			// Logging in RAW mode so that can append to log file on experiment resume
-			log = new MMNEATLog(infix, false, false, false, true); 
-			// Create gnuplot file for log
+			archiveLog = new MMNEATLog(infix, false, false, false, true); 
+			fillLog = new MMNEATLog("Fill", false, false, false, true);
+			// Create gnuplot file for archive log
 			String experimentPrefix = Parameters.parameters.stringParameter("log")
 					+ Parameters.parameters.integerParameter("runNumber");
 			String prefix = experimentPrefix + "_" + infix;
+			String fillPrefix = experimentPrefix + "_" + "Fill";
 			String directory = FileUtilities.getSaveDirectory();// retrieves file directory
 			directory += (directory.equals("") ? "" : "/");
 			String fullName = directory + prefix + "_log.plot";
-			File plot = new File(fullName);
+			String fullFillName = directory + fillPrefix + "_log.plot";
+			File plot = new File(fullName); // for archive log plot file
+			File fillPlot = new File(fullFillName);
 			// Write to file
 			try {
+				// Archive plot
 				this.individualsPerGeneration = Parameters.parameters.integerParameter("steadyStateIndividualsPerGeneration");
 				PrintStream ps = new PrintStream(plot);
 				ps.println("set term pdf enhanced");
@@ -66,6 +73,18 @@ public class MAPElites<T> implements SteadyStateEA<T> {
 				// The :1 is for skipping the "generation" number logged in the file
 				ps.println("plot \"" + fullName.substring(fullName.lastIndexOf('/')+1, fullName.lastIndexOf('.')) + ".txt\" matrix every ::1 with image");
 				ps.close();
+				
+				// Fill percentage plot
+				ps = new PrintStream(plot);
+				ps.println("set term pdf enhanced");
+				ps.println("unset key");
+				// Here, maxGens is actually the number of iterations, but dividing by individualsPerGeneration scales it to represent "generations"
+				ps.println("set xrange [0:"+ (Parameters.parameters.integerParameter("maxGens")/individualsPerGeneration) +"]");
+				ps.println("set title \"" + experimentPrefix + " Archive Filled Bins\"");
+				ps.println("set output \"" + fullFillName.substring(fullFillName.lastIndexOf('/')+1, fullFillName.lastIndexOf('.')) + ".pdf\"");
+				ps.println("plot \"" + fullFillName.substring(fullFillName.lastIndexOf('/')+1, fullFillName.lastIndexOf('.')) + ".txt\" u 1:2 w linespoints");
+				ps.close();
+				
 			} catch (FileNotFoundException e) {
 				System.out.println("Could not create plot file: " + plot.getName());
 				e.printStackTrace();
@@ -136,7 +155,10 @@ public class MAPElites<T> implements SteadyStateEA<T> {
 			// When all iterations were logged, the file got too large
 			//log.log(iterations + "\t" + iterationsWithoutElite + "\t" + StringUtils.join(ArrayUtils.toObject(archive.getEliteScores()), "\t"));
 			// Just log every "generation" instead
-			log.log((iterations/individualsPerGeneration) + "\t" + StringUtils.join(ArrayUtils.toObject(archive.getEliteScores()), "\t"));
+			Float[] elite = ArrayUtils.toObject(archive.getEliteScores());
+			archiveLog.log((iterations/individualsPerGeneration) + "\t" + StringUtils.join(elite, "\t"));
+			// Exclude negative infinity to find out how many bins are filled
+			fillLog.log((iterations/individualsPerGeneration) + "\t" + (elite.length - ArrayUtil.countOccurrences(Float.NEGATIVE_INFINITY, elite)));
 		}
 	}
 	
