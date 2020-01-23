@@ -150,7 +150,7 @@ public class MAPElites<T> implements SteadyStateEA<T> {
 	 */
 	@Override
 	public void newIndividual() {
-		int index = archive.randomBinIndex();
+		int index = archive.randomOccupiedBinIndex();
 		Genotype<T> parent1 = archive.getElite(index).individual;
 		long parentId1 = parent1.getId(); // Parent Id comes from original genome
 		long parentId2 = -1;
@@ -158,7 +158,7 @@ public class MAPElites<T> implements SteadyStateEA<T> {
 		
 		// Potentially mate with second individual
 		if (mating && RandomNumbers.randomGenerator.nextDouble() < crossoverRate) {
-			int otherIndex = archive.randomBinIndex(); // From a different bin
+			int otherIndex = archive.randomOccupiedBinIndex(); // From a different bin
 			Genotype<T> parent2 = archive.getElite(otherIndex).individual;
 			parentId2 = parent2.getId(); // Parent Id comes from original genome
 			Genotype<T> child2 = parent2.copy(); // Copy with different Id (further modified below)
