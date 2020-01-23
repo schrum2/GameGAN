@@ -1,5 +1,6 @@
 package edu.southwestern.tasks.gvgai.zelda.dungeon;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -7,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -796,7 +798,7 @@ public class DungeonUtil {
 			    RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		
 		image = g2d.getDeviceConfiguration().createCompatibleImage(width, height);
-		Graphics g = image.getGraphics();
+		Graphics2D g = (Graphics2D) image.getGraphics();
 		
 		Font f = new Font("Trebuchet MS", Font.PLAIN, BLOCK_HEIGHT / 4);
 		g.setFont(f);
@@ -826,8 +828,11 @@ public class DungeonUtil {
 					if(!n.reachable) {
 						// Can't reach the room: draw an X over it
 						g.setColor(Color.MAGENTA);
+						Stroke originalStroke = g.getStroke();
+						g.setStroke(new BasicStroke(4)); // Thicker line
 						g.drawLine(oX, oY, oX + BLOCK_WIDTH, oY + BLOCK_HEIGHT);
 						g.drawLine(oX, oY + BLOCK_HEIGHT, oX + BLOCK_WIDTH, oY);
+						g.setStroke(originalStroke); // Restore to original size
 					}
 					
 					if(debug) {
