@@ -6,6 +6,12 @@ import java.util.List;
 import edu.southwestern.evolution.mapelites.BinLabels;
 import edu.southwestern.parameters.Parameters;
 
+/**
+ * Bins are based on the percentage of floor space occupied by walls, the percentage of floor space occupied by water, and the number of rooms.
+ * 
+ * @author schrum2
+ *
+ */
 public class ZeldaMAPElitesBinLabels implements BinLabels {
 
 	public static final int TILE_GROUPS = 10;
