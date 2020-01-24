@@ -35,11 +35,23 @@ roomBin <- data.frame(roomBin)
 allData <- data.frame(archive, wallBin, waterBin, roomBin)
 
 library(reshape2)
+library(grid)
+library(gplots)
 
 room001 <- allData[allData$roomBin == 1, ]
 room001$roomBin <- NULL
 room001[room001 == -Inf] <- -1
 room001 <- acast(room001, wallBin~waterBin, value.var="PercentTraversed")
 
-heatmap(room001, Colv=NA, Rowv=NA, scale="none", revC=T)
+heatmap.2(room001, dendrogram="none", Colv=NA, Rowv=NA, scale="none")
+#heatmap(room001, Colv=NA, Rowv=NA, scale="none", revC=T)
 text(0.7,-0.1,"1")
+
+room002 <- allData[allData$roomBin == 2, ]
+room002$roomBin <- NULL
+room002[room002 == -Inf] <- -1
+room002 <- acast(room002, wallBin~waterBin, value.var="PercentTraversed")
+
+heatmap.2(room002, dendrogram="none", Colv=NA, Rowv=NA, scale="none")
+#heatmap(room002, Colv=NA, Rowv=NA, scale="none", revC=T)
+text(0.7,-0.1,"2")
