@@ -41,4 +41,5 @@ room001$roomBin <- NULL
 room001[room001 == -Inf] <- -1
 room001 <- acast(room001, wallBin~waterBin, value.var="PercentTraversed")
 
-heatmap(room001)
+heatmap(room001, Colv=NA, Rowv=NA, scale="none", revC=T)
+text(0.7,-0.1,"1")
