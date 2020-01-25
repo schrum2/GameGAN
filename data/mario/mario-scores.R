@@ -21,16 +21,27 @@ for(file in files){
   close(con)
 }
 
-
-for(j in 1:length(other_scores)){
-  dat = data[1:100,seq(6+j, length(col_names),length(other_scores))]
+plot_lines_priv = function(dat,...){
   colors <- rainbow(nrow(dat)) 
-  
-  plot(c(1,num_seg),range(dat), type="n", xlab="Segment", ylab=other_scores[j])
+  plot(c(1,num_seg),range(dat), type="n", xlab="Segment",...)
   for(i in 1:nrow(dat)){
     lines(1:num_seg, dat[i,], col=colors[i])
-  }  
+  }
 }
+
+
+plot_lines = function(dat, which,...){
+  if(which!=0){
+    dat = dat[,seq(6+which, length(col_names),length(other_scores))]
+    plot_lines_priv(dat,  ylab=other_scores[which],...)
+  }else{
+    for(j in 1:length(other_scores)){
+      dat = dat[,seq(6+j, length(col_names),length(other_scores))]
+      plot_lines_priv(dat,  ylab=other_scores[j],...)
+    }  
+  }
+}
+
 
 dist_fun = function(a,b){
   offset = - sum(a-b)/length(a)
@@ -38,13 +49,25 @@ dist_fun = function(a,b){
   return(d)
 }
 
-dat = data[1:100,seq(6+1, length(col_names),length(other_scores))]
-dist_mat = matrix(0, nrow=nrow(dat), ncol=nrow(dat))
-for(i in 1:nrow(dat)){
-  for(j in 1:nrow(dat)){
-    dist_mat[i,j] = dist_fun(dat[i,], dat[j,])
+for(i in 1:length(other_scores)){
+  plot_lines(data[1:100,],i)
+  dat = data[1:100,seq(6+i, length(col_names),length(other_scores))]
+  dist_mat = matrix(0, nrow=nrow(dat), ncol=nrow(dat))
+  for(r in 1:nrow(dat)){
+    for(c in 1:nrow(dat)){
+      dist_mat[r,c] = dist_fun(dat[r,], dat[c,])
+    }
+  }
+  
+  hc = hclust(dist(dist_mat))
+  plot(hc)
+  res = cutree(hc,k=10)
+  
+  for(c in unique(res)){
+    dat_t = dat[res==c,,drop=FALSE]
+    plot_lines_priv(dat_t,ylab=other_scores[i])
+    print(which(res==c))
   }
 }
 
-hc = hclust(dist(dist_mat))
-plot(hc)
+
