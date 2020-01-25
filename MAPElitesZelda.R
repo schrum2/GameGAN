@@ -101,12 +101,14 @@ ggplot(dropRooms0, aes(x=waterBin, y=wallBin, fill=PercentTraversed)) +
   facet_wrap(~roomBin) +
   xlab("Water Percentage Bin") +
   ylab("Wall Percentage Bin") +
-  labs(fill = "Traversed") +
-  #guides(fill=guide_legend(title="Traversed")) +
+  labs(fill = "Percent Rooms Traversed") +
   theme(strip.background = element_blank(),
         strip.text = element_blank(),
-        panel.spacing.x=unit(0.01, "points"),
-        panel.spacing.y=unit(0.01, "points"),
+        legend.position="top",
+        legend.direction = "horizontal",
+        legend.key.width = unit(70,"points"),
+        panel.spacing.x=unit(0.001, "points"),
+        panel.spacing.y=unit(0.001, "points"),
         axis.ticks = element_blank(),
         axis.text = element_blank())
   
