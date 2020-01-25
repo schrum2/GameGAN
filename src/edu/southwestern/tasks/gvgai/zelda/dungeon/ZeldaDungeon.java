@@ -556,6 +556,10 @@ public abstract class ZeldaDungeon<T> {
 			List<List<Integer>> ints = intLevel;
 			int x = (ints.get(0).size() - 1) / 2;
 			int y = (ints.size() - 1) / 2;
+			if(x == -1 || y == -1) {
+				// Rare, but has happened. Simply fail the level and move on to the next
+				throw new IllegalArgumentException("Can't place Triforce at location ("+x+","+y+")");
+			}
 			while(!Tile.findNum(ints.get(y).get(x)).playerPassable()) {
 				if(x % 2 == 0)
 					x--;
