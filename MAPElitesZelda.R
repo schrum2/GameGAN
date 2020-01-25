@@ -1,8 +1,21 @@
-setwd("E:\\Users\\he_de\\workspace\\GameGAN")
-map <- read.table("zeldacppntogan/MAPElites3/ZeldaCPPNtoGAN-MAPElites3_MAPElites_log.txt")
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+if (length(args)==0) {
+  stop("Supply file name of MAP Elites log for Zelda", call.=FALSE)
+}
+
+print("Load data")
+#map <- read.table("zeldacppntogan/MAPElites3/ZeldaCPPNtoGAN-MAPElites3_MAPElites_log.txt")
+map <- read.table(args[1])
+# Only the final archive matters
 lastRow <- map[map$V1 == nrow(map) - 1, ]
 archive <- data.frame(matrix(unlist(lastRow[2:length(lastRow)]), nrow=(length(lastRow)-1), byrow=T))
 names(archive) <- "PercentTraversed"
+
+# Add data indicating how the data is binned, based on convention of how
+# output data is organized
+
+print("Organize bins")
 
 wallBin <- append(rep(0, 10*101), rep(1, 10*101))
 wallBin <- append(wallBin, rep(2, 10*101))
@@ -34,11 +47,42 @@ roomBin <- data.frame(roomBin)
 
 allData <- data.frame(archive, wallBin, waterBin, roomBin)
 
-library(reshape2)
+###############################################
 
-room001 <- allData[allData$roomBin == 1, ]
-room001$roomBin <- NULL
-room001[room001 == -Inf] <- -1
-room001 <- acast(room001, wallBin~waterBin, value.var="PercentTraversed")
+library(ggplot2)
+library(dplyr)
+library(viridis)
+library(stringr)
 
-heatmap(room001)
+# Bin for dungeons with 0 rooms doesn't actually have anything
+dropRooms0 <- filter(allData, roomBin > 0)
+
+print("Create plot and save to file")
+
+outputFile <- str_replace(args[1],"txt","heat.pdf")
+pdf(outputFile)  
+result <- ggplot(dropRooms0, aes(x=waterBin, y=wallBin, fill=PercentTraversed)) +
+  geom_tile() +
+  facet_wrap(~roomBin) +
+  #scale_fill_gradient(low="white", high="orange") +
+  scale_fill_viridis(discrete=FALSE) +
+  xlab("Water Percentage Bin") +
+  ylab("Wall Percentage Bin") +
+  labs(fill = "Percent Rooms Traversed") +
+  # Puts room count in the plot for each bin
+  geom_text(aes(label = ifelse(wallBin == 8 & waterBin == 7, roomBin, NA))) +
+  #annotation_custom(grob) +
+  theme(strip.background = element_blank(),
+        strip.text = element_blank(),
+        legend.position="top",
+        legend.direction = "horizontal",
+        legend.key.width = unit(70,"points"),
+        panel.spacing.x=unit(0.001, "points"),
+        panel.spacing.y=unit(0.001, "points"),
+        axis.ticks = element_blank(),
+        axis.text = element_blank())
+print(result)
+dev.off()
+
+print(paste("Saved:",outputFile))
+print("Finished")

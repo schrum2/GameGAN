@@ -556,12 +556,30 @@ public abstract class ZeldaDungeon<T> {
 			List<List<Integer>> ints = intLevel;
 			int x = (ints.get(0).size() - 1) / 2;
 			int y = (ints.size() - 1) / 2;
-			while(!Tile.findNum(ints.get(y).get(x)).playerPassable()) {
+			while(x != -1 && y != -1 && !Tile.findNum(ints.get(y).get(x)).playerPassable()) {
 				if(x % 2 == 0)
 					x--;
 				else
 					y--;
 			}
+			// The code above sometimes reached -1 and caused an exception
+			if(x == -1 || y == -1) {
+				// Keep the choice deterministic. Find first available floor tile (this is rare anyway)
+				boolean found = false;
+				for(int i = 2; i < ints.size(); i++) {
+					for(int j = 2; j < ints.get(0).size(); j++) {
+						if(Tile.findNum(ints.get(i).get(j)).playerPassable()) {
+							x = j;
+							y = i;
+							found = true;
+							break;
+						}
+					}
+					if(found) break;
+				}
+				
+			}
+			
 			ints.get(y).set(x, Tile.TRIFORCE.getNum());
 			intLevel = ints;
 			if(dungeon != null)
