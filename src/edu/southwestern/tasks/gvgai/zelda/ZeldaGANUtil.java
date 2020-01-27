@@ -1,12 +1,14 @@
 package edu.southwestern.tasks.gvgai.zelda;
 
 import java.awt.Point;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
+import java.io.*;
 
 import edu.southwestern.parameters.Parameters;
+import edu.southwestern.scores.Score;
 import edu.southwestern.tasks.gvgai.GVGAIUtil;
 import edu.southwestern.tasks.mario.gan.GANProcess;
 import edu.southwestern.tasks.mario.gan.reader.JsonReader;
@@ -17,6 +19,7 @@ import gvgai.core.vgdl.VGDLFactory;
 import gvgai.core.vgdl.VGDLParser;
 import gvgai.core.vgdl.VGDLRegistry;
 import gvgai.tracks.singlePlayer.tools.human.Agent;
+import wox.serial.Easy;
 
 public class ZeldaGANUtil {
 
@@ -88,34 +91,63 @@ public class ZeldaGANUtil {
 	/**
 	 * For quick tests
 	 * @param args
+	 * @throws FileNotFoundException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
 		int size = 10;
-		Parameters.initializeParameterCollections(new String[] {"GANInputSize:"+size,"zeldaGANModel:ZeldaDungeon02_5000_10.pth"});
+		GANProcess.type = GANProcess.GAN_TYPE.ZELDA;
+		Parameters.initializeParameterCollections(new String[] {"zeldaGANUsesOriginalEncoding:false","GANInputSize:"+size,"zeldaGANModel:ZeldaDungeonsAll3Tiles_10000_10.pth"});
 		//MMNEAT.loadClasses();
 		
-		VGDLFactory.GetInstance().init();
-		VGDLRegistry.GetInstance().init();
-
-		String game = "zelda";
-		String gamesPath = "data/gvgai/examples/gridphysics/";
-		String game_file = gamesPath + game + ".txt";
-		int playerID = 0;
-		int seed = 0;
-
-		GANProcess.type = GANProcess.GAN_TYPE.ZELDA;
-		double[] latentVector = RandomNumbers.randomArray(size);
-		String[] level = generateGVGAILevelFromGAN(latentVector, new Point(8,8));
+		String path = "interactivezeldagan\\Both0\\bestObjectives"; // <--- Change this to the specific directory you want to check
+		File dir = new File(path);
+		File[] xmlGenotypes = dir.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File pathname) {
+				return pathname.getName().endsWith(".xml");
+			}
+		});
 		
-		for(String line : level) {
-			System.out.println(line);
+		for(File f: xmlGenotypes) {
+			@SuppressWarnings("unchecked")
+			Score<ArrayList<Double>> s = (Score<ArrayList<Double>>) Easy.load(f.getAbsolutePath());
+			ArrayList<Double> list = s.individual.getPhenotype();
+			double[] latent = ArrayUtil.doubleArrayFromList(list);
+			List<List<List<Integer>>> listLevel = getRoomListRepresentationFromGAN(latent);
+			
+			// Do whatever you want with this list representation
+			System.out.println(listLevel);
+			
 		}
 		
-		Agent agent = new Agent();
-		agent.setup(null, 0, true); // null = no log, true = human 
+		GANProcess.terminateGANProcess();
+	}		
 
-		Game toPlay = new VGDLParser().parseGame(game_file); // Initialize the game
-		GVGAIUtil.runOneGame(toPlay, level, true, agent, seed, playerID);
-
-	}
+	
+//	public static void main(String[] args) throws FileNotFoundException {
+//		
+//		VGDLFactory.GetInstance().init();
+//		VGDLRegistry.GetInstance().init();
+//
+//		String game = "zelda";
+//		String gamesPath = "data/gvgai/examples/gridphysics/";
+//		String game_file = gamesPath + game + ".txt";
+//		int playerID = 0;
+//		int seed = 0;
+//
+//		GANProcess.type = GANProcess.GAN_TYPE.ZELDA;
+//		double[] latentVector = RandomNumbers.randomArray(size);
+//		String[] level = generateGVGAILevelFromGAN(latentVector, new Point(8,8));
+//		
+//		for(String line : level) {
+//			System.out.println(line);
+//		}
+//		
+//		Agent agent = new Agent();
+//		agent.setup(null, 0, true); // null = no log, true = human 
+//
+//		Game toPlay = new VGDLParser().parseGame(game_file); // Initialize the game
+//		GVGAIUtil.runOneGame(toPlay, level, true, agent, seed, playerID);
+//
+//	}
 }
