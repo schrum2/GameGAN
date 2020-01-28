@@ -99,7 +99,7 @@ public class ZeldaGANUtil {
 		Parameters.initializeParameterCollections(new String[] {"zeldaGANUsesOriginalEncoding:false","GANInputSize:"+size,"zeldaGANModel:ZeldaDungeonsAll3Tiles_10000_10.pth"});
 		//MMNEAT.loadClasses();
 		
-		String path = "interactivezeldagan\\Both0\\bestObjectives"; // <--- Change this to the specific directory you want to check
+		String path = "G:\\My Drive\\Research\\2020-GECCO-InteractiveGAN-Dagstuhl\\UserData\\zelda-vv-modl-23-01-20\\Evolve14\\bestObjectives"; // <--- Change this to the specific directory you want to check
 		File dir = new File(path);
 		File[] xmlGenotypes = dir.listFiles(new FileFilter() {
 			@Override
@@ -116,8 +116,8 @@ public class ZeldaGANUtil {
 			List<List<List<Integer>>> listLevel = getRoomListRepresentationFromGAN(latent);
 			
 			// Do whatever you want with this list representation
-			System.out.println(listLevel);
-			
+			PrintStream ps = new PrintStream(new File(path+"\\"+f.getName()+"level.txt"));
+			ps.println(listLevel);
 		}
 		
 		GANProcess.terminateGANProcess();
