@@ -30,12 +30,12 @@ start = sum(df$type=="train-s")/4
 
 p = plot_ly(data=df, x= ~id, y=~kldiv, type='scatter',
             mode= 'markers', symbol=~file, symbols = c('circle','x','o','square'), color=~type) %>%
-  layout(shapes=list(vline(start, color="black"), vline(start+1*20), vline(start+2*20),vline(start+3*20, color="black"),
-                     vline(start+4*20), vline(start+5*20), vline(start+6*20, color="black"),
-                     vline(start+7*20), vline(start+8*20), vline(start+9*20, color="black"),
-                     vline(start+10*20), vline(start+11*20, color="black"),
-                     vline(start+12*20), vline(start+13*20, color="black"),
-                     vline(start+14*20), vline(start+15*20, color="black")))
+  layout(shapes=list(vline(start, color="black"), vline(start+1*20), vline(start+2*20, color="black"),
+                     vline(start+3*20), vline(start+4*20, color="black"),
+                     vline(start+5*20),  vline(start+6*20, color="black"),
+                     vline(start+7*20), vline(start+8*20, color="black"),
+                     vline(start+9*20), vline(start+10*20, color="black"),
+                     vline(start+11*20), vline(start+12*20, color="black")))
 
 p
 
@@ -60,10 +60,14 @@ colLab <- function(n) {
   n
 }
 
-dist_mat = dist(dist_list_sym[[1]])
-hc = hclust(dist_mat)
-clus = dendrapply(as.dendrogram(hc), colLab)
-plot(clus)
+for(i in 1:4){
+  dist_mat = dist(dist_list_sym[[i]])
+  hc = hclust(dist_mat)
+  clus = dendrapply(as.dendrogram(hc), colLab)
+  plot(clus, main=i+1)
+}
+
+
 
 
 plot(hc,  color=c(rep("red",12), rep("black",180)))
