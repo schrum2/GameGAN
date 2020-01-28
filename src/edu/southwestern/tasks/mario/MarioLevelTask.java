@@ -1,5 +1,9 @@
 package edu.southwestern.tasks.mario;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -40,9 +44,14 @@ import org.apache.commons.lang.ArrayUtils;
  * @param <T>
  */
 public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {	
+	
+	private static final int SEGMENT_WIDTH_IN_BLOCKS = 28; // GAN training window
+	private static final int PIXEL_BLOCK_WIDTH = 16; // Is this right?
+	
 	private Agent agent;
 	private int numFitnessFunctions;
 	private boolean fitnessRequiresSimulation;
+	private boolean segmentFitness;
 	private ArrayList<List<Integer>> targetLevel = null;
 	
 	public static final int DECORATION_FREQUENCY_STAT_INDEX = 0;
@@ -63,6 +72,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		// Fitness
 		numFitnessFunctions = 0;
 		fitnessRequiresSimulation = false; // Until proven otherwise
+		segmentFitness = false;
 		if(Parameters.parameters.booleanParameter("marioProgressPlusJumpsFitness")) {
 			// First maximize progress through the level.
 			// If the level is cleared, then maximize the duration of the
@@ -94,28 +104,34 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		// Encourages an alternating periodic pattern of Vanessa's objectives
 		if(Parameters.parameters.booleanParameter("marioLevelAlternatingLeniency")) {
 			MMNEAT.registerFitnessFunction("AlternatingLeniency");
+			segmentFitness = true;
 			numFitnessFunctions++;
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelAlternatingNegativeSpace")) {
 			MMNEAT.registerFitnessFunction("AlternatingNegativeSpace");
+			segmentFitness = true;
 			numFitnessFunctions++;			
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelAlternatingDecoration")) {
 			MMNEAT.registerFitnessFunction("AlternatingDecorationFrequency");
+			segmentFitness = true;
 			numFitnessFunctions++;
 		}
 
 		// Encourages a symmetric pattern of Vanessa's objectives
 		if(Parameters.parameters.booleanParameter("marioLevelSymmetricLeniency")) {
 			MMNEAT.registerFitnessFunction("SymmetricLeniency");
+			segmentFitness = true;
 			numFitnessFunctions++;			
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelSymmetricNegativeSpace")) {
 			MMNEAT.registerFitnessFunction("SymmetricNegativeSpace");
+			segmentFitness = true;
 			numFitnessFunctions++;						
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelSymmetricDecoration")) {
 			MMNEAT.registerFitnessFunction("SymmetricDecorationFrequency");
+			segmentFitness = true;
 			numFitnessFunctions++;			
 		}
 		
@@ -183,6 +199,14 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			if(CommonConstants.watch) {
 				// View whole dungeon layout
 				BufferedImage image = MarioLevelUtil.getLevelImage(level);
+				if(segmentFitness) { // Draw lines dividing the segments 
+					Graphics2D g = (Graphics2D) image.getGraphics();
+					g.setColor(Color.MAGENTA);
+					g.setStroke(new BasicStroke(4)); // Thicker line
+					for(int i = 1; i < Parameters.parameters.integerParameter("marioGANLevelChunks"); i++) {
+						g.drawLine(i*PIXEL_BLOCK_WIDTH*SEGMENT_WIDTH_IN_BLOCKS, 0, i*PIXEL_BLOCK_WIDTH*SEGMENT_WIDTH_IN_BLOCKS, image.getHeight());
+					}
+				}
 				String saveDir = FileUtilities.getSaveDirectory();
 				int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
 				GraphicsUtil.saveImage(image, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioLevel"+individual.getId()+".png");
@@ -199,7 +223,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
                 
 		double[] otherScores = new double[] {distancePassed, percentLevelPassed, time, jumps};
 		// Adds Vanessa's Mario stats: Decoration Frequency, Leniency, Negative Space
-		ArrayList<double[]> levelStats = LevelParser.getLevelStats(oneLevel, 28);
+		ArrayList<double[]> levelStats = LevelParser.getLevelStats(oneLevel, SEGMENT_WIDTH_IN_BLOCKS);
 		for(double[] stats:levelStats){
 			otherScores = ArrayUtils.addAll(otherScores, stats);
 		}
@@ -257,7 +281,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			fitnesses.add(-1.0*diffCount);
 			
 			if(CommonConstants.watch) {
-				// View whole dungeon layout
+				// View whole level layout
 				Level level = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ? OldLevelParser.createLevelJson(targetDiff) : LevelParser.createLevelJson(targetDiff);			
 				BufferedImage image = MarioLevelUtil.getLevelImage(level);
 				String saveDir = FileUtilities.getSaveDirectory();
