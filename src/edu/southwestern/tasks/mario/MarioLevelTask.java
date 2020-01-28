@@ -45,6 +45,11 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 	private boolean fitnessRequiresSimulation;
 	private ArrayList<List<Integer>> targetLevel = null;
 	
+	public static final int DECORATION_FREQUENCY_STAT_INDEX = 0;
+	public static final int LENIENCY_STAT_INDEX = 1;
+	public static final int NEGATIVE_SPACE_STAT_INDEX = 2;
+	public static final int NUM_SEGMENT_STATS = 3;
+	
 	public MarioLevelTask() {
 		// Replace this with a command line parameter
 		try {
@@ -76,7 +81,6 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			MMNEAT.registerFitnessFunction("LevelMatch");
 			numFitnessFunctions++;
 			// Load level representation from file here
-			// TODO
 			String levelFileName = Parameters.parameters.stringParameter("marioTargetLevel"); // Does not have a default value yet
 			targetLevel = MarioLevelUtil.listLevelFromVGLCFile(levelFileName);
 			
@@ -87,6 +91,34 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			GraphicsUtil.saveImage(image, saveDir + File.separator + "Target.png");
 
 		}
+		// Encourages an alternating periodic pattern of Vanessa's objectives
+		if(Parameters.parameters.booleanParameter("marioLevelAlternatingLeniency")) {
+			MMNEAT.registerFitnessFunction("AlternatingLeniency");
+			numFitnessFunctions++;
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelAlternatingNegativeSpace")) {
+			MMNEAT.registerFitnessFunction("AlternatingNegativeSpace");
+			numFitnessFunctions++;			
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelAlternatingDecoration")) {
+			MMNEAT.registerFitnessFunction("AlternatingDecorationFrequency");
+			numFitnessFunctions++;
+		}
+
+		// Encourages a symmetric pattern of Vanessa's objectives
+		if(Parameters.parameters.booleanParameter("marioLevelSymmetricLeniency")) {
+			MMNEAT.registerFitnessFunction("SymmetricLeniency");
+			numFitnessFunctions++;			
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelSymmetricNegativeSpace")) {
+			MMNEAT.registerFitnessFunction("SymmetricNegativeSpace");
+			numFitnessFunctions++;						
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelSymmetricDecoration")) {
+			MMNEAT.registerFitnessFunction("SymmetricDecorationFrequency");
+			numFitnessFunctions++;			
+		}
+		
 		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {
 			MMNEAT.registerFitnessFunction("Random");
 			numFitnessFunctions++;
@@ -165,13 +197,13 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		double time = info == null ? 0 : info.timeSpentOnLevel;
 		double jumps = info == null ? 0 : info.jumpActionsPerformed;
                 
-        	double[] otherScores = new double[] {distancePassed, percentLevelPassed, time, jumps};
-                ArrayList<double[]> levelStats = LevelParser.getLevelStats(oneLevel, 28);
-                                
-                for(double[] stats:levelStats){
-                    otherScores = ArrayUtils.addAll(otherScores, stats);
-                }
-   
+		double[] otherScores = new double[] {distancePassed, percentLevelPassed, time, jumps};
+		// Adds Vanessa's Mario stats: Decoration Frequency, Leniency, Negative Space
+		ArrayList<double[]> levelStats = LevelParser.getLevelStats(oneLevel, 28);
+		for(double[] stats:levelStats){
+			otherScores = ArrayUtils.addAll(otherScores, stats);
+		}
+
 		ArrayList<Double> fitnesses = new ArrayList<>(numFitnessFunctions);
 		if(Parameters.parameters.booleanParameter("marioProgressPlusJumpsFitness")) {
 			if(percentLevelPassed < 1.0) {
@@ -233,11 +265,53 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 				GraphicsUtil.saveImage(image, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioLevel"+individual.getId()+"TargetDiff.png");
 			}
 		}
+		
+		
+		// Encourages an alternating periodic pattern of Vanessa's objectives
+		if(Parameters.parameters.booleanParameter("marioLevelAlternatingLeniency")) {
+			fitnesses.add(alternatingStatScore(levelStats, LENIENCY_STAT_INDEX));
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelAlternatingNegativeSpace")) {
+			fitnesses.add(alternatingStatScore(levelStats, NEGATIVE_SPACE_STAT_INDEX));
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelAlternatingDecoration")) {
+			fitnesses.add(alternatingStatScore(levelStats, DECORATION_FREQUENCY_STAT_INDEX));
+		}
+
+		// Encourages a symmetric pattern of Vanessa's objectives
+		if(Parameters.parameters.booleanParameter("marioLevelSymmetricLeniency")) {
+			fitnesses.add(symmetricStatScore(levelStats, LENIENCY_STAT_INDEX));
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelSymmetricNegativeSpace")) {
+			fitnesses.add(symmetricStatScore(levelStats, NEGATIVE_SPACE_STAT_INDEX));
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelSymmetricDecoration")) {
+			fitnesses.add(symmetricStatScore(levelStats, DECORATION_FREQUENCY_STAT_INDEX));
+		}
+		
 		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {
 			fitnesses.add(RandomNumbers.fullSmallRand());
 		}
 		
 		return new Pair<double[],double[]>(ArrayUtil.doubleArrayFromList(fitnesses), otherScores);
+	}
+
+	private double symmetricStatScore(ArrayList<double[]> levelStats, int statIndex) {
+		double total = 0;
+		for(int i = 0; i < levelStats.size()/2; i++) {
+			// Diff between symmetric segments
+			total += Math.abs(levelStats.get(i)[statIndex] - levelStats.get(levelStats.size()-1-i)[statIndex]);
+		}
+		return - total; // Negative: Max symmetry means minimal difference in symmetric segments
+	}
+
+	private double alternatingStatScore(ArrayList<double[]> levelStats, int statIndex) {
+		double total = 0;
+		for(int i = 1; i < levelStats.size(); i++) {
+			// Differences between adjacent segments
+			total += Math.abs(levelStats.get(i-1)[statIndex] - levelStats.get(i)[statIndex]);
+		}
+		return total;
 	}
 	
 }
