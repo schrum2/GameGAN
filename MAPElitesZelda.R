@@ -4,6 +4,7 @@ if (length(args)==0) {
   stop("Supply file name of MAP Elites log for Zelda", call.=FALSE)
 }
 
+#setwd("E:\\Users\\he_de\\workspace\\GameGAN")
 print("Load data")
 #map <- read.table("zeldacppntogan/MAPElites3/ZeldaCPPNtoGAN-MAPElites3_MAPElites_log.txt")
 map <- read.table(args[1])
@@ -54,8 +55,9 @@ library(dplyr)
 library(viridis)
 library(stringr)
 
+dropUpperRightCorners <- filter(allData, wallBin + waterBin <= 9)
 # Bin for dungeons with 0 rooms doesn't actually have anything
-dropRooms0 <- filter(allData, roomBin > 0)
+dropRooms0 <- filter(dropUpperRightCorners, roomBin > 0)
 
 print("Create plot and save to file")
 
@@ -70,7 +72,8 @@ result <- ggplot(dropRooms0, aes(x=waterBin, y=wallBin, fill=PercentTraversed)) 
   ylab("Wall Percentage Bin") +
   labs(fill = "Percent Rooms Traversed") +
   # Puts room count in the plot for each bin
-  geom_text(aes(label = ifelse(wallBin == 8 & waterBin == 7, roomBin, NA))) +
+  geom_text(aes(label = ifelse(wallBin == 5 & waterBin == 4, roomBin, NA)), 
+            nudge_x = 2.5,nudge_y = 3) +
   #annotation_custom(grob) +
   theme(strip.background = element_blank(),
         strip.text = element_blank(),

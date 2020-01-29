@@ -20,3 +20,6 @@ interactivezeldagan/
 python/GAN/ZeldaDungeonsAll3Tiles_5000_10/
 python/GAN/ZeldaDungeonsAll3Tiles_10000_10/
 /dist/
+.RData
+.Rhistory
+
