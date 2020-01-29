@@ -328,6 +328,9 @@ public class Parameters {
 		booleanOptions.add("marioLevelAlternatingLeniency", false, "Mario level evolves to encourage alternating amounts of leniency in segments");
 		booleanOptions.add("marioLevelAlternatingNegativeSpace", false, "Mario level evolves to encourage alternating amounts of negative space in segments");
 		booleanOptions.add("marioLevelAlternatingDecoration", false, "Mario level evolves to encourage alternating amounts of decoration in segments");
+		booleanOptions.add("marioLevelPeriodicLeniency", false, "Mario level evolves to encourage periodically repeating amounts of leniency in segments");
+		booleanOptions.add("marioLevelPeriodicNegativeSpace", false, "Mario level evolves to encourage periodically repeating amounts of negative space in segments");
+		booleanOptions.add("marioLevelPeriodicDecoration", false, "Mario level evolves to encourage periodically repeating amounts of decoration in segments");
 		booleanOptions.add("marioLevelSymmetricLeniency", false, "Mario level evolves to encourage symmetric amounts of leniency in segments");
 		booleanOptions.add("marioLevelSymmetricNegativeSpace", false, "Mario level evolves to encourage symmetric amounts of negative space in segments");
 		booleanOptions.add("marioLevelSymmetricDecoration", false, "Mario level evolves to encourage symmetric amounts of decoration in segments");

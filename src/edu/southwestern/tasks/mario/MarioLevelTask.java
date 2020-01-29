@@ -101,7 +101,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			GraphicsUtil.saveImage(image, saveDir + File.separator + "Target.png");
 
 		}
-		// Encourages an alternating periodic pattern of Vanessa's objectives
+		// Encourages an alternating pattern of Vanessa's objectives
 		if(Parameters.parameters.booleanParameter("marioLevelAlternatingLeniency")) {
 			MMNEAT.registerFitnessFunction("AlternatingLeniency");
 			segmentFitness = true;
@@ -114,6 +114,22 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelAlternatingDecoration")) {
 			MMNEAT.registerFitnessFunction("AlternatingDecorationFrequency");
+			segmentFitness = true;
+			numFitnessFunctions++;
+		}
+		// Encourages an periodic pattern of Vanessa's objectives
+		if(Parameters.parameters.booleanParameter("marioLevelPeriodicLeniency")) {
+			MMNEAT.registerFitnessFunction("PeriodicLeniency");
+			segmentFitness = true;
+			numFitnessFunctions++;
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelPeriodicNegativeSpace")) {
+			MMNEAT.registerFitnessFunction("PeriodicNegativeSpace");
+			segmentFitness = true;
+			numFitnessFunctions++;			
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelPeriodicDecoration")) {
+			MMNEAT.registerFitnessFunction("PeriodicDecorationFrequency");
 			segmentFitness = true;
 			numFitnessFunctions++;
 		}
@@ -291,7 +307,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		}
 		
 		
-		// Encourages an alternating periodic pattern of Vanessa's objectives
+		// Encourages an alternating pattern of Vanessa's objectives
 		if(Parameters.parameters.booleanParameter("marioLevelAlternatingLeniency")) {
 			fitnesses.add(alternatingStatScore(levelStats, LENIENCY_STAT_INDEX));
 		}
@@ -300,6 +316,17 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelAlternatingDecoration")) {
 			fitnesses.add(alternatingStatScore(levelStats, DECORATION_FREQUENCY_STAT_INDEX));
+		}
+
+		// Encourages a periodic pattern of Vanessa's objectives
+		if(Parameters.parameters.booleanParameter("marioLevelPeriodicLeniency")) {
+			fitnesses.add(periodicStatScore(levelStats, LENIENCY_STAT_INDEX));
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelPeriodicNegativeSpace")) {
+			fitnesses.add(periodicStatScore(levelStats, NEGATIVE_SPACE_STAT_INDEX));
+		}
+		if(Parameters.parameters.booleanParameter("marioLevelPeriodicDecoration")) {
+			fitnesses.add(periodicStatScore(levelStats, DECORATION_FREQUENCY_STAT_INDEX));
 		}
 
 		// Encourages a symmetric pattern of Vanessa's objectives
@@ -318,6 +345,23 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		}
 		
 		return new Pair<double[],double[]>(ArrayUtil.doubleArrayFromList(fitnesses), otherScores);
+	}
+
+	private double periodicStatScore(ArrayList<double[]> levelStats, int statIndex) {
+		double evenTotal = 0;
+		// even differences
+		for(int i = 2; i < levelStats.size(); i += 2) {
+			// Differences between even segments
+			evenTotal += Math.abs(levelStats.get(i-2)[statIndex] - levelStats.get(i)[statIndex]);
+		}
+		double oddTotal = 0;
+		// odd differences
+		for(int i = 3; i < levelStats.size(); i += 2) {
+			// Differences between odd segments
+			oddTotal += Math.abs(levelStats.get(i-2)[statIndex] - levelStats.get(i)[statIndex]);
+		}
+		// Negative because differences are discouraged
+		return - (evenTotal + oddTotal);
 	}
 
 	private double symmetricStatScore(ArrayList<double[]> levelStats, int statIndex) {
