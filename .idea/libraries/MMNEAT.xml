@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="MMNEAT">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/build/MMNEAT.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
