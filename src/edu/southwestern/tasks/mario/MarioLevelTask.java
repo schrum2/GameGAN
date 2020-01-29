@@ -3,12 +3,13 @@ package edu.southwestern.tasks.mario;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import org.apache.commons.lang.ArrayUtils;
 
 import ch.idsia.ai.agents.Agent;
 import ch.idsia.mario.engine.level.Level;
@@ -30,7 +31,6 @@ import edu.southwestern.util.datastructures.Pair;
 import edu.southwestern.util.file.FileUtilities;
 import edu.southwestern.util.graphics.GraphicsUtil;
 import edu.southwestern.util.random.RandomNumbers;
-import org.apache.commons.lang.ArrayUtils;
 
 /**
  * 
@@ -380,6 +380,13 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			total += Math.abs(levelStats.get(i-1)[statIndex] - levelStats.get(i)[statIndex]);
 		}
 		return total;
+	}
+	
+	// It is assumed that the data needed to fill this is computed in oneEval, saved globally, and then organized into a list here.
+	// This is primarily meant to be used with MAP Elites, so it is an unusual behavior vector. It is really a vector of bins, where
+	// the agent's score in each bin is set ... but a given Mario level should really only be in one of the bins.
+	public ArrayList<Double> getBehaviorVector() {
+		return null; // TODO: Base on MarioMAPElitesBinLabels
 	}
 	
 }
