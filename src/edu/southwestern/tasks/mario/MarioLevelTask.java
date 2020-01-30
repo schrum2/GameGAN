@@ -59,6 +59,9 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 	public static final int NEGATIVE_SPACE_STAT_INDEX = 2;
 	public static final int NUM_SEGMENT_STATS = 3;
 	
+	// Calculated in oneEval, so it can be passed on the getBehaviorVector
+	private ArrayList<double[]> lastLevelStats;
+	
 	public MarioLevelTask() {
 		// Replace this with a command line parameter
 		try {
@@ -239,8 +242,8 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
                 
 		double[] otherScores = new double[] {distancePassed, percentLevelPassed, time, jumps};
 		// Adds Vanessa's Mario stats: Decoration Frequency, Leniency, Negative Space
-		ArrayList<double[]> levelStats = LevelParser.getLevelStats(oneLevel, SEGMENT_WIDTH_IN_BLOCKS);
-		for(double[] stats:levelStats){
+		lastLevelStats = LevelParser.getLevelStats(oneLevel, SEGMENT_WIDTH_IN_BLOCKS);
+		for(double[] stats:lastLevelStats){
 			otherScores = ArrayUtils.addAll(otherScores, stats);
 		}
 
@@ -309,35 +312,35 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		
 		// Encourages an alternating pattern of Vanessa's objectives
 		if(Parameters.parameters.booleanParameter("marioLevelAlternatingLeniency")) {
-			fitnesses.add(alternatingStatScore(levelStats, LENIENCY_STAT_INDEX));
+			fitnesses.add(alternatingStatScore(lastLevelStats, LENIENCY_STAT_INDEX));
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelAlternatingNegativeSpace")) {
-			fitnesses.add(alternatingStatScore(levelStats, NEGATIVE_SPACE_STAT_INDEX));
+			fitnesses.add(alternatingStatScore(lastLevelStats, NEGATIVE_SPACE_STAT_INDEX));
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelAlternatingDecoration")) {
-			fitnesses.add(alternatingStatScore(levelStats, DECORATION_FREQUENCY_STAT_INDEX));
+			fitnesses.add(alternatingStatScore(lastLevelStats, DECORATION_FREQUENCY_STAT_INDEX));
 		}
 
 		// Encourages a periodic pattern of Vanessa's objectives
 		if(Parameters.parameters.booleanParameter("marioLevelPeriodicLeniency")) {
-			fitnesses.add(periodicStatScore(levelStats, LENIENCY_STAT_INDEX));
+			fitnesses.add(periodicStatScore(lastLevelStats, LENIENCY_STAT_INDEX));
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelPeriodicNegativeSpace")) {
-			fitnesses.add(periodicStatScore(levelStats, NEGATIVE_SPACE_STAT_INDEX));
+			fitnesses.add(periodicStatScore(lastLevelStats, NEGATIVE_SPACE_STAT_INDEX));
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelPeriodicDecoration")) {
-			fitnesses.add(periodicStatScore(levelStats, DECORATION_FREQUENCY_STAT_INDEX));
+			fitnesses.add(periodicStatScore(lastLevelStats, DECORATION_FREQUENCY_STAT_INDEX));
 		}
 
 		// Encourages a symmetric pattern of Vanessa's objectives
 		if(Parameters.parameters.booleanParameter("marioLevelSymmetricLeniency")) {
-			fitnesses.add(symmetricStatScore(levelStats, LENIENCY_STAT_INDEX));
+			fitnesses.add(symmetricStatScore(lastLevelStats, LENIENCY_STAT_INDEX));
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelSymmetricNegativeSpace")) {
-			fitnesses.add(symmetricStatScore(levelStats, NEGATIVE_SPACE_STAT_INDEX));
+			fitnesses.add(symmetricStatScore(lastLevelStats, NEGATIVE_SPACE_STAT_INDEX));
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelSymmetricDecoration")) {
-			fitnesses.add(symmetricStatScore(levelStats, DECORATION_FREQUENCY_STAT_INDEX));
+			fitnesses.add(symmetricStatScore(lastLevelStats, DECORATION_FREQUENCY_STAT_INDEX));
 		}
 		
 		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {
