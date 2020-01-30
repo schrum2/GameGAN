@@ -355,7 +355,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		}
 
 		if(Parameters.parameters.booleanParameter("marioSimpleAStarDistance")) {
-			MarioState start = new MarioState(oneLevel);
+			MarioState start = new MarioState(MarioState.preprocessLevel(oneLevel));
 			Search<MarioAction,MarioState> search = new AStarSearch<>(MarioState.moveRight);
 			HashSet<MarioState> mostRecentVisited = null;
 			ArrayList<MarioAction> actionSequence = null;
