@@ -24,6 +24,8 @@ import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.NoisyLonerTask;
 import edu.southwestern.tasks.mario.level.LevelParser;
 import edu.southwestern.tasks.mario.level.MarioLevelUtil;
+import edu.southwestern.tasks.mario.level.MarioState;
+import edu.southwestern.tasks.mario.level.MarioState.MarioAction;
 import edu.southwestern.tasks.mario.level.OldLevelParser;
 import edu.southwestern.util.ClassCreation;
 import edu.southwestern.util.datastructures.ArrayUtil;
@@ -31,6 +33,8 @@ import edu.southwestern.util.datastructures.Pair;
 import edu.southwestern.util.file.FileUtilities;
 import edu.southwestern.util.graphics.GraphicsUtil;
 import edu.southwestern.util.random.RandomNumbers;
+import edu.southwestern.util.search.AStarSearch;
+import edu.southwestern.util.search.Search;
 
 /**
  * 
@@ -151,6 +155,11 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		if(Parameters.parameters.booleanParameter("marioLevelSymmetricDecoration")) {
 			MMNEAT.registerFitnessFunction("SymmetricDecorationFrequency");
 			segmentFitness = true;
+			numFitnessFunctions++;			
+		}
+		
+		if(Parameters.parameters.booleanParameter("marioSimpleAStarDistance")) {
+			MMNEAT.registerFitnessFunction("SimpleA*Distance");
 			numFitnessFunctions++;			
 		}
 		
@@ -341,6 +350,17 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		}
 		if(Parameters.parameters.booleanParameter("marioLevelSymmetricDecoration")) {
 			fitnesses.add(symmetricStatScore(lastLevelStats, DECORATION_FREQUENCY_STAT_INDEX));
+		}
+
+		if(Parameters.parameters.booleanParameter("marioSimpleAStarDistance")) {
+			MarioState start = new MarioState(oneLevel);
+			Search<MarioAction,MarioState> search = new AStarSearch<>(MarioState.moveRight);
+			ArrayList<MarioAction> actionSequence = ((AStarSearch<MarioAction, MarioState>) search).search(start, true, Parameters.parameters.integerParameter("aStarSearchBudget"));
+			if(actionSequence == null) {
+				fitnesses.add(-1.0); // failed search 				
+			} else {
+				fitnesses.add(1.0*actionSequence.size()); // maximize length of solution
+			}
 		}
 		
 		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {

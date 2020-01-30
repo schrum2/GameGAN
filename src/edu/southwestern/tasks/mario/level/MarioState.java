@@ -4,10 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.southwestern.util.search.Action;
+import edu.southwestern.util.search.Heuristic;
 import edu.southwestern.util.search.State;
 
 public class MarioState extends State<MarioState.MarioAction> {
 
+	public static Heuristic<MarioAction,MarioState> moveRight = new Heuristic<MarioAction,MarioState>() {
+		@Override
+		public double h(MarioState s) {
+			return s.level.size() - s.marioX;
+		}
+	};
+	
 	public static class MarioAction implements Action {
 		public enum DIRECTION {JUMP, LEFT, RIGHT};
 		private DIRECTION direction;
