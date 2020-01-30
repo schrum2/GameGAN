@@ -1,18 +1,14 @@
 package edu.southwestern.tasks.mario.level;
 
-import ch.idsia.mario.engine.level.SpriteTemplate;
-import ch.idsia.mario.engine.sprites.Enemy;
 import static edu.southwestern.tasks.mario.level.LevelParser.BUFFER_WIDTH;
-import static edu.southwestern.tasks.mario.level.LevelParser.getEnemySprite;
-import static edu.southwestern.tasks.mario.level.LevelParser.tilesAdv;
-import static edu.southwestern.tasks.mario.level.LevelParser.tilesMario;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import edu.southwestern.util.search.Action;
 import edu.southwestern.util.search.Heuristic;
 import edu.southwestern.util.search.State;
-import java.util.Collections;
 
 public class MarioState extends State<MarioState.MarioAction> {
 
@@ -53,15 +49,15 @@ public class MarioState extends State<MarioState.MarioAction> {
 	
 	public MarioState(ArrayList<List<Integer>> level, int jumpVelocity, int marioX, int marioY) {
 		this.level = level;
-                int height = level.size();
-                int width = level.get(0).size();
-                /*for(int y=0; y<height; y++){
-                    for(int x=0; x<width; x++){
-                        System.out.print(this.tileAtPosition(x, y));
-                    }
-                    System.out.print("\n");
-                }
-                System.out.println();*/
+//		int height = level.size();
+//		int width = level.get(0).size();
+		/*for(int y=0; y<height; y++){
+			for(int x=0; x<width; x++){
+				System.out.print(this.tileAtPosition(x, y));
+			}
+			System.out.print("\n");
+		}
+		System.out.println();*/
 		this.jumpVelocity = jumpVelocity;
 		this.marioX = marioX;
 		this.marioY = marioY;
@@ -70,42 +66,48 @@ public class MarioState extends State<MarioState.MarioAction> {
 	public MarioState(ArrayList<List<Integer>> level) {
 		this(level, 0, 0, level.size() - 2);
 	}
-	
-        public static ArrayList<List<Integer>> preprocessLevel(ArrayList<List<Integer>> level){
-            int extraStones = BUFFER_WIDTH;
-            int height = level.size();
-            int width = level.get(0).size();
-            ArrayList<List<Integer>> tmpLevel = new ArrayList<>();
-            for(int i=0; i<height; i++){
-                int tile = 2;
-                if(i==height-1){
-                    tile=0;
-                }
-                ArrayList<Integer> row = new ArrayList<>(Collections.nCopies(extraStones,tile));
-                row.addAll(level.get(i));
-                row.addAll(new ArrayList<>(Collections.nCopies(extraStones,tile)));
-                tmpLevel.add(i, row);
-            }
-            
-            
-            for(int y=height-1; y>=0; y--){
-                for(int x=width-1; x>=0; x--){
-                    int tile = level.get(y).get(x);
-                    if((tile == 6 || tile == 7 || tile == 8) && (y+1<height && level.get(y+1).get(x) == 2)){
-                        setTileAtPosition(tmpLevel, x+extraStones, y+1, tile);
-                        for(int i=y+2; i<height; i++){
-                            if(level.get(i).get(x)==2){
-                                setTileAtPosition(tmpLevel, x+extraStones, i, tile);
-                            }else{
-                                break;
-                            }
-                        }
-                    }
-                }
-            }           
-            return tmpLevel;
-        }
-        
+
+	/**
+	 * Add opening/closing buffer spaces to the level. Also fixes pipes and bullet bills
+	 * 
+	 * @param level List of lists representation
+	 * @return List of lists representation with buffer and fixed elements.
+	 */
+	public static ArrayList<List<Integer>> preprocessLevel(ArrayList<List<Integer>> level){
+		int extraStones = BUFFER_WIDTH;
+		int height = level.size();
+		int width = level.get(0).size();
+		ArrayList<List<Integer>> tmpLevel = new ArrayList<>();
+		for(int i=0; i<height; i++){
+			int tile = 2;
+			if(i==height-1){
+				tile=0;
+			}
+			ArrayList<Integer> row = new ArrayList<>(Collections.nCopies(extraStones,tile));
+			row.addAll(level.get(i));
+			row.addAll(new ArrayList<>(Collections.nCopies(extraStones,tile)));
+			tmpLevel.add(i, row);
+		}
+
+
+		for(int y=height-1; y>=0; y--){
+			for(int x=width-1; x>=0; x--){
+				int tile = level.get(y).get(x);
+				if((tile == 6 || tile == 7 || tile == 8) && (y+1<height && level.get(y+1).get(x) == 2)){
+					setTileAtPosition(tmpLevel, x+extraStones, y+1, tile);
+					for(int i=y+2; i<height; i++){
+						if(level.get(i).get(x)==2){
+							setTileAtPosition(tmpLevel, x+extraStones, i, tile);
+						}else{
+							break;
+						}
+					}
+				}
+			}
+		}           
+		return tmpLevel;
+	}
+
         
 	/**
 	 * Easy access to the given tile integer at given (x,y) coordinates.
@@ -152,9 +154,9 @@ public class MarioState extends State<MarioState.MarioAction> {
 	 * @return true if location is passable
 	 */
 	private boolean passable(int x, int y) {
-                if(!inBounds(x,y)){
-                    return false;
-                }
+		if(!inBounds(x,y)){
+			return false;
+		}
 		int tile = tileAtPosition(x,y);
 		return LevelParser.negativeSpaceTiles.get(tile) == 0 && LevelParser.leniencyTiles.get(tile) == 0;
 	}
@@ -171,6 +173,8 @@ public class MarioState extends State<MarioState.MarioAction> {
 			} else if(a.getD().equals(MarioAction.DIRECTION.JUMP)) { // Start jump
 				newJumpVelocity = 4; // Accelerate up
 			} 
+		} else if(a.getD().equals(MarioAction.DIRECTION.JUMP)) {
+			return null; // Can't jump mid-jump. Reduces search space.
 		}
 		
 		if(newJumpVelocity > 0) { // Jumping up
@@ -184,28 +188,38 @@ public class MarioState extends State<MarioState.MarioAction> {
 		}
 		
 		// Right movement
-		if(a.getD().equals(MarioAction.DIRECTION.RIGHT) && passable(newMarioX+1,newMarioY)) {
-			newMarioX++;
+		if(a.getD().equals(MarioAction.DIRECTION.RIGHT)) {
+			if(passable(newMarioX+1,newMarioY)) {
+				newMarioX++;
+			} else if(marioY == newMarioY) { // vertical position did not change
+				// This action does not change the state. Neither jumping up nor falling down, and could not move right, so there is no NEW state to go to
+				return null;
+			}
 		}
 		
 		// Left movement
-		if(a.getD().equals(MarioAction.DIRECTION.LEFT) && passable(newMarioX-1,newMarioY)) {
-			newMarioX--;
+		if(a.getD().equals(MarioAction.DIRECTION.LEFT)) {
+			if(passable(newMarioX-1,newMarioY)) {
+				newMarioX--;
+			} else if(marioY == newMarioY) { // vertical position did not change
+				// This action does not change the state. Neither jumping up nor falling down, and could not move left, so there is no NEW state to go to
+				return null;
+			}
 		}
-                if(!inBounds(newMarioX, newMarioY)){
-                    return null;
-                }
+		if(!inBounds(newMarioX, newMarioY)){
+			return null;
+		}
 		return new MarioState(level, newJumpVelocity, newMarioX, newMarioY);
 	}
 
 	@Override
 	public ArrayList<MarioAction> getLegalActions(State<MarioAction> s) {
 		ArrayList<MarioAction> possible = new ArrayList<MarioAction>();
-                for(MarioAction.DIRECTION act: MarioAction.DIRECTION.values()){
-                    if(s.getSuccessor(new MarioAction(act))!=null){
-                        possible.add(new MarioAction(act));
-                    }
-                }
+		for(MarioAction.DIRECTION act: MarioAction.DIRECTION.values()){
+			if(s.getSuccessor(new MarioAction(act))!=null){
+				possible.add(new MarioAction(act));
+			}
+		}
 		/*// About to fall off bottom edge: no actions
 		if(!inBounds(marioX+1,marioY)) return possible;
 		// Can move right if it is the goal or possable
@@ -229,11 +243,49 @@ public class MarioState extends State<MarioState.MarioAction> {
 	public double stepCost(State<MarioAction> s, MarioAction a) {
 		return 1;
 	}
-	
-        @Override
-        public String toString(){
-            return "("+marioX + "," + marioY +")";		
 
-        }
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 * 
+	 * IF WE EVER MODIFY THE level (by breaking bricks or killing enemies) WE WILL NEED TO CHANGE THIS!
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + jumpVelocity;
+		result = prime * result + marioX;
+		result = prime * result + marioY;
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 * 
+	 * IF WE EVER MODIFY THE level (by breaking bricks or killing enemies) WE WILL NEED TO CHANGE THIS!
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		MarioState other = (MarioState) obj;
+		if (jumpVelocity != other.jumpVelocity)
+			return false;
+		if (marioX != other.marioX)
+			return false;
+		if (marioY != other.marioY)
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString(){
+		return "("+marioX + "," + marioY +")";		
+
+	}
         
 }
