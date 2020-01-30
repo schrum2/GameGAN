@@ -41,8 +41,8 @@ public class MarioState extends State<MarioState.MarioAction> {
 
 	private ArrayList<List<Integer>> level;
 	private int jumpVelocity;
-	private int marioX;
-	private int marioY;
+	public int marioX; // Should use getters for these instead
+	public int marioY;
 	
 	public MarioState(ArrayList<List<Integer>> level, int jumpVelocity, int marioX, int marioY) {
 		this.level = level;
