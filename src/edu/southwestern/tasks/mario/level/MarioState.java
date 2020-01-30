@@ -1,11 +1,18 @@
 package edu.southwestern.tasks.mario.level;
 
+import ch.idsia.mario.engine.level.SpriteTemplate;
+import ch.idsia.mario.engine.sprites.Enemy;
+import static edu.southwestern.tasks.mario.level.LevelParser.BUFFER_WIDTH;
+import static edu.southwestern.tasks.mario.level.LevelParser.getEnemySprite;
+import static edu.southwestern.tasks.mario.level.LevelParser.tilesAdv;
+import static edu.southwestern.tasks.mario.level.LevelParser.tilesMario;
 import java.util.ArrayList;
 import java.util.List;
 
 import edu.southwestern.util.search.Action;
 import edu.southwestern.util.search.Heuristic;
 import edu.southwestern.util.search.State;
+import java.util.Collections;
 
 public class MarioState extends State<MarioState.MarioAction> {
 
@@ -46,6 +53,15 @@ public class MarioState extends State<MarioState.MarioAction> {
 	
 	public MarioState(ArrayList<List<Integer>> level, int jumpVelocity, int marioX, int marioY) {
 		this.level = level;
+                int height = level.size();
+                int width = level.get(0).size();
+                /*for(int y=0; y<height; y++){
+                    for(int x=0; x<width; x++){
+                        System.out.print(this.tileAtPosition(x, y));
+                    }
+                    System.out.print("\n");
+                }
+                System.out.println();*/
 		this.jumpVelocity = jumpVelocity;
 		this.marioX = marioX;
 		this.marioY = marioY;
@@ -55,6 +71,42 @@ public class MarioState extends State<MarioState.MarioAction> {
 		this(level, 0, 0, level.size() - 2);
 	}
 	
+        public static ArrayList<List<Integer>> preprocessLevel(ArrayList<List<Integer>> level){
+            int extraStones = BUFFER_WIDTH;
+            int height = level.size();
+            int width = level.get(0).size();
+            ArrayList<List<Integer>> tmpLevel = new ArrayList<>();
+            for(int i=0; i<height; i++){
+                int tile = 2;
+                if(i==height-1){
+                    tile=0;
+                }
+                ArrayList<Integer> row = new ArrayList<>(Collections.nCopies(extraStones,tile));
+                row.addAll(level.get(i));
+                row.addAll(new ArrayList<>(Collections.nCopies(extraStones,tile)));
+                tmpLevel.add(i, row);
+            }
+            
+            
+            for(int y=height-1; y>=0; y--){
+                for(int x=width-1; x>=0; x--){
+                    int tile = level.get(y).get(x);
+                    if((tile == 6 || tile == 7 || tile == 8) && (y+1<height && level.get(y+1).get(x) == 2)){
+                        setTileAtPosition(tmpLevel, x+extraStones, y+1, tile);
+                        for(int i=y+2; i<height; i++){
+                            if(level.get(i).get(x)==2){
+                                setTileAtPosition(tmpLevel, x+extraStones, i, tile);
+                            }else{
+                                break;
+                            }
+                        }
+                    }
+                }
+            }           
+            return tmpLevel;
+        }
+        
+        
 	/**
 	 * Easy access to the given tile integer at given (x,y) coordinates.
 	 * 
@@ -65,6 +117,13 @@ public class MarioState extends State<MarioState.MarioAction> {
 	private int tileAtPosition(int x, int y) {
 		return level.get(y).get(x);
 	}
+        
+        private static void setTileAtPosition(ArrayList<List<Integer>> level, int x, int y, int tile){
+            List<Integer> newRow = level.get(y);
+            newRow.set(x, tile);
+            level.set(y, newRow);
+        }
+        
 	
 	/**
 	 * If the coordinates are inside of the level bounds.
