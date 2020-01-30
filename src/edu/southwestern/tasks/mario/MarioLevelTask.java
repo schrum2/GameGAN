@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -20,8 +21,11 @@ import ch.idsia.tools.EvaluationOptions;
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.GenerationalEA;
 import edu.southwestern.evolution.genotypes.Genotype;
+import edu.southwestern.evolution.mapelites.Archive;
+import edu.southwestern.evolution.mapelites.MAPElites;
 import edu.southwestern.parameters.CommonConstants;
 import edu.southwestern.parameters.Parameters;
+import edu.southwestern.scores.Score;
 import edu.southwestern.tasks.NoisyLonerTask;
 import edu.southwestern.tasks.mario.level.LevelParser;
 import edu.southwestern.tasks.mario.level.MarioLevelUtil;
@@ -65,7 +69,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 	public static final int NUM_SEGMENT_STATS = 3;
 
 	// Calculated in oneEval, so it can be passed on the getBehaviorVector
-	private ArrayList<double[]> lastLevelStats;
+	private ArrayList<Double> behaviorVector;
 
 	public MarioLevelTask() {
 		// Replace this with a command line parameter
@@ -217,8 +221,8 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		EvaluationInfo info = null;
 		BufferedImage levelImage = null;
 		ArrayList<List<Integer>> oneLevel = getMarioLevelListRepresentationFromGenotype(individual);
+		Level level = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ? OldLevelParser.createLevelJson(oneLevel) : LevelParser.createLevelJson(oneLevel);			
 		if(fitnessRequiresSimulation || CommonConstants.watch) {
-			Level level = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ? OldLevelParser.createLevelJson(oneLevel) : LevelParser.createLevelJson(oneLevel);			
 			agent.reset(); // Get ready to play a new level
 			EvaluationOptions options = new CmdLineOptions(new String[]{});
 			options.setAgent(agent);
@@ -226,26 +230,32 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			options.setMaxFPS(!(agent instanceof ch.idsia.ai.agents.human.HumanKeyboardAgent)); // Run fast when not playing
 			options.setVisualization(CommonConstants.watch);
 
-			if(CommonConstants.watch) {
-				// View whole dungeon layout
-				levelImage = MarioLevelUtil.getLevelImage(level);
-				if(segmentFitness) { // Draw lines dividing the segments 
-					Graphics2D g = (Graphics2D) levelImage.getGraphics();
-					g.setColor(Color.MAGENTA);
-					g.setStroke(new BasicStroke(4)); // Thicker line
-					for(int i = 1; i < Parameters.parameters.integerParameter("marioGANLevelChunks"); i++) {
-						g.drawLine(i*PIXEL_BLOCK_WIDTH*SEGMENT_WIDTH_IN_BLOCKS, 0, i*PIXEL_BLOCK_WIDTH*SEGMENT_WIDTH_IN_BLOCKS, levelImage.getHeight());
-					}
-				}
-				String saveDir = FileUtilities.getSaveDirectory();
-				int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
-				GraphicsUtil.saveImage(levelImage, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioLevel"+individual.getId()+".png");
-			}
-
 			List<EvaluationInfo> infos = MarioLevelUtil.agentPlaysLevel(options);
 			// For now, assume a single evaluation
 			info = infos.get(0);
 		}
+		
+		if(MMNEAT.ea instanceof MAPElites || CommonConstants.watch) {
+			// View whole dungeon layout
+			levelImage = MarioLevelUtil.getLevelImage(level);
+			if(segmentFitness) { // Draw lines dividing the segments 
+				Graphics2D g = (Graphics2D) levelImage.getGraphics();
+				g.setColor(Color.MAGENTA);
+				g.setStroke(new BasicStroke(4)); // Thicker line
+				for(int i = 1; i < Parameters.parameters.integerParameter("marioGANLevelChunks"); i++) {
+					g.drawLine(i*PIXEL_BLOCK_WIDTH*SEGMENT_WIDTH_IN_BLOCKS, 0, i*PIXEL_BLOCK_WIDTH*SEGMENT_WIDTH_IN_BLOCKS, levelImage.getHeight());
+				}
+			}
+			
+			// MAP Elites images get saved later, in a different directory
+			if(!(MMNEAT.ea instanceof MAPElites)) {
+				String saveDir = FileUtilities.getSaveDirectory();
+				int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
+				GraphicsUtil.saveImage(levelImage, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioLevel"+individual.getId()+".png");
+			}
+		}
+
+
 		double distancePassed = info == null ? 0 : info.lengthOfLevelPassedPhys;
 		double percentLevelPassed = info == null ? 0 : distancePassed / totalPassableDistance(info);
 		double time = info == null ? 0 : info.timeSpentOnLevel;
@@ -253,7 +263,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 
 		double[] otherScores = new double[] {distancePassed, percentLevelPassed, time, jumps};
 		// Adds Vanessa's Mario stats: Decoration Frequency, Leniency, Negative Space
-		lastLevelStats = LevelParser.getLevelStats(oneLevel, SEGMENT_WIDTH_IN_BLOCKS);
+		ArrayList<double[]> lastLevelStats = LevelParser.getLevelStats(oneLevel, SEGMENT_WIDTH_IN_BLOCKS);
 		for(double[] stats:lastLevelStats){
 			otherScores = ArrayUtils.addAll(otherScores, stats);
 		}
@@ -312,14 +322,13 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 
 			if(CommonConstants.watch) {
 				// View whole level layout
-				Level level = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ? OldLevelParser.createLevelJson(targetDiff) : LevelParser.createLevelJson(targetDiff);			
-				BufferedImage image = MarioLevelUtil.getLevelImage(level);
+				Level diffLevel = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ? OldLevelParser.createLevelJson(targetDiff) : LevelParser.createLevelJson(targetDiff);			
+				BufferedImage image = MarioLevelUtil.getLevelImage(diffLevel);
 				String saveDir = FileUtilities.getSaveDirectory();
 				int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
 				GraphicsUtil.saveImage(image, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioLevel"+individual.getId()+"TargetDiff.png");
 			}
 		}
-
 
 		// Encourages an alternating pattern of Vanessa's objectives
 		if(Parameters.parameters.booleanParameter("marioLevelAlternatingLeniency")) {
@@ -354,6 +363,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			fitnesses.add(symmetricStatScore(lastLevelStats, DECORATION_FREQUENCY_STAT_INDEX));
 		}
 
+		double simpleAStarDistance = -1;
 		if(Parameters.parameters.booleanParameter("marioSimpleAStarDistance")) {
 			MarioState start = new MarioState(oneLevel);
 			Search<MarioAction,MarioState> search = new AStarSearch<>(MarioState.moveRight);
@@ -364,6 +374,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 				if(actionSequence == null) {
 					fitnesses.add(-1.0); // failed search 				
 				} else {
+					simpleAStarDistance = 1.0*actionSequence.size(); // For MAP Elites bin later
 					fitnesses.add(1.0*actionSequence.size()); // maximize length of solution
 				}
 			} catch(IllegalStateException e) {
@@ -373,7 +384,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 				mostRecentVisited = ((AStarSearch<MarioAction, MarioState>) search).getVisited();
 			}
 
-			if(CommonConstants.netio && CommonConstants.watch) {
+			if(MMNEAT.ea instanceof MAPElites || (CommonConstants.netio && CommonConstants.watch)) {
 				// Add X marks to the original level image, which should exist if since watch saved it above
 				if(mostRecentVisited != null) {
 					Graphics2D g = (Graphics2D) levelImage.getGraphics();
@@ -399,10 +410,12 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 					}
 				}
 
-				// View level with path
-				String saveDir = FileUtilities.getSaveDirectory();
-				int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
-				GraphicsUtil.saveImage(levelImage, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioLevel"+individual.getId()+"SolutionPath.png");
+				if(!(MMNEAT.ea instanceof MAPElites)) {
+					// View level with path
+					String saveDir = FileUtilities.getSaveDirectory();
+					int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
+					GraphicsUtil.saveImage(levelImage, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioLevel"+individual.getId()+"SolutionPath.png");
+				}
 			}
 		}
 
@@ -410,7 +423,59 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			fitnesses.add(RandomNumbers.fullSmallRand());
 		}
 
+		// Could conceivably also be used for behavioral diversity instead of map elites, but this would be a weird behavior vector from a BD perspective
+		if(MMNEAT.ea instanceof MAPElites) {
+			// Assign to the behavior vector before using MAP-Elites
+			double leniencySum = sumStatScore(lastLevelStats, LENIENCY_STAT_INDEX);
+			double decorationSum = sumStatScore(lastLevelStats, DECORATION_FREQUENCY_STAT_INDEX);
+			double negativeSpaceSum = sumStatScore(lastLevelStats, NEGATIVE_SPACE_STAT_INDEX);
+			
+			final int BINS_PER_DIMENSION = Parameters.parameters.integerParameter("marioGANLevelChunks");
+			
+			int leniencyBinIndex = Math.min(Math.max((int)((leniencySum*(BINS_PER_DIMENSION/2)+0.5)*BINS_PER_DIMENSION),0), BINS_PER_DIMENSION-1);
+			int decorationBinIndex = Math.min((int)(decorationSum*10*BINS_PER_DIMENSION), BINS_PER_DIMENSION-1);
+			int negativeSpaceBinIndex = Math.min((int)(negativeSpaceSum*10*BINS_PER_DIMENSION), BINS_PER_DIMENSION-1);
+			
+			// Row-major order lookup in 3D archive
+			int binIndex = (decorationBinIndex*BINS_PER_DIMENSION + negativeSpaceBinIndex)*BINS_PER_DIMENSION + leniencyBinIndex;
+			double[] archiveArray = new double[BINS_PER_DIMENSION*BINS_PER_DIMENSION*BINS_PER_DIMENSION];
+			Arrays.fill(archiveArray, Double.NEGATIVE_INFINITY); // Worst score in all dimensions
+			double binScore = simpleAStarDistance;
+			archiveArray[binIndex] = binScore; // Percent rooms traversed
+
+			System.out.println("["+decorationBinIndex+"]["+negativeSpaceBinIndex+"]["+leniencyBinIndex+"] = "+binScore);
+
+			behaviorVector = ArrayUtil.doubleVectorFromArray(archiveArray);
+
+			// Saving map elites bin images
+			if(CommonConstants.netio) {
+				System.out.println("Save archive images");
+				@SuppressWarnings("unchecked")
+				Archive<T> archive = ((MAPElites<T>) MMNEAT.ea).getArchive();
+				List<String> binLabels = archive.getBinMapping().binLabels();
+
+				// Index in flattened bin array
+				Score<T> elite = archive.getElite(binIndex);
+				// If the bin is empty, or the candidate is better than the elite for that bin's score
+				if(elite == null || binScore > elite.behaviorVector.get(binIndex)) {
+					String fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(binIndex) +"-"+ individual.getId() + ".png";
+					String binPath = archive.getArchiveDirectory() + File.separator + binLabels.get(binIndex);
+					String fullName = binPath + File.separator + fileName;
+					System.out.println(fullName);
+					GraphicsUtil.saveImage(levelImage, fullName);	
+				}
+			}
+		}
+		
 		return new Pair<double[],double[]>(ArrayUtil.doubleArrayFromList(fitnesses), otherScores);
+	}
+
+	private double sumStatScore(ArrayList<double[]> levelStats, int statIndex) {
+		double total = 0;
+		for(int i = 0; i < levelStats.size(); i++) {
+			total += levelStats.get(i)[statIndex];
+		}
+		return total;
 	}
 
 	private double periodicStatScore(ArrayList<double[]> levelStats, int statIndex) {
@@ -448,11 +513,11 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		return total;
 	}
 
-	// It is assumed that the data needed to fill this is computed in oneEval, saved globally, and then organized into a list here.
+	// It is assumed that the data needed to fill this is computed in oneEval, saved globally, and then returned here.
 	// This is primarily meant to be used with MAP Elites, so it is an unusual behavior vector. It is really a vector of bins, where
 	// the agent's score in each bin is set ... but a given Mario level should really only be in one of the bins.
 	public ArrayList<Double> getBehaviorVector() {
-		return null; // TODO: Base on MarioMAPElitesBinLabels
+		return behaviorVector;
 	}
 
 }
