@@ -51,7 +51,16 @@ public class MarioState extends State<MarioState.MarioAction> {
 	
 	public MarioState(ArrayList<List<Integer>> level, int jumpVelocity, int marioX, int marioY) {
 		this.level = level;
-                this.level = this.preprocessLevel(level);             
+                this.level = this.preprocessLevel(level);
+                /*int height = level.size();
+                int width = level.get(0).size();
+                for(int y=0; y<height; y++){
+                    for(int x=0; x<width; x++){
+                        System.out.print(this.tileAtPosition(x, y));
+                    }
+                    System.out.print("\n");
+                }
+                System.out.println();*/
 		this.jumpVelocity = jumpVelocity;
 		this.marioX = marioX;
 		this.marioY = marioY;
