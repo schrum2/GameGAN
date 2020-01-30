@@ -93,6 +93,9 @@ public class MarioState extends State<MarioState.MarioAction> {
 	 * @return true if location is passable
 	 */
 	private boolean passable(int x, int y) {
+                if(!inBounds(x,y)){
+                    return false;
+                }
 		int tile = tileAtPosition(x,y);
 		return LevelParser.negativeSpaceTiles.get(tile) == 0 && LevelParser.leniencyTiles.get(tile) == 0;
 	}
@@ -116,7 +119,7 @@ public class MarioState extends State<MarioState.MarioAction> {
 				newMarioY--; // Jump up
 				newJumpVelocity--; // decelerate
 			} else {
-				newJumpVelocity = 0; // Can't fall if blocked above
+				newJumpVelocity = 0; // Can't jump if blocked above
 			}
 			// TODO: Add breakable case
 		}
@@ -130,21 +133,20 @@ public class MarioState extends State<MarioState.MarioAction> {
 		if(a.getD().equals(MarioAction.DIRECTION.LEFT) && passable(newMarioX-1,newMarioY)) {
 			newMarioX--;
 		}
-				
 		return new MarioState(level, newJumpVelocity, newMarioX, newMarioY);
 	}
 
 	@Override
 	public ArrayList<MarioAction> getLegalActions(State<MarioAction> s) {
-		ArrayList<MarioAction> possible = new ArrayList<MarioAction>(3);
+		ArrayList<MarioAction> possible = new ArrayList<MarioAction>();
 		// About to fall off bottom edge: no actions
-		if(!inBounds(marioX,marioY+1)) return possible;
+		if(!inBounds(marioX+1,marioY)) return possible;
 		// Can move right if it is the goal or possable
-		if(isGoal(marioX+1) || (inBounds(marioX+1,marioY) &&  passable(marioX+1,marioY))) possible.add(new MarioAction(MarioAction.DIRECTION.RIGHT));
+		if(inBounds(marioX+1,marioY) && (isGoal(marioX+1) || passable(marioX+1,marioY))) possible.add(new MarioAction(MarioAction.DIRECTION.RIGHT));
 		// Can move left if passable
 		if(inBounds(marioX-1,marioY) &&  passable(marioX-1,marioY)) possible.add(new MarioAction(MarioAction.DIRECTION.RIGHT));
 		// Can jump if on ground
-		if(passable(marioX,marioY+1)) possible.add(new MarioAction(MarioAction.DIRECTION.JUMP));
+		if(inBounds(marioX,marioY-1) && passable(marioX,marioY-1) && !passable(marioX,marioY+1)) possible.add(new MarioAction(MarioAction.DIRECTION.JUMP));
 		
 		// Add death from enemies?
 		
@@ -161,4 +163,10 @@ public class MarioState extends State<MarioState.MarioAction> {
 		return 1;
 	}
 	
+        @Override
+        public String toString(){
+            return "("+marioX + "," + marioY +")";		
+
+        }
+        
 }
