@@ -391,7 +391,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 					g.setColor(Color.BLUE);
 					g.setStroke(new BasicStroke(4)); // Thicker line
 					for(MarioState s : mostRecentVisited) {
-						int x = s.marioX;
+						int x = s.marioX + LevelParser.BUFFER_WIDTH;
 						int y = s.marioY;
 						g.drawLine(x*PIXEL_BLOCK_WIDTH, y*PIXEL_BLOCK_WIDTH, (x+1)*PIXEL_BLOCK_WIDTH, (y+1)*PIXEL_BLOCK_WIDTH);
 						g.drawLine((x+1)*PIXEL_BLOCK_WIDTH, y*PIXEL_BLOCK_WIDTH, x*PIXEL_BLOCK_WIDTH, (y+1)*PIXEL_BLOCK_WIDTH);
@@ -401,7 +401,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 						MarioState current = start;
 						g.setColor(Color.RED);
 						for(MarioAction a : actionSequence) {
-							int x = current.marioX;
+							int x = current.marioX + LevelParser.BUFFER_WIDTH;
 							int y = current.marioY;
 							g.drawLine(x*PIXEL_BLOCK_WIDTH, y*PIXEL_BLOCK_WIDTH, (x+1)*PIXEL_BLOCK_WIDTH, (y+1)*PIXEL_BLOCK_WIDTH);
 							g.drawLine((x+1)*PIXEL_BLOCK_WIDTH, y*PIXEL_BLOCK_WIDTH, x*PIXEL_BLOCK_WIDTH, (y+1)*PIXEL_BLOCK_WIDTH);
