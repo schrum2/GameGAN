@@ -83,7 +83,7 @@ public class MarioState extends State<MarioState.MarioAction> {
 	 * @return true if off right edge
 	 */
 	private boolean isGoal(int x) {
-		return marioX == level.size();
+		return x == level.get(0).size();
 	}
 	
 	/**
