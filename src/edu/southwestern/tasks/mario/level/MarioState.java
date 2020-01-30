@@ -12,7 +12,7 @@ public class MarioState extends State<MarioState.MarioAction> {
 	public static Heuristic<MarioAction,MarioState> moveRight = new Heuristic<MarioAction,MarioState>() {
 		@Override
 		public double h(MarioState s) {
-			return s.level.size() - s.marioX;
+			return s.level.get(0).size() - s.marioX;
 		}
 	};
 	
@@ -83,7 +83,7 @@ public class MarioState extends State<MarioState.MarioAction> {
 	 * @return true if off right edge
 	 */
 	private boolean isGoal(int x) {
-		return x == level.get(0).size();
+		return x == level.get(0).size()-1;
 	}
 	
 	/**
@@ -133,20 +133,28 @@ public class MarioState extends State<MarioState.MarioAction> {
 		if(a.getD().equals(MarioAction.DIRECTION.LEFT) && passable(newMarioX-1,newMarioY)) {
 			newMarioX--;
 		}
+                if(!inBounds(newMarioX, newMarioY)){
+                    return null;
+                }
 		return new MarioState(level, newJumpVelocity, newMarioX, newMarioY);
 	}
 
 	@Override
 	public ArrayList<MarioAction> getLegalActions(State<MarioAction> s) {
 		ArrayList<MarioAction> possible = new ArrayList<MarioAction>();
-		// About to fall off bottom edge: no actions
+                for(MarioAction.DIRECTION act: MarioAction.DIRECTION.values()){
+                    if(s.getSuccessor(new MarioAction(act))!=null){
+                        possible.add(new MarioAction(act));
+                    }
+                }
+		/*// About to fall off bottom edge: no actions
 		if(!inBounds(marioX+1,marioY)) return possible;
 		// Can move right if it is the goal or possable
 		if(inBounds(marioX+1,marioY) && (isGoal(marioX+1) || passable(marioX+1,marioY))) possible.add(new MarioAction(MarioAction.DIRECTION.RIGHT));
 		// Can move left if passable
 		if(inBounds(marioX-1,marioY) &&  passable(marioX-1,marioY)) possible.add(new MarioAction(MarioAction.DIRECTION.RIGHT));
 		// Can jump if on ground
-		if(inBounds(marioX,marioY-1) && passable(marioX,marioY-1) && !passable(marioX,marioY+1)) possible.add(new MarioAction(MarioAction.DIRECTION.JUMP));
+		if(inBounds(marioX,marioY-1) && passable(marioX,marioY-1) && !passable(marioX,marioY+1)) possible.add(new MarioAction(MarioAction.DIRECTION.JUMP));*/
 		
 		// Add death from enemies?
 		
