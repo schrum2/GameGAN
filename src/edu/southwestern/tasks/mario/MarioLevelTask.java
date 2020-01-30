@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -214,6 +215,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 	@Override
 	public Pair<double[], double[]> oneEval(Genotype<T> individual, int num) {
 		EvaluationInfo info = null;
+		BufferedImage levelImage = null;
 		ArrayList<List<Integer>> oneLevel = getMarioLevelListRepresentationFromGenotype(individual);
 		if(fitnessRequiresSimulation || CommonConstants.watch) {
 			Level level = Parameters.parameters.booleanParameter("marioGANUsesOriginalEncoding") ? OldLevelParser.createLevelJson(oneLevel) : LevelParser.createLevelJson(oneLevel);			
@@ -226,18 +228,18 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 
 			if(CommonConstants.watch) {
 				// View whole dungeon layout
-				BufferedImage image = MarioLevelUtil.getLevelImage(level);
+				levelImage = MarioLevelUtil.getLevelImage(level);
 				if(segmentFitness) { // Draw lines dividing the segments 
-					Graphics2D g = (Graphics2D) image.getGraphics();
+					Graphics2D g = (Graphics2D) levelImage.getGraphics();
 					g.setColor(Color.MAGENTA);
 					g.setStroke(new BasicStroke(4)); // Thicker line
 					for(int i = 1; i < Parameters.parameters.integerParameter("marioGANLevelChunks"); i++) {
-						g.drawLine(i*PIXEL_BLOCK_WIDTH*SEGMENT_WIDTH_IN_BLOCKS, 0, i*PIXEL_BLOCK_WIDTH*SEGMENT_WIDTH_IN_BLOCKS, image.getHeight());
+						g.drawLine(i*PIXEL_BLOCK_WIDTH*SEGMENT_WIDTH_IN_BLOCKS, 0, i*PIXEL_BLOCK_WIDTH*SEGMENT_WIDTH_IN_BLOCKS, levelImage.getHeight());
 					}
 				}
 				String saveDir = FileUtilities.getSaveDirectory();
 				int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
-				GraphicsUtil.saveImage(image, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioLevel"+individual.getId()+".png");
+				GraphicsUtil.saveImage(levelImage, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioLevel"+individual.getId()+".png");
 			}
 
 			List<EvaluationInfo> infos = MarioLevelUtil.agentPlaysLevel(options);
@@ -355,8 +357,10 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 		if(Parameters.parameters.booleanParameter("marioSimpleAStarDistance")) {
 			MarioState start = new MarioState(oneLevel);
 			Search<MarioAction,MarioState> search = new AStarSearch<>(MarioState.moveRight);
+			HashSet<MarioState> mostRecentVisited = null;
+			ArrayList<MarioAction> actionSequence = null;
 			try{
-				ArrayList<MarioAction> actionSequence = ((AStarSearch<MarioAction, MarioState>) search).search(start, true, Parameters.parameters.integerParameter("aStarSearchBudget"));
+				actionSequence = ((AStarSearch<MarioAction, MarioState>) search).search(start, true, Parameters.parameters.integerParameter("aStarSearchBudget"));
 				if(actionSequence == null) {
 					fitnesses.add(-1.0); // failed search 				
 				} else {
@@ -365,8 +369,41 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			} catch(IllegalStateException e) {
 				// Sometimes this exception occurs from A*. Not sure why, but we can take this to mean the level has a problem and deserves bad fitness.
 				fitnesses.add(-1.0); // failed search 				
+			} finally {
+				mostRecentVisited = ((AStarSearch<MarioAction, MarioState>) search).getVisited();
 			}
 
+			if(CommonConstants.netio && CommonConstants.watch) {
+				// Add X marks to the original level image, which should exist if since watch saved it above
+				if(mostRecentVisited != null) {
+					Graphics2D g = (Graphics2D) levelImage.getGraphics();
+					g.setColor(Color.BLUE);
+					g.setStroke(new BasicStroke(4)); // Thicker line
+					for(MarioState s : mostRecentVisited) {
+						int x = s.marioX;
+						int y = s.marioY;
+						g.drawLine(x*PIXEL_BLOCK_WIDTH, y*PIXEL_BLOCK_WIDTH, (x+1)*PIXEL_BLOCK_WIDTH, (y+1)*PIXEL_BLOCK_WIDTH);
+						g.drawLine((x+1)*PIXEL_BLOCK_WIDTH, y*PIXEL_BLOCK_WIDTH, x*PIXEL_BLOCK_WIDTH, (y+1)*PIXEL_BLOCK_WIDTH);
+					}
+					
+					if(actionSequence != null) {
+						MarioState current = start;
+						g.setColor(Color.RED);
+						for(MarioAction a : actionSequence) {
+							int x = current.marioX;
+							int y = current.marioY;
+							g.drawLine(x*PIXEL_BLOCK_WIDTH, y*PIXEL_BLOCK_WIDTH, (x+1)*PIXEL_BLOCK_WIDTH, (y+1)*PIXEL_BLOCK_WIDTH);
+							g.drawLine((x+1)*PIXEL_BLOCK_WIDTH, y*PIXEL_BLOCK_WIDTH, x*PIXEL_BLOCK_WIDTH, (y+1)*PIXEL_BLOCK_WIDTH);
+							current = (MarioState) current.getSuccessor(a);
+						}
+					}
+				}
+
+				// View level with path
+				String saveDir = FileUtilities.getSaveDirectory();
+				int currentGen = ((GenerationalEA) MMNEAT.ea).currentGeneration();
+				GraphicsUtil.saveImage(levelImage, saveDir + File.separator + (currentGen == 0 ? "initial" : "gen"+ currentGen) + File.separator + "MarioLevel"+individual.getId()+"SolutionPath.png");
+			}
 		}
 
 		if(Parameters.parameters.booleanParameter("marioRandomFitness")) {
