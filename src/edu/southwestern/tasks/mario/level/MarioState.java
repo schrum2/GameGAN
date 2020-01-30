@@ -93,11 +93,23 @@ public class MarioState extends State<MarioState.MarioAction> {
 		for(int y=height-1; y>=0; y--){
 			for(int x=width-1; x>=0; x--){
 				int tile = level.get(y).get(x);
-				if((tile == 6 || tile == 7 || tile == 8) && (y+1<height && level.get(y+1).get(x) == 2)){
+				if((tile == 8) && (y+1<height && level.get(y+1).get(x) == 2)){
 					setTileAtPosition(tmpLevel, x+extraStones, y+1, tile);
 					for(int i=y+2; i<height; i++){
 						if(level.get(i).get(x)==2){
 							setTileAtPosition(tmpLevel, x+extraStones, i, tile);
+						}else{
+							break;
+						}
+					}
+				}
+				if((tile == 6 || tile == 7) && (y+1<height && level.get(y+1).get(x) == 2)){
+					setTileAtPosition(tmpLevel, x+extraStones, y+1, tile);
+					setTileAtPosition(tmpLevel, x+extraStones+1, y+1, tile);
+					for(int i=y+2; i<height; i++){
+						if(level.get(i).get(x)==2){
+							setTileAtPosition(tmpLevel, x+extraStones, i, tile);
+							setTileAtPosition(tmpLevel, x+extraStones+1, i, tile);
 						}else{
 							break;
 						}
