@@ -57,11 +57,15 @@ library(stringr)
 
 print("Create plot and save to file")
 
+leniencyLabals <- function(num) {
+  paste("Leniency Bin:",num)
+}
+
 outputFile <- str_replace(args[1],"txt","heat.pdf")
 pdf(outputFile)  
 result <- ggplot(allData, aes(x=decorationBin, y=nsBin, fill=SolutionSteps)) +
   geom_tile() +
-  facet_wrap(~leniencyBin, ncol=5, labeller = label_both) +
+  facet_wrap(~leniencyBin, ncol=5, labeller = labeller(leniencyBin = leniencyLabals)) +
   #scale_fill_gradient(low="white", high="orange") +
   scale_fill_viridis(discrete=FALSE) +
   xlab("Decoration Frequency Bin") +
