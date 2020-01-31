@@ -104,6 +104,7 @@ public class MarioState extends State<MarioState.MarioAction> {
 					}
 				}
 				if((tile == 6 || tile == 7) && (y+1<height && level.get(y+1).get(x) == 2)){
+					setTileAtPosition(tmpLevel, x+extraStones+1, y, tile);
 					setTileAtPosition(tmpLevel, x+extraStones, y+1, tile);
 					setTileAtPosition(tmpLevel, x+extraStones+1, y+1, tile);
 					for(int i=y+2; i<height; i++){
