@@ -62,7 +62,7 @@ leniencyLabals <- function(num) {
 }
 
 outputFile <- str_replace(args[1],"txt","heat.pdf")
-pdf(outputFile)  
+pdf(outputFile,height=3.5)  
 result <- ggplot(allData, aes(x=decorationBin, y=nsBin, fill=SolutionSteps)) +
   geom_tile() +
   facet_wrap(~leniencyBin, ncol=5, labeller = labeller(leniencyBin = leniencyLabals)) +
