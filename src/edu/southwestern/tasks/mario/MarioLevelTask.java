@@ -431,10 +431,13 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			double negativeSpaceSum = sumStatScore(lastLevelStats, NEGATIVE_SPACE_STAT_INDEX);
 			
 			final int BINS_PER_DIMENSION = Parameters.parameters.integerParameter("marioGANLevelChunks");
+			// Scale scores so that we are less likely to overstep the bounds of the bins
+			final double DECORATION_SCALE = 8;
+			final double NEGATIVE_SPACE_SCALE = 8;
 			
 			int leniencyBinIndex = Math.min(Math.max((int)((leniencySum*(BINS_PER_DIMENSION/2)+0.5)*BINS_PER_DIMENSION),0), BINS_PER_DIMENSION-1);
-			int decorationBinIndex = Math.min((int)(decorationSum*10*BINS_PER_DIMENSION), BINS_PER_DIMENSION-1);
-			int negativeSpaceBinIndex = Math.min((int)(negativeSpaceSum*10*BINS_PER_DIMENSION), BINS_PER_DIMENSION-1);
+			int decorationBinIndex = Math.min((int)(decorationSum*DECORATION_SCALE*BINS_PER_DIMENSION), BINS_PER_DIMENSION-1);
+			int negativeSpaceBinIndex = Math.min((int)(negativeSpaceSum*NEGATIVE_SPACE_SCALE*BINS_PER_DIMENSION), BINS_PER_DIMENSION-1);
 			
 			// Row-major order lookup in 3D archive
 			int binIndex = (decorationBinIndex*BINS_PER_DIMENSION + negativeSpaceBinIndex)*BINS_PER_DIMENSION + leniencyBinIndex;
