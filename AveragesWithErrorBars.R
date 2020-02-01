@@ -1,20 +1,21 @@
 #!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+if (length(args)==0) {
+  stop("Supply Zelda or Mario", call.=FALSE)
+}
+
+game <- args[1]
+
 library(ggplot2)
 library(tidyr)
 library(plyr)
 library(dplyr)
 
-# Set working directory and move into it
-#resultDir <- "zeldagan"
 #setwd(paste("./",resultDir,sep=""))
 # Get log prefix
-#logPrefix <- "ZeldaGAN"
-# Which score/objective?
-# Add 1 to skip generations, each score takes up four columns, but the third is the max
 scoreIndex <- 2
 # Determine the different experimental conditions
-#types <- unique(sub("\\d+$","",list.files(".",pattern="[a-zA-Z]+\\d+$")))
-types <- list("ZeldaGAN","ZeldaCPPNtoGAN")
+types <- list(paste(game,"GAN",sep=""),paste(game,"CPPNtoGAN",sep=""))
 # Initialize empty data
 evolutionData <- data.frame(generation = integer(), score = double())
 # Exach experimental condition
@@ -76,8 +77,9 @@ evolutionStats <- evolutionData %>%
 spaceForTests <- maxScore / 6
 spacePerComparison <- spaceForTests / length(comparisonList)
   
-saveFile <- paste("AVG-",resultDir,args[3],".png",sep="")
-png(saveFile, width=2000, height=1000)
+saveFile <- paste("AVG-",game,".pdf",sep="")
+#png(saveFile, width=2000, height=1000)
+pdf(saveFile)
 v <- ggplot(evolutionStats, aes(x = generation, y = avgScore, color = type)) +
   geom_ribbon(aes(ymin = lowScore, ymax = highScore, fill = type), alpha = 0.05, show.legend = FALSE) +
   geom_line(size = 1.5) + 
