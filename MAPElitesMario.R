@@ -6,7 +6,7 @@ if (length(args)==0) {
 
 #setwd("E:\\Users\\he_de\\workspace\\GameGAN")
 print("Load data")
-#map <- read.table("mariocppntogan/MAPElites0/MarioCPPNtoGAN-MAPElites0_MAPElites_log.txt")
+#map <- read.table("mariogan/MAPElites0/MarioGAN-MAPElites0_MAPElites_log.txt")
 map <- read.table(args[1])
 # Only the final archive matters
 lastRow <- map[map$V1 == nrow(map) - 1, ]
