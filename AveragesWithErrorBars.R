@@ -79,12 +79,12 @@ spacePerComparison <- spaceForTests / length(comparisonList)
   
 saveFile <- paste("AVG-",game,".pdf",sep="")
 #png(saveFile, width=2000, height=1000)
-pdf(saveFile)
+pdf(saveFile, width=16, height=8)
 v <- ggplot(evolutionStats, aes(x = generation, y = avgScore, color = type)) +
   geom_ribbon(aes(ymin = lowScore, ymax = highScore, fill = type), alpha = 0.05, show.legend = FALSE) +
-  geom_line(size = 1.5) + 
+  geom_line(size = 1) + 
   # Should the 10 here be a parameter? Controls frequency of point plotting. Change size too?
-  geom_point(data = subset(evolutionStats, generation %% 10 == 0), size = 15, aes(shape = type)) + 
+  geom_point(data = subset(evolutionStats, generation %% 10 == 0), size = 1, aes(shape = type), show.legend = FALSE) + 
   # This can be adapted to indicate significant pairwise differences.
   # However, some work needs to be done to make sure testData compares the relevant cases
   #geom_point(data = testData, 
@@ -96,18 +96,18 @@ v <- ggplot(evolutionStats, aes(x = generation, y = avgScore, color = type)) +
   #facet_wrap(~type) + 
   #ggtitle("INSERT COOL TITLE HERE") +
   coord_cartesian(ylim=c(-spaceForTests,maxScore)) +
-  scale_color_discrete(breaks=types) +
+  scale_color_discrete(breaks=types, labels = c("Direct2GAN","CPPN2GAN"), guide = guide_legend(reverse = TRUE)) +
   guides(size = FALSE, alpha = FALSE) +
-  ylab("Average Score") +
-  xlab("Generation") +
+  ylab("Average Number of Filled Bins") +
+  xlab("100s of Generated Individuals") +
   theme(
-    plot.title = element_text(size=25, face="bold"),
-    axis.title.x = element_text(size=25, face="bold"),
-    axis.text.x = element_text(size=25, face="bold"),
-    axis.title.y = element_text(size=25, face="bold"),
-    axis.text.y = element_text(size=25, face="bold"),
+    plot.title = element_text(size=15, face="bold"),
+    axis.title.x = element_text(size=15, face="bold"),
+    axis.text.x = element_text(size=15, face="bold"),
+    axis.title.y = element_text(size=15, face="bold"),
+    axis.text.y = element_text(size=15, face="bold"),
     legend.title = element_blank(),
-    legend.text = element_text(size=25, face="bold"),
+    legend.text = element_text(size=15, face="bold"),
     legend.position = c(0.8, 0.2)
   )
 print(v)
