@@ -4,7 +4,10 @@ if (length(args)==0) {
   stop("Supply Zelda or Mario", call.=FALSE)
 }
 
+setwd("E:\\Users\\he_de\\workspace\\GameGAN")
+
 game <- args[1]
+#game <- "Zelda"
 
 library(ggplot2)
 library(tidyr)
@@ -67,6 +70,7 @@ for(i in seq(1,length(types)-1,1)) {
 }
 
 # Extract states: mean, lower confidence bound, upper confidence bound
+# Not needed for CPPN2GAN vs Direct2GAN because the differences are so clear.
 evolutionStats <- evolutionData %>%
   group_by(type, generation) %>%
   summarize(n = length(run), avgScore = mean(score), stdevScore = sd(score)) %>%
@@ -76,15 +80,20 @@ evolutionStats <- evolutionData %>%
 # Configure space at bottom for t-test data
 spaceForTests <- maxScore / 6
 spacePerComparison <- spaceForTests / length(comparisonList)
+
+evolutionStats$generation <- evolutionStats$generation * 100
   
+cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
 saveFile <- paste("AVG-",game,".pdf",sep="")
 #png(saveFile, width=2000, height=1000)
-pdf(saveFile, width=16, height=8)
+pdf(saveFile, width=4, height=3)
 v <- ggplot(evolutionStats, aes(x = generation, y = avgScore, color = type)) +
   geom_ribbon(aes(ymin = lowScore, ymax = highScore, fill = type), alpha = 0.05, show.legend = FALSE) +
-  geom_line(size = 1) + 
-  # Should the 10 here be a parameter? Controls frequency of point plotting. Change size too?
-  geom_point(data = subset(evolutionStats, generation %% 10 == 0), size = 1, aes(shape = type), show.legend = FALSE) + 
+  geom_line(size = 0.3) + 
+  geom_point(data = subset(evolutionStats, generation %% 10000 == 0), 
+             size = 2, aes(shape = type), 
+             show.legend = FALSE) + 
   # This can be adapted to indicate significant pairwise differences.
   # However, some work needs to be done to make sure testData compares the relevant cases
   #geom_point(data = testData, 
@@ -95,20 +104,25 @@ v <- ggplot(evolutionStats, aes(x = generation, y = avgScore, color = type)) +
   # For separate plots
   #facet_wrap(~type) + 
   #ggtitle("INSERT COOL TITLE HERE") +
-  coord_cartesian(ylim=c(-spaceForTests,maxScore)) +
-  scale_color_discrete(breaks=types, labels = c("Direct2GAN","CPPN2GAN"), guide = guide_legend(reverse = TRUE)) +
+  #coord_cartesian(ylim=c(-spaceForTests,maxScore)) +
+  scale_color_discrete(breaks=types, 
+                       labels = c("Direct2GAN","CPPN2GAN"), 
+                       guide = guide_legend(reverse = TRUE),
+                       expand = c(0,0)) +
+  #scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, NA)) +
   guides(size = FALSE, alpha = FALSE) +
   ylab("Average Number of Filled Bins") +
-  xlab("100s of Generated Individuals") +
+  xlab("Generated Individuals") +
   theme(
-    plot.title = element_text(size=15, face="bold"),
-    axis.title.x = element_text(size=15, face="bold"),
-    axis.text.x = element_text(size=15, face="bold"),
-    axis.title.y = element_text(size=15, face="bold"),
-    axis.text.y = element_text(size=15, face="bold"),
+    plot.title = element_text(size=7, face="bold"),
+    axis.title.x = element_text(size=7, face="bold"),
+    axis.text.x = element_text(size=7, face="bold"),
+    axis.title.y = element_text(size=7, face="bold"),
+    axis.text.y = element_text(size=7, face="bold"),
     legend.title = element_blank(),
-    legend.text = element_text(size=15, face="bold"),
-    legend.position = c(0.8, 0.2)
+    legend.text = element_text(size=7, face="bold"),
+    legend.position = c(0.2, 0.8)
   )
 print(v)
 dev.off()
