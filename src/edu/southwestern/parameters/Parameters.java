@@ -325,6 +325,16 @@ public class Parameters {
 		longOptions.add("lastGenotypeId", 0l, "Highest genotype id used so far");
 		longOptions.add("lastInnovation", 0l, "Highest innovation number used so far");
 		// Boolean parameters 
+		booleanOptions.add("marioSimpleAStarDistance", false, "Length of a simple A* path through level (not actual simulation)");
+		booleanOptions.add("marioLevelAlternatingLeniency", false, "Mario level evolves to encourage alternating amounts of leniency in segments");
+		booleanOptions.add("marioLevelAlternatingNegativeSpace", false, "Mario level evolves to encourage alternating amounts of negative space in segments");
+		booleanOptions.add("marioLevelAlternatingDecoration", false, "Mario level evolves to encourage alternating amounts of decoration in segments");
+		booleanOptions.add("marioLevelPeriodicLeniency", false, "Mario level evolves to encourage periodically repeating amounts of leniency in segments");
+		booleanOptions.add("marioLevelPeriodicNegativeSpace", false, "Mario level evolves to encourage periodically repeating amounts of negative space in segments");
+		booleanOptions.add("marioLevelPeriodicDecoration", false, "Mario level evolves to encourage periodically repeating amounts of decoration in segments");
+		booleanOptions.add("marioLevelSymmetricLeniency", false, "Mario level evolves to encourage symmetric amounts of leniency in segments");
+		booleanOptions.add("marioLevelSymmetricNegativeSpace", false, "Mario level evolves to encourage symmetric amounts of negative space in segments");
+		booleanOptions.add("marioLevelSymmetricDecoration", false, "Mario level evolves to encourage symmetric amounts of decoration in segments");
 		booleanOptions.add("marioLevelMatchFitness", false, "Mario level evolves to match a specific input level");
 		booleanOptions.add("marioProgressPlusJumpsFitness", true, "Mario Progress Plus Jumps Fitness included");
 		booleanOptions.add("marioProgressPlusTimeFitness", false, "Mario Progress Plus Time Fitness included");

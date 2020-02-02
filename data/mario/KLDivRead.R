@@ -3,14 +3,16 @@ fh = c(2,3,4,5)
 s = c(1,1,1,1)
 files = paste("KLDivLog-fw",fw,"-fH",fh,"-s",s,".txt", sep="")
 col_names = c("level_id", "level_type", files)
-data = matrix(0, nrow=320, ncol=length(col_names)) ##fixed nrow for now to make it easier
-dist_mat_names = character(192)
+col_names_raw = c("level_id", "run", "type", "generation","vector","path")
+data = matrix(0, nrow=259, ncol=length(col_names)) ##fixed nrow for now to make it easier
+data_raw = matrix(0, nrow=119, ncol=length(col_names_raw))
+dist_mat_names = character(132)
 dist_list = list()
 dist_list_sym = list()
 colnames(data) = col_names
 for(f in files){
-  dist_mat = matrix(0, nrow=192, ncol=192) ##fixed nrow for now to make it easier
-  dist_mat_sym = matrix(0, nrow=192, ncol=192) ##fixed nrow for now to make it easier
+  dist_mat = matrix(0, nrow=132, ncol=132) ##fixed nrow for now to make it easier
+  dist_mat_sym = matrix(0, nrow=132, ncol=132) ##fixed nrow for now to make it easier
   con = file(f, "r")
   id = 0
   col_dist = 1
@@ -40,6 +42,10 @@ for(f in files){
          row_dist=row_dist+1
          dist_mat_names[row_dist] = from
          prev=from
+       }else if (grepl("/app", line)){
+         dat_row = strsplit(line, "\t")[[1]]
+         data_row[1:5] = as.numeric(data_row[1:5])
+         data_raw[data_row[1],]=data_row
        }
        dist_mat[row_dist,col_dist] = kldiv
        dist_mat_sym[row_dist,col_dist] = dist_mat_sym[row_dist,col_dist]+kldiv

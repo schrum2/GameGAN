@@ -55,7 +55,7 @@ public class LevelParser {
         prettyTiles.put(12, 1); //spiny + winged spiny
     }
     
-    private static final java.util.Map<Integer, Double> leniencyTiles = new HashMap<>();
+    public static final java.util.Map<Integer, Double> leniencyTiles = new HashMap<>();
     
     static {
         leniencyTiles.put(0, 0.0); //solid
@@ -73,7 +73,7 @@ public class LevelParser {
         leniencyTiles.put(12, -1.0); //spiny + winged spiny
     }
     
-    private static final java.util.Map<Integer, Integer> negativeSpaceTiles = new HashMap<>();
+    public static final java.util.Map<Integer, Integer> negativeSpaceTiles = new HashMap<>();
     
     static {
         negativeSpaceTiles.put(0, 1); //solid
