@@ -6,7 +6,7 @@ if (length(args)==0) {
 
 #setwd("E:\\Users\\he_de\\workspace\\GameGAN")
 print("Load data")
-#map <- read.table("mariocppntogan/MAPElites3/MarioCPPNtoGAN-MAPElites3_MAPElites_log.txt")
+#map <- read.table("mariogan/MAPElites0/MarioGAN-MAPElites0_MAPElites_log.txt")
 map <- read.table(args[1])
 # Only the final archive matters
 lastRow <- map[map$V1 == nrow(map) - 1, ]
@@ -54,6 +54,7 @@ library(ggplot2)
 library(dplyr)
 library(viridis)
 library(stringr)
+library(scales)
 
 print("Create plot and save to file")
 
@@ -67,7 +68,7 @@ result <- ggplot(allData, aes(x=decorationBin, y=nsBin, fill=SolutionSteps)) +
   geom_tile() +
   facet_wrap(~leniencyBin, ncol=5, labeller = labeller(leniencyBin = leniencyLabals)) +
   #scale_fill_gradient(low="white", high="orange") +
-  scale_fill_viridis(discrete=FALSE) +
+  scale_fill_viridis(discrete=FALSE, limits = c(250,500), oob = squish) +
   xlab("Decoration Frequency Bin") +
   ylab("Negative Space Bin") +
   labs(fill = "Solution Path Length") +

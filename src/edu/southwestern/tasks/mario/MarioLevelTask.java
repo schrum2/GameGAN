@@ -431,10 +431,13 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 			double negativeSpaceSum = sumStatScore(lastLevelStats, NEGATIVE_SPACE_STAT_INDEX);
 			
 			final int BINS_PER_DIMENSION = Parameters.parameters.integerParameter("marioGANLevelChunks");
+			// Scale scores so that we are less likely to overstep the bounds of the bins
+			final double DECORATION_SCALE = 3;
+			final double NEGATIVE_SPACE_SCALE = 3;
 			
 			int leniencyBinIndex = Math.min(Math.max((int)((leniencySum*(BINS_PER_DIMENSION/2)+0.5)*BINS_PER_DIMENSION),0), BINS_PER_DIMENSION-1);
-			int decorationBinIndex = Math.min((int)(decorationSum*10*BINS_PER_DIMENSION), BINS_PER_DIMENSION-1);
-			int negativeSpaceBinIndex = Math.min((int)(negativeSpaceSum*10*BINS_PER_DIMENSION), BINS_PER_DIMENSION-1);
+			int decorationBinIndex = Math.min((int)(decorationSum*DECORATION_SCALE*BINS_PER_DIMENSION), BINS_PER_DIMENSION-1);
+			int negativeSpaceBinIndex = Math.min((int)(negativeSpaceSum*NEGATIVE_SPACE_SCALE*BINS_PER_DIMENSION), BINS_PER_DIMENSION-1);
 			
 			// Row-major order lookup in 3D archive
 			int binIndex = (decorationBinIndex*BINS_PER_DIMENSION + negativeSpaceBinIndex)*BINS_PER_DIMENSION + leniencyBinIndex;
@@ -458,7 +461,7 @@ public abstract class MarioLevelTask<T> extends NoisyLonerTask<T> {
 				Score<T> elite = archive.getElite(binIndex);
 				// If the bin is empty, or the candidate is better than the elite for that bin's score
 				if(elite == null || binScore > elite.behaviorVector.get(binIndex)) {
-					String fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(binIndex) +"-"+ individual.getId() + ".png";
+					String fileName = String.format("%7.5f", binScore) +"-"+ binLabels.get(binIndex) +"-("+decorationSum+","+negativeSpaceSum+","+leniencySum+")-"+ individual.getId() + ".png";
 					String binPath = archive.getArchiveDirectory() + File.separator + binLabels.get(binIndex);
 					String fullName = binPath + File.separator + fileName;
 					System.out.println(fullName);
