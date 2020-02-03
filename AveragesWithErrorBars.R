@@ -13,6 +13,7 @@ library(ggplot2)
 library(tidyr)
 library(plyr)
 library(dplyr)
+library(stringr)
 
 #setwd(paste("./",resultDir,sep=""))
 # Get log prefix
@@ -30,9 +31,16 @@ for(t in types) {
     temp <- read.table(file = paste("./",tolower(t),"/",d,"/",t,"-",d,"_Fill_log.txt", sep = ""), sep = '\t', header = FALSE)
     # Rename relevant column
     colnames(temp)[scoreIndex] <- "score"
+    
+    typeLabel <- str_replace(t,"CPPNtoGAN","CPPN2GAN")
+    typeLabel <- str_replace(typeLabel,"MarioGAN","Direct2GAN")
+    typeLabel <- str_replace(typeLabel,"ZeldaGAN","Direct2GAN")
+    typeLabel <- str_replace(typeLabel,"Mario","")
+    typeLabel <- str_replace(typeLabel,"Zelda","")
+    
     # Add data
     evolutionData <- rbind(evolutionData, data.frame(generation = temp$V1, 
-                                       type = paste(t,sep=""),
+                                       type = paste(typeLabel,sep=""),
                                        run = substring(d,nchar(t)+1), # Get the number following the type
                                        score = c(temp[scoreIndex])))
   }
@@ -92,26 +100,12 @@ v <- ggplot(evolutionStats, aes(x = generation, y = avgScore, color = type)) +
   geom_ribbon(aes(ymin = lowScore, ymax = highScore, fill = type), alpha = 0.05, show.legend = FALSE) +
   geom_line(size = 0.3) + 
   geom_point(data = subset(evolutionStats, generation %% 10000 == 0), 
-             size = 2, aes(shape = type), 
-             show.legend = FALSE) + 
-  # This can be adapted to indicate significant pairwise differences.
-  # However, some work needs to be done to make sure testData compares the relevant cases
-  #geom_point(data = testData, 
-  #           aes(x = generation, 
-  #               y = if_else(significant, -spacePerComparison*match(type, comparisonList), -100000), 
-  #               size = 5, color = type, shape = type), 
-  #           alpha = 0.5, show.legend = FALSE) +
-  # For separate plots
-  #facet_wrap(~type) + 
-  #ggtitle("INSERT COOL TITLE HERE") +
-  #coord_cartesian(ylim=c(-spaceForTests,maxScore)) +
-  scale_color_discrete(breaks=types, 
-                       labels = c("Direct2GAN","CPPN2GAN"), 
-                       guide = guide_legend(reverse = TRUE),
-                       expand = c(0,0)) +
-  #scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, NA)) +
-  guides(size = FALSE, alpha = FALSE) +
+             size = 2, aes(shape = type)) + 
+  #scale_y_continuous(expand = c(0, 0), limits = c(0, NA)) +
+  #scale_color_continuous(guide = guide_legend(reverse=TRUE)) +
+  guides(shape = guide_legend(reverse=TRUE), color = guide_legend(reverse=TRUE)) +
+  #scale_shape_discrete(guide = guide_legend(reverse=TRUE)) +
+  #scale_linetype_manual(guide = guide_legend(reverse=TRUE)) +
   ylab("Average Number of Filled Bins") +
   xlab("Generated Individuals") +
   theme(
@@ -122,7 +116,7 @@ v <- ggplot(evolutionStats, aes(x = generation, y = avgScore, color = type)) +
     axis.text.y = element_text(size=7, face="bold"),
     legend.title = element_blank(),
     legend.text = element_text(size=7, face="bold"),
-    legend.position = c(0.2, 0.8)
+    legend.position = c(0.8, 0.25)
   )
 print(v)
 dev.off()
