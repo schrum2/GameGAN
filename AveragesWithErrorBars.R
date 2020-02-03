@@ -4,7 +4,7 @@ if (length(args)==0) {
   stop("Supply Zelda or Mario", call.=FALSE)
 }
 
-setwd("E:\\Users\\he_de\\workspace\\GameGAN")
+#setwd("E:\\Users\\he_de\\workspace\\GameGAN")
 
 game <- args[1]
 #game <- "Zelda"
