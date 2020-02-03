@@ -95,18 +95,18 @@ cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00",
 
 saveFile <- paste("AVG-",game,".pdf",sep="")
 #png(saveFile, width=2000, height=1000)
-pdf(saveFile, width=4, height=3)
+pdf(saveFile, width=4, height=2.5)
 v <- ggplot(evolutionStats, aes(x = generation, y = avgScore, color = type)) +
   geom_ribbon(aes(ymin = lowScore, ymax = highScore, fill = type), alpha = 0.05, show.legend = FALSE) +
   geom_line(size = 0.3) + 
-  geom_point(data = subset(evolutionStats, generation %% 10000 == 0), 
+  geom_point(data = subset(evolutionStats, generation %% 5000 == 0), 
              size = 2, aes(shape = type)) + 
   #scale_y_continuous(expand = c(0, 0), limits = c(0, NA)) +
   #scale_color_continuous(guide = guide_legend(reverse=TRUE)) +
   guides(shape = guide_legend(reverse=TRUE), color = guide_legend(reverse=TRUE)) +
   #scale_shape_discrete(guide = guide_legend(reverse=TRUE)) +
   #scale_linetype_manual(guide = guide_legend(reverse=TRUE)) +
-  ylab("Average Number of Filled Bins") +
+  ylab("Number of Filled Bins") +
   xlab("Generated Individuals") +
   theme(
     plot.title = element_text(size=7, face="bold"),
@@ -116,7 +116,7 @@ v <- ggplot(evolutionStats, aes(x = generation, y = avgScore, color = type)) +
     axis.text.y = element_text(size=7, face="bold"),
     legend.title = element_blank(),
     legend.text = element_text(size=7, face="bold"),
-    legend.position = c(0.8, 0.25)
+    legend.position = c(0.8, 0.2)
   )
 print(v)
 dev.off()
