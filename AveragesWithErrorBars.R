@@ -116,7 +116,7 @@ v <- ggplot(evolutionStats, aes(x = generation, y = avgScore, color = type)) +
     axis.text.y = element_text(size=7, face="bold"),
     legend.title = element_blank(),
     legend.text = element_text(size=7, face="bold"),
-    legend.position = c(0.8, 0.2)
+    legend.position = c(0.8, 0.5)
   )
 print(v)
 dev.off()
