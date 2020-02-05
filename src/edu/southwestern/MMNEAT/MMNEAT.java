@@ -405,6 +405,7 @@ public class MMNEAT {
 		System.out.println("Run");
 		experiment.run();
 		System.out.println("Experiment finished");
+		GANProcess.terminateGANProcess();
 	}
 
 	/**

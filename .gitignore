@@ -22,5 +22,10 @@ python/GAN/ZeldaDungeonsAll3Tiles_10000_10/
 /dist/
 .RData
 .Rhistory
+<<<<<<< HEAD
 
 /nbproject/private/
+=======
+*.pdf
+wrongbins-*
+>>>>>>> 5f25407bf5e6ac53926143eb07a590ba72d4ea48
