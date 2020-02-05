@@ -70,7 +70,7 @@ result <- ggplot(allData, aes(x=decorationBin, y=nsBin, fill=SolutionSteps)) +
   #scale_fill_gradient(low="white", high="orange") +
   scale_fill_viridis(discrete=FALSE, limits = c(250,500), oob = squish) +
   xlab("Decoration Frequency Bin") +
-  ylab("Negative Space Bin") +
+  ylab("Space Coverage Bin") +
   labs(fill = "Solution Path Length") +
   # Puts room count in the plot for each bin
   #geom_text(aes(label = ifelse(wallBin == 5 & waterBin == 4, roomBin, NA)), 
