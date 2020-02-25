@@ -33,21 +33,28 @@ import edu.southwestern.tasks.gvgai.zelda.dungeon.ZeldaDungeon.Level;
 import edu.southwestern.tasks.gvgai.zelda.level.ZeldaLevelUtil;
 import edu.southwestern.tasks.interactive.InteractiveEvolutionTask;
 import edu.southwestern.tasks.mario.gan.GANProcess;
-import edu.southwestern.util.CartesianGeometricUtilities;
-import edu.southwestern.util.MiscUtil;
+import edu.southwestern.tasks.zelda.ZeldaCPPNtoGANVectorMatrixBuilder;
+import edu.southwestern.tasks.zelda.ZeldaGANVectorMatrixBuilder;
 import edu.southwestern.util.datastructures.Pair;
-import edu.southwestern.util.graphics.GraphicsUtil;
-import edu.southwestern.util.util2D.ILocated2D;
-import edu.southwestern.util.util2D.Tuple2D;
 import me.jakerg.rougelike.RougelikeApp;
 
+/**
+ * Uses a CPPN to map a latent vector for a GAN to each cell in a grid,
+ * and create a room for Zelda by sending the latent vector to the GAN.
+ * 
+ * @author Jacob Schrum
+ */
 public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWEANN> {
 
 	public static final String[] SENSOR_LABELS = new String[] {"x-coordinate", "y-coordinate", "radius", "bias"};
 	
-	public static final int NUM_NON_LATENT_INPUTS = 2;
-	public static final int INDEX_ROOM_PRESENCE = 0;
-	public static final int INDEX_TRIFORCE_PREFERENCE = 1;
+	public static final int NUM_NON_LATENT_INPUTS = 6;
+	public static final int INDEX_ROOM_PRESENCE = 0;	// Whether a room is present
+	public static final int INDEX_TRIFORCE_PREFERENCE = 1; // Determines both Triforce location AND starting location
+	public static final int INDEX_DOOR_DOWN = 2; // Determines if there is a door heading down (and thus a door up in the connecting room)
+	public static final int INDEX_DOOR_RIGHT = 3; // Determines if there is a door heading right (and thus a door left in the connecting room)
+	public static final int INDEX_DOWN_DOOR_TYPE = 4; // Encodes the type of the down door
+	public static final int INDEX_RIGHT_DOOR_TYPE = 5; // Encodes the type of the right door
 	
 	public static final int PLAY_BUTTON_INDEX = -20;
 	private static final int FILE_LOADER_BUTTON_INDEX = -21;
@@ -169,6 +176,10 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 		outputLabels = new String[latentVectorLength + NUM_NON_LATENT_INPUTS];
 		outputLabels[INDEX_ROOM_PRESENCE] = "Room Presence";
 		outputLabels[INDEX_TRIFORCE_PREFERENCE] = "Triforce Preference";
+		outputLabels[INDEX_DOOR_DOWN] = "Door Down";
+		outputLabels[INDEX_DOOR_RIGHT] = "Door Right";
+		outputLabels[INDEX_DOWN_DOOR_TYPE] = "Down Door Type";
+		outputLabels[INDEX_RIGHT_DOOR_TYPE] = "Right Door Type";
 		for(int i = NUM_NON_LATENT_INPUTS; i < outputLabels.length; i++) {
 			outputLabels[i] = "LV"+(i-NUM_NON_LATENT_INPUTS);
 		}
@@ -293,13 +304,35 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 		return this.outputLabels().length;
 	}
 
+	/**
+	 * Create a Dungeon of the given size (in rooms) using a CPPN that generates latent vectors that are sent to a GAN.
+	 * 
+	 * @param cppn Network that takes the location of the room in the dungeon, and returns a latent vector and some other information
+	 * @param width Number of rooms wide
+	 * @param height Number of rooms high
+	 * @param inputMultipliers Multipliers for CPPN inputs (can turn them on or off)
+	 * @return A Rogue-like Dungeon instance
+	 */
 	public static Dungeon cppnToDungeon(Network cppn, int width, int height, double[] inputMultipliers) {
-		Pair<double[][][],double[][][]> cppnOutput = latentVectorGridFromCPPN(cppn, width, height, inputMultipliers);		
+		Pair<double[][][],double[][][]> cppnOutput = latentVectorGridFromCPPN(new ZeldaCPPNtoGANVectorMatrixBuilder(cppn,inputMultipliers), width, height);		
 		double[][][] auxiliaryInformation = cppnOutput.t1;
 		double[][][] latentVectorGrid = cppnOutput.t2;
 		// Because a CPPN can make disconnected dungeons, it is legitimately possible for a level
 		// to be unbeatable, even after repair by A*. This loop randomly fills in empty rooms in the
 		// dungeon grid until A* succeeds.
+		return gridDataToDungeon(auxiliaryInformation, latentVectorGrid);
+	}
+
+	/**
+	 * Takes two grids of same width and height. One has auxiliary information about constructing the
+	 * dungeon, such as whether a room is even present. The other contains the latent vectors associated
+	 * with each room location. A Dungeon is created based on these.
+	 * 
+	 * @param auxiliaryInformation auxiliaryInformation[y][x] determines some miscellaneous features of the room at (x,y)
+	 * @param latentVectorGrid latentVectorGrid[y][x] is the latent vector for creating a room at (x,y) if a room is present
+	 * @return Resulting Dungeon
+	 */
+	public static Dungeon gridDataToDungeon(double[][][] auxiliaryInformation, double[][][] latentVectorGrid) {
 		Dungeon dungeon = null;
 		boolean unbeatable;
 		double presenceThreshold = 0;
@@ -318,11 +351,13 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 					throw new IllegalArgumentException("The dungeon must be empty since the start room is not in the grid");
 				}
 				Point triforceRoom = startAndGoal.t2;
-				dungeon = dungeonFromLevelGrid(levelGrid,startRoom);
+				dungeon = dungeonFromLevelGrid(levelGrid,startRoom,auxiliaryInformation,presenceThreshold);
 				levelGrid[triforceRoom.y][triforceRoom.x] = levelGrid[triforceRoom.y][triforceRoom.x].placeTriforce(dungeon);
 				dungeon.setGoalPoint(new Point(triforceRoom.x, triforceRoom.y));
 				dungeon.setGoal("("+triforceRoom.x+","+triforceRoom.y+")");
-				DungeonUtil.makeDungeonPlayable(dungeon);
+				// Use A* to modify the level to make sections passable
+				if(Parameters.parameters.booleanParameter("makeZeldaLevelsPlayable")) 
+					DungeonUtil.makeDungeonPlayable(dungeon);
 			} catch(IllegalArgumentException e) {
 				// Make a new room appear in dungeon
 				//enableRoomActivation(auxiliaryInformation);
@@ -412,7 +447,7 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 	 * @param startRoom Coordinates in grid where player starts
 	 * @return Complete Dungeon representing the given Level grid
 	 */
-	public static Dungeon dungeonFromLevelGrid(Level[][] levelGrid,Point startRoom) {
+	public static Dungeon dungeonFromLevelGrid(Level[][] levelGrid,Point startRoom,double[][][] auxiliaryInformation,double presenceThreshold) {
 		Dungeon dungeonInstance = new Dungeon();
 
 		String[][] uuidLabels = new String[levelGrid.length][levelGrid[0].length];
@@ -426,17 +461,37 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 			}
 		}
 		
-		
+		// Create all Nodes first
 		for(int y = 0; y < levelGrid.length; y++) {
 			for(int x = 0; x < levelGrid[y].length; x++) {
 				if(levelGrid[y][x] != null) {
 					String name = uuidLabels[y][x];
-					Node newNode = dungeonInstance.newNode(name, levelGrid[y][x]);
+					dungeonInstance.newNode(name, levelGrid[y][x]);
+				}	
+			}
+		}
+
+		for(int y = 0; y < levelGrid.length; y++) {
+			for(int x = 0; x < levelGrid[y].length; x++) {
+				if(levelGrid[y][x] != null) {
+					String name = uuidLabels[y][x];
+					Node currentNode = dungeonInstance.getNode(name);
 					
-					ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, x + 1, y, "RIGHT");
-					ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, x, y - 1, "UP");
-					ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, x - 1, y, "LEFT");
-					ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, newNode, x, y + 1, "DOWN");
+					if(auxiliaryInformation[y][x][INDEX_DOOR_DOWN] > presenceThreshold && y+1 < levelGrid.length && levelGrid[y+1][x] != null) {
+						// Create door down in this room, and door up in connecting room
+						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, currentNode, x, y + 1, "DOWN", auxiliaryInformation[y][x][INDEX_DOWN_DOOR_TYPE]);
+						String nameBelow = 	uuidLabels[y+1][x];
+						Node nodeBelow = dungeonInstance.getNode(nameBelow);
+						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, nodeBelow, x, y, "UP", auxiliaryInformation[y][x][INDEX_DOWN_DOOR_TYPE]); // Coordinates of this room
+					}
+					
+					if(auxiliaryInformation[y][x][INDEX_DOOR_RIGHT] > presenceThreshold && x+1 < levelGrid[y].length && levelGrid[y][x+1] != null) {
+						// Create door right in this room, and door left in connecting room
+						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, currentNode, x + 1, y, "RIGHT", auxiliaryInformation[y][x][INDEX_RIGHT_DOOR_TYPE]);
+						String nameRight = 	uuidLabels[y][x+1];
+						Node nodeRight = dungeonInstance.getNode(nameRight);
+						ZeldaDungeon.addAdjacencyIfAvailable(dungeonInstance, levelGrid, uuidLabels, nodeRight, x, y, "LEFT", auxiliaryInformation[y][x][INDEX_RIGHT_DOOR_TYPE]); // Coordinates of this room
+					}					
 				}	
 			}
 		}
@@ -459,18 +514,12 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 	 * @param inputMultipliers Multipliers for CPPN inputs which has potential to disable them
 	 * @return 3D array that is a 2D grid of latent vectors
 	 */
-	public static Pair<double[][][],double[][][]> latentVectorGridFromCPPN(Network cppn, int width, int height, double[] inputMultipliers) {
+	public static Pair<double[][][],double[][][]> latentVectorGridFromCPPN(ZeldaGANVectorMatrixBuilder builder, int width, int height) {
 		double[][][] latentVectorGrid = new double[height][width][];
 		double[][][] presenceAndTriforceGrid = new double[height][width][];
 		for(int y = 0; y < height; y++) {
 			for(int x = 0; x < width; x++) {
-				ILocated2D scaled = CartesianGeometricUtilities.centerAndScale(new Tuple2D(x, y), width, height);
-				double[] remixedInputs = { scaled.getX(), scaled.getY(), scaled.distance(new Tuple2D(0, 0)) * GraphicsUtil.SQRT2, GraphicsUtil.BIAS };
-				// Might turn some inputs on/off
-				for(int i = 0; i < remixedInputs.length; i++) {
-					remixedInputs[i] *= inputMultipliers[i];
-				}
-				double[] vector = cppn.process(remixedInputs);
+				double[] vector = builder.latentVectorAndMiscDataForPosition(width, height, x, y);
 				double[] latentVector = new double[GANProcess.latentVectorLength()]; // Shorter
 				System.arraycopy(vector, NUM_NON_LATENT_INPUTS, latentVector, 0, latentVector.length);
 				latentVectorGrid[y][x] = latentVector;
@@ -507,7 +556,7 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 	
 	public static void main(String[] args) {
 		try {
-			MMNEAT.main(new String[]{"runNumber:0","randomSeed:1","showKLOptions:false","trials:1","mu:16","zeldaGANModel:ZeldaFixedDungeonsAll_5000_10.pth","maxGens:500","io:false","netio:false","GANInputSize:10","mating:true","fs:false","task:edu.southwestern.tasks.interactive.gvgai.ZeldaCPPNtoGANLevelBreederTask","cleanOldNetworks:false", "zeldaGANUsesOriginalEncoding:false","allowMultipleFunctions:true","ftype:0","watch:true","netChangeActivationRate:0.3","cleanFrequency:-1","simplifiedInteractiveInterface:false","recurrency:false","saveAllChampions:true","cleanOldNetworks:false","ea:edu.southwestern.evolution.selectiveBreeding.SelectiveBreedingEA","imageWidth:2000","imageHeight:2000","imageSize:200","includeFullSigmoidFunction:true","includeFullGaussFunction:true","includeCosineFunction:true","includeGaussFunction:false","includeIdFunction:true","includeTriangleWaveFunction:true","includeSquareWaveFunction:true","includeFullSawtoothFunction:true","includeSigmoidFunction:false","includeAbsValFunction:false","includeSawtoothFunction:false"});
+			MMNEAT.main(new String[]{"runNumber:0","randomSeed:1","makeZeldaLevelsPlayable:false","zeldaStudySavesParticipantData:false","showKLOptions:false","trials:1","mu:16","zeldaGANModel:ZeldaFixedDungeonsAll_5000_10.pth","maxGens:500","io:false","netio:false","GANInputSize:10","mating:true","fs:false","task:edu.southwestern.tasks.interactive.gvgai.ZeldaCPPNtoGANLevelBreederTask","cleanOldNetworks:false", "zeldaGANUsesOriginalEncoding:false","allowMultipleFunctions:true","ftype:0","watch:true","netChangeActivationRate:0.3","cleanFrequency:-1","simplifiedInteractiveInterface:false","recurrency:false","saveAllChampions:true","cleanOldNetworks:false","ea:edu.southwestern.evolution.selectiveBreeding.SelectiveBreedingEA","imageWidth:2000","imageHeight:2000","imageSize:200","includeFullSigmoidFunction:true","includeFullGaussFunction:true","includeCosineFunction:true","includeGaussFunction:false","includeIdFunction:true","includeTriangleWaveFunction:true","includeSquareWaveFunction:true","includeFullSawtoothFunction:true","includeSigmoidFunction:false","includeAbsValFunction:false","includeSawtoothFunction:false"});
 		} catch (FileNotFoundException | NoSuchMethodException e) {
 			e.printStackTrace();
 		}

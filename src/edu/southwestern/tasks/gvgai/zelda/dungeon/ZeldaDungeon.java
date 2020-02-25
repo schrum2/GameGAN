@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import javax.swing.BoxLayout;
@@ -82,12 +83,16 @@ public abstract class ZeldaDungeon<T> {
 	 * @param direction String direction (UP, DOWN, LEFT, RIGHT)
 	 */
 	public static void addAdjacencyIfAvailable(Dungeon dungeonInstance, Level[][] dungeon, String[][] uuidLabels, Node newNode, int x, int y, String direction) {
-		int tileToSetTo = 3; // Door tile number
+		addAdjacencyIfAvailable(dungeonInstance, dungeon, uuidLabels, newNode, x, y, direction, Double.NaN);
+	}
+	
+	public static void addAdjacencyIfAvailable(Dungeon dungeonInstance, Level[][] dungeon, String[][] uuidLabels, Node newNode, int x, int y, String direction, double doorEncoding) {
+		int tileToSetTo = Tile.DOOR.getNum(); // Door tile number
 		if(x < 0 || x >= dungeon[0].length || y < 0 || y >= dungeon.length || 
 				dungeon[y][x] == null) // If theres no dungeon there set the tiles to wall
 			tileToSetTo = Tile.WALL.getNum();
 
-		setLevels(direction, newNode, tileToSetTo); // Set the doors in the levels
+		setLevels(direction, newNode, tileToSetTo, doorEncoding); // Set the doors in the levels
 		findAndAddGoal(dungeonInstance, newNode);
 
 		if(x < 0 || x >= dungeon[0].length || y < 0 || y >= dungeon.length) return;
@@ -128,14 +133,36 @@ public abstract class ZeldaDungeon<T> {
 		}
 	}
 
-	private static void setLevels(String direction, Node node, int tile) {
+	/**
+	 * Creates door connecting rooms. 
+	 * 
+	 * @param direction Direction being moved out of the room
+	 * @param node Room being modified
+	 * @param tile New tile for door location: Will simply be a door or wall, but this method changes some doors to "special" doors
+	 * @param encodedDoorType Special encoding of door type. If NaN, then just decide type randomly.
+	 */
+	private static void setLevels(String direction, Node node, int tile, double encodedDoorType) {
 		List<List<Integer>> level = node.level.intLevel;
 		// Randomize tile only if the door being placed actually leads to another room
-		if(tile == 3) {
-			if(RandomNumbers.randomCoin(0.7))
+		if(tile == Tile.DOOR.getNum()) {
+			// NaN means use chance to create door type
+			if(Double.isNaN(encodedDoorType) && RandomNumbers.randomCoin(0.7)) {
 				tile = (RandomNumbers.coinFlip()) ? Tile.LOCKED_DOOR.getNum() : Tile.HIDDEN.getNum(); // Randomize 5 (locked door) or 7 (bombable wall)
-
-				if(tile == Tile.LOCKED_DOOR.getNum()) ZeldaLevelUtil.placeRandomKey(level); // If the door is now locked place a random key in the level
+				if(tile == Tile.LOCKED_DOOR.getNum()) ZeldaLevelUtil.placeRandomKey(level, RandomNumbers.randomGenerator); // If the door is now locked place a random key in the level
+			} else { // Assume CPPN provided coded interpretation of door type
+				if(encodedDoorType > 0.66) {
+					tile = Tile.LOCKED_DOOR.getNum();
+				} else if(encodedDoorType > 0.33) {
+					tile = Tile.HIDDEN.getNum();
+				} else if(encodedDoorType > 0.00) {
+					tile = Tile.SOFT_LOCK_DOOR.getNum();
+				}
+				// else remain a plain door
+				
+				// A random generator based on the CPPN output, so placement will be consistent
+				Random rand = new Random(Double.doubleToLongBits(encodedDoorType));
+				if(tile == Tile.LOCKED_DOOR.getNum()) ZeldaLevelUtil.placeRandomKey(level, rand); // If the door is now locked place a random key in the level
+			}
 		}
 		ZeldaLevelUtil.setDoors(direction, node, tile);
 	}
@@ -529,12 +556,30 @@ public abstract class ZeldaDungeon<T> {
 			List<List<Integer>> ints = intLevel;
 			int x = (ints.get(0).size() - 1) / 2;
 			int y = (ints.size() - 1) / 2;
-			while(!Tile.findNum(ints.get(y).get(x)).playerPassable()) {
+			while(x != -1 && y != -1 && !Tile.findNum(ints.get(y).get(x)).playerPassable()) {
 				if(x % 2 == 0)
 					x--;
 				else
 					y--;
 			}
+			// The code above sometimes reached -1 and caused an exception
+			if(x == -1 || y == -1) {
+				// Keep the choice deterministic. Find first available floor tile (this is rare anyway)
+				boolean found = false;
+				for(int i = 2; i < ints.size(); i++) {
+					for(int j = 2; j < ints.get(0).size(); j++) {
+						if(Tile.findNum(ints.get(i).get(j)).playerPassable()) {
+							x = j;
+							y = i;
+							found = true;
+							break;
+						}
+					}
+					if(found) break;
+				}
+				
+			}
+			
 			ints.get(y).set(x, Tile.TRIFORCE.getNum());
 			intLevel = ints;
 			if(dungeon != null)

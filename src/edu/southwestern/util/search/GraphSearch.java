@@ -42,6 +42,7 @@ public abstract class GraphSearch<A extends Action, S extends State<A>> implemen
 					throw new IllegalStateException("A* exceeded computation budget");
 				}
 			    visited.add(s);
+                            //System.out.println("Visited: " +s.toString());
 			    ArrayList<Triple<State<A>, A, Double>> successors = s.getSuccessors();
 			    for(Triple<State<A>,A,Double> triple : successors) {
 			    	@SuppressWarnings("unchecked")

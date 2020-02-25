@@ -1,0 +1,1 @@
+java -jar build/MMNEAT.jar runNumber:$4 randomSeed:$4 watch:true trials:1 base:$1 log:$2-$3 saveTo:$3 rogueLikeDebugMode:true

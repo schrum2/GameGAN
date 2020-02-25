@@ -38,6 +38,7 @@ import edu.southwestern.tasks.mario.MarioTask;
 import edu.southwestern.tasks.mario.gan.GANProcess;
 import edu.southwestern.tasks.zelda.ZeldaCPPNtoGANDungeonTask;
 import edu.southwestern.tasks.zelda.ZeldaDungeonTask;
+import edu.southwestern.tasks.zelda.ZeldaGANDungeonTask;
 import edu.southwestern.util.ClassCreation;
 import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.file.FileUtilities;
@@ -75,14 +76,14 @@ public class MMNEAT {
 	public static Crossover crossoverOperator;
 //	public static FunctionOptimizationSet fos;
 //	public static RLGlueEnvironment rlGlueEnvironment;
-	@SuppressWarnings("rawtypes") // depends on genotypes
+	
 //	public static ArrayList<Metaheuristic> metaheuristics;
 	public static ArrayList<ArrayList<String>> fitnessFunctions;
 	public static ArrayList<Statistic> aggregationOverrides;
 //	public static TaskSpec tso;
 //	public static FeatureExtractor rlGlueExtractor;
 	public static boolean blueprints = false;
-	@SuppressWarnings("rawtypes") // applies to any population type
+	
 //	public static PerformanceLog performanceLog;
 //	public static MsPacManControllerInputOutputMediator pacmanInputOutputMediator;
 //	public static GhostControllerInputOutputMediator ghostsInputOutputMediator;
@@ -98,17 +99,8 @@ public class MMNEAT {
 	public static MMNEATLog ghostLocationsOnPowerPillEaten = null;
 	public static boolean browseLineage = false;
 //	public static SubstrateCoordinateMapping substrateMapping = null;
-	@SuppressWarnings("rawtypes")
-//	public static HallOfFame hallOfFame;
-//	@SuppressWarnings("rawtypes")
-//	public static BoardGame boardGame;
-//	@SuppressWarnings("rawtypes")
-//	public static TwoDimensionalBoardGameViewer boardGameViewer;
-//	public static SubstrateArchitectureDefinition substrateArchitectureDefinition;
-
 	public static MMNEAT mmneat;
 
-	@SuppressWarnings("rawtypes")
 	public static ArrayList<String> fitnessPlusMetaheuristics(int pop) {
 		@SuppressWarnings("unchecked")
 		ArrayList<String> result = (ArrayList<String>) fitnessFunctions.get(pop).clone();
@@ -272,7 +264,7 @@ public class MMNEAT {
 	 * variables of this class so they are easily accessible
 	 * from all parts of the code.
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public static void loadClasses() {
 		try {
 			ActivationFunctions.resetFunctionSet();
@@ -413,6 +405,7 @@ public class MMNEAT {
 		System.out.println("Run");
 		experiment.run();
 		System.out.println("Experiment finished");
+		GANProcess.terminateGANProcess();
 	}
 
 	/**
@@ -625,9 +618,10 @@ public class MMNEAT {
 	 */
 	public static double[] getLowerBounds() {
 		// For Mario GAN, the latent vector length determines the size, but the lower bounds are all zero
-		if(task instanceof MarioGANLevelTask || task instanceof MarioGANLevelBreederTask) return new double[GANProcess.latentVectorLength() * Parameters.parameters.integerParameter("marioGANLevelChunks")]; // all zeroes
+		if(task instanceof MarioGANLevelTask || task instanceof MarioGANLevelBreederTask) return ArrayUtil.doubleNegativeOnes(GANProcess.latentVectorLength() * Parameters.parameters.integerParameter("marioGANLevelChunks")); // all -1
 		// Similar for ZeldaGAN
-		else if(task instanceof ZeldaGANLevelBreederTask) return new double[GANProcess.latentVectorLength()]; // all zeroes
+		else if(task instanceof ZeldaGANLevelBreederTask) return ArrayUtil.doubleNegativeOnes(GANProcess.latentVectorLength()); // all -1
+		else if(task instanceof ZeldaGANDungeonTask) return ArrayUtil.doubleNegativeOnes(ZeldaGANDungeonTask.genomeLength()); // all -1
 		else {
 			throw new IllegalArgumentException("BoundedRealValuedGenotypes only supported for Function Optimization and Mario/Zelda GAN");
 		}
@@ -641,6 +635,7 @@ public class MMNEAT {
 	public static double[] getUpperBounds() {
 		if(task instanceof MarioGANLevelTask || task instanceof MarioGANLevelBreederTask) return ArrayUtil.doubleOnes(GANProcess.latentVectorLength() * Parameters.parameters.integerParameter("marioGANLevelChunks")); // all ones
 		else if(task instanceof ZeldaGANLevelBreederTask) return ArrayUtil.doubleOnes(GANProcess.latentVectorLength()); // all ones
+		else if(task instanceof ZeldaGANDungeonTask) return ArrayUtil.doubleOnes(ZeldaGANDungeonTask.genomeLength()); // all ones
 		else {
 			throw new IllegalArgumentException("BoundedRealValuedGenotypes only supported for Function Optimization and Mario/Zelda GAN");
 		}
