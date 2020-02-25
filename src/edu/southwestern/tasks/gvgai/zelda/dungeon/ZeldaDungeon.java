@@ -367,6 +367,7 @@ public abstract class ZeldaDungeon<T> {
 		JPanel panel = new JPanel();
 
 		if(!Parameters.parameters.booleanParameter("gvgAIForZeldaGAN")) {
+			dungeonInstance.markReachableRooms();
 			BufferedImage image = DungeonUtil.imageOfDungeon(dungeonInstance);
 			JLabel label = new JLabel(new ImageIcon(image));
 			panel.add(label);

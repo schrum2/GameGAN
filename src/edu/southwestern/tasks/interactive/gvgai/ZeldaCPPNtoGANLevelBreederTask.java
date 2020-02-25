@@ -213,6 +213,7 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 	@Override
 	protected BufferedImage getButtonImage(TWEANN cppn, int width, int height, double[] inputMultipliers) {
 		Dungeon dungeon = cppnToDungeon(cppn, Parameters.parameters.integerParameter("zeldaGANLevelWidthChunks"), Parameters.parameters.integerParameter("zeldaGANLevelHeightChunks"), inputMultipliers);
+		dungeon.markReachableRooms();
 		BufferedImage image = DungeonUtil.imageOfDungeon(dungeon);
 		return image;
 	}
