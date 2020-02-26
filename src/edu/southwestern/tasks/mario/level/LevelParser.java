@@ -167,6 +167,11 @@ public class LevelParser {
     }
     
 
+    /**
+     * Create level based on 2D array of inputs
+     * @param input 2D array of integers representing the level
+     * @return Level instance
+     */
     public static Level createLevel(int[][] input){
         int width = input[0].length;
     	int height = input.length;
@@ -233,13 +238,23 @@ public class LevelParser {
         return level;
     }
 
+    /**
+     * Convert list of int to array
+     * @param list List of integers
+     * @return Array of integers
+     */
     private static int[] toIntArray(List<Integer> list){
         int[] ret = new int[list.size()];
         for(int i = 0;i < ret.length;i++)
             ret[i] = list.get(i);
         return ret;
     }
-    
+
+    /**
+     * Create level based on 2D list of integers
+     * @param input 2D list of ints representing the level
+     * @return Level mario level instance
+     */
     public static Level createLevelJson(List<List<Integer>> input)
     {
         int[][] output = new int[input.size()][];
@@ -250,7 +265,12 @@ public class LevelParser {
         return createLevel(output);
     }
   
-    
+    /**
+     * Get type of enemy based on code and whether they're flying or not
+     * @param code Int code of enemey
+     * @param flying Boolean whether they're flying or not
+     * @return SpriteTemplate representing the enemy
+     */
     public static SpriteTemplate getEnemySprite(int code, boolean flying){
         int type = 0;
         switch(code){
