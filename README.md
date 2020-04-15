@@ -57,3 +57,11 @@ Install package sudo
 ```
 apt-get install sudo
 ```
+
+## Publications
+
+This repository is associated with several publications. Read them here!
+
+Jacob Schrum, Jake Gutierrez, Vanessa Volz, Jialin Liu, Simon M. Lucas, and Sebastian Risi (2020). Interactive Evolution and Exploration Within Latent Level-Design Space of Generative Adversarial Networks, Proceedings of the Genetic and Evolutionary Computation Conference (GECCO 2020). arXiv link: https://arxiv.org/abs/2004.00151
+
+Jacob Schrum, Vanessa Volz, and Sebastian Risi (2020). CPPN2GAN: Combining Compositional Pattern Producing Networks and GANs for Large-scale Pattern Generation, Proceedings of the Genetic and Evolutionary Computation Conference (GECCO 2020). arXiv link: https://arxiv.org/abs/2004.01703
