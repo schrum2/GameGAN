@@ -1,5 +1,6 @@
 package edu.southwestern.tasks.mario;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ch.idsia.ai.agents.Agent;
@@ -15,13 +16,17 @@ import edu.southwestern.evolution.genotypes.TWEANNGenotype;
 import edu.southwestern.networks.Network;
 import edu.southwestern.networks.NetworkTask;
 import edu.southwestern.networks.TWEANN;
+import edu.southwestern.networks.hyperneat.HyperNEATTask;
+import edu.southwestern.networks.hyperneat.Substrate;
+import edu.southwestern.networks.hyperneat.SubstrateConnectivity;
 import edu.southwestern.parameters.CommonConstants;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.tasks.NoisyLonerTask;
 import edu.southwestern.util.datastructures.Pair;
+import edu.southwestern.util.datastructures.Triple;
 import edu.southwestern.util.random.RandomNumbers;
 
-public class MarioTask<T extends Network> extends NoisyLonerTask<T> implements NetworkTask {
+public class MarioTask<T extends Network> extends NoisyLonerTask<T> implements NetworkTask, HyperNEATTask {
 
 	private EvaluationOptions options;
 	public static final int MARIO_OUTPUTS = 5; //need to find a way to make sure this isn't hardcoded
@@ -166,4 +171,90 @@ public class MarioTask<T extends Network> extends NoisyLonerTask<T> implements N
     	
     }
 
+    /**
+	 * Method that returns a list of information about the substrate layers
+	 * contained in the network.
+	 *
+	 * @return List of Substrates in order from inputs to hidden to output
+	 *         layers
+	 */
+	@Override
+	public List<Substrate> getSubstrateInformation(){
+		int height = Parameters.parameters.integerParameter("marioInputHeight");
+		int width = Parameters.parameters.integerParameter("marioInputWidth");
+		ArrayList<Substrate> subs = new ArrayList<Substrate>();
+		Substrate inputsWorld = new Substrate(new Pair<Integer, Integer>(width, height), 
+				Substrate.INPUT_SUBSTRATE, new Triple<Integer, Integer, Integer>(0, Substrate.INPUT_SUBSTRATE, 0), "Inputs World");
+		subs.add(inputsWorld);
+		Substrate inputsEnemies = new Substrate(new Pair<Integer, Integer>(width, height), 
+				Substrate.INPUT_SUBSTRATE, new Triple<Integer, Integer, Integer>(0, Substrate.INPUT_SUBSTRATE, 0), "Inputs Enemies");
+		subs.add(inputsEnemies);
+		Substrate processing = new Substrate(new Pair<Integer, Integer>(width, height), 
+				Substrate.PROCCESS_SUBSTRATE, new Triple<Integer, Integer, Integer>(0, Substrate.PROCCESS_SUBSTRATE, 0), "Processing");
+		subs.add(processing);
+		Substrate outputsDpad = new Substrate(new Pair<Integer, Integer>(3, 2), //3 by 2 d-pad
+				Substrate.OUTPUT_SUBSTRATE, new Triple<Integer, Integer, Integer>(0, Substrate.OUTPUT_SUBSTRATE, 0), "Outputs D-Pad");
+		// Corners and center of D-pad are not used
+		outputsDpad.addDeadNeuron(1,0);
+		outputsDpad.addDeadNeuron(0,1);
+		outputsDpad.addDeadNeuron(2,1);
+
+		subs.add(outputsDpad);
+		Substrate outputSpeed = new Substrate(new Pair<Integer, Integer>(1, 1), //1 by 1 button for speed
+				Substrate.OUTPUT_SUBSTRATE, new Triple<Integer, Integer, Integer>(0, Substrate.OUTPUT_SUBSTRATE, 0), "Output Speed");
+		subs.add(outputSpeed);
+		Substrate outputJump = new Substrate(new Pair<Integer, Integer>(1, 1), //1 by 1 button for speed
+				Substrate.OUTPUT_SUBSTRATE, new Triple<Integer, Integer, Integer>(0, Substrate.OUTPUT_SUBSTRATE, 0), "Output Jump");
+		subs.add(outputJump);
+		return subs;
+	}
+
+	/**
+	 * Each Substrate has a unique String name, and this method returns a list
+	 * of String pairs indicating which Substrates are connected: The Substrate
+	 * from the first in the pair has links leading into the neurons in the
+	 * Substrate second in the pair.
+	 *
+	 * @return Last of String pairs where all Strings are names of Substrates
+	 *         for the domain.
+	 */
+	@Override
+	public List<SubstrateConnectivity> getSubstrateConnectivity(){
+		ArrayList<SubstrateConnectivity> conn = new ArrayList<SubstrateConnectivity>();
+		conn.add(new SubstrateConnectivity("Inputs World", "Processing", SubstrateConnectivity.CTYPE_FULL));
+		conn.add(new SubstrateConnectivity("Inputs Enemies", "Processing", SubstrateConnectivity.CTYPE_FULL));
+		conn.add(new SubstrateConnectivity("Processing", "Outputs D-Pad", SubstrateConnectivity.CTYPE_FULL));	
+		conn.add(new SubstrateConnectivity("Processing", "Output Speed", SubstrateConnectivity.CTYPE_FULL));	
+		conn.add(new SubstrateConnectivity("Processing", "Output Jump", SubstrateConnectivity.CTYPE_FULL));
+		if(Parameters.parameters.booleanParameter("extraHNLinks")) {
+			conn.add(new SubstrateConnectivity("Inputs World", "Outputs D-Pad", SubstrateConnectivity.CTYPE_FULL));
+			conn.add(new SubstrateConnectivity("Inputs Enemies", "Outputs D-Pad", SubstrateConnectivity.CTYPE_FULL));
+			conn.add(new SubstrateConnectivity("Inputs World", "Outputs Speed", SubstrateConnectivity.CTYPE_FULL));
+			conn.add(new SubstrateConnectivity("Inputs Enemies", "Outputs Speed", SubstrateConnectivity.CTYPE_FULL));
+			conn.add(new SubstrateConnectivity("Inputs World", "Outputs Jump", SubstrateConnectivity.CTYPE_FULL));
+			conn.add(new SubstrateConnectivity("Inputs Enemies", "Outputs Jump", SubstrateConnectivity.CTYPE_FULL));
+		}
+		return conn;
+	}
+	
+	/**
+	 * Default behavior
+	 */
+	@Override
+	public int numCPPNInputs() {
+		return HyperNEATTask.DEFAULT_NUM_CPPN_INPUTS;
+	}
+
+	/**
+	 * Default behavior
+	 */
+	@Override
+	public double[] filterCPPNInputs(double[] fullInputs) {
+		return fullInputs;
+	}
+
+	@Override
+	public void flushSubstrateMemory() {
+		// Does nothing: This task does not cache substrate information
+	}	
 }
