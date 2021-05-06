@@ -41,7 +41,7 @@ public class LodeRunnerRenderUtil {
 	public static final int RENDERED_IMAGE_HEIGHT = LODE_RUNNER_TILE_Y*LODE_RUNNER_ROWS; //height of the final rendered level 
 	
 	//constants for rendering iceCreamYou levels 
-	public static final String ICE_CREAM_YOU_TILE_PATH = "src/main/java/icecreamyou/LodeRunner/"; //file path for tiles 
+	public static final String ICE_CREAM_YOU_TILE_PATH = "src/icecreamyou/LodeRunner/"; //file path for tiles 
 	public static final int ICE_CREAM_YOU_TILE_X = 30; // x length of an individual tile 
 	public static final int ICE_CREAM_YOU_TILE_Y = 40; // y length of an individual tile 
 	public static final int ICE_CREAM_YOU_IMAGE_WIDTH = ICE_CREAM_YOU_TILE_X*LodeRunnerRenderUtil.LODE_RUNNER_COLUMNS;
