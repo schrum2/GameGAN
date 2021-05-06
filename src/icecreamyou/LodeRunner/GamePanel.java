@@ -21,7 +21,7 @@ import edu.southwestern.tasks.loderunner.astar.LodeRunnerEnhancedEnemiesUtil;
 import edu.southwestern.util.datastructures.Pair;
 
 public class GamePanel extends JPanel implements MouseMotionListener {
-	public static final String FILE_PATH = "src/main/java/icecreamyou/LodeRunner/";
+	public static final String FILE_PATH = "src/icecreamyou/LodeRunner/";
 
 	/**
 	 * Automatically generated. Required for subclasses of JPanel.
