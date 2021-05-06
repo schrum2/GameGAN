@@ -99,7 +99,7 @@ public class MarioCPPNtoGANLevelBreederTask<T extends Network> extends MarioLeve
 	}
 	
 	public String getGANModelDirectory() {
-		return "src"+File.separator+"main"+File.separator+"python"+File.separator+"GAN"+File.separator+"MarioGAN";
+		return "python"+File.separator+"GAN"+File.separator+"MarioGAN";
 	}
 	
 	public String getGANModelParameterName() {
