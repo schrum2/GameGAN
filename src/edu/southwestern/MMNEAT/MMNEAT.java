@@ -333,6 +333,7 @@ public class MMNEAT {
 				InteractiveEvolutionTask temp = (InteractiveEvolutionTask) task;
 				// Since these tasks use real-vector genotypes, to not set the NN params
 				//if(!(temp instanceof MarioGANLevelBreederTask) && !(temp instanceof ZeldaGANLevelBreederTask)) setNNInputParameters(temp.numCPPNInputs(), temp.numCPPNOutputs());
+				if(!(temp instanceof InteractiveGANLevelEvolutionTask)) setNNInputParameters(temp.numCPPNInputs(), temp.numCPPNOutputs());
 			} else if (task instanceof MarioTask) {
 				setNNInputParameters(((Parameters.parameters.integerParameter("marioInputWidth") * Parameters.parameters.integerParameter("marioInputHeight")) * 2) + 1, MarioTask.MARIO_OUTPUTS); //hard coded for now, 5 button outputs
 				System.out.println("Set up Mario Task");
