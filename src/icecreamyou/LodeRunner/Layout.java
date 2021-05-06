@@ -10,7 +10,7 @@ import java.io.IOException;
  */
 public class Layout {
 	
-	public static final String FILE_PATH = "src/main/java/icecreamyou/LodeRunner/";
+	public static final String FILE_PATH = "src/icecreamyou/LodeRunner/";
 	
 	/**
 	 * Reads in a layout file and returns an array of lines representing it.

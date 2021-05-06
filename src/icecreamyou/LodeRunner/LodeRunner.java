@@ -47,7 +47,7 @@ import javax.swing.event.MouseInputAdapter;
  */
 public class LodeRunner {
 
-	public static final String FILE_PATH = "src/main/java/icecreamyou/LodeRunner/";
+	public static final String FILE_PATH = "src/icecreamyou/LodeRunner/";
 	private String levelName = "CAMPAIGN-1";
 	public static final int INITIAL_LIVES = 3;
 
