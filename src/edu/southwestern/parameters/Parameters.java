@@ -16,6 +16,8 @@ import edu.southwestern.experiment.evolution.LimitedSinglePopulationGenerational
 import edu.southwestern.networks.ActivationFunctions;
 import edu.southwestern.tasks.gvgai.player.GVGAIOneStepNNPlayer;
 import edu.southwestern.tasks.gvgai.zelda.level.SimpleLoader;
+import edu.southwestern.tasks.gvgai.zelda.level.ZeldaHumanSubjectStudy2019GraphGrammar;
+import edu.southwestern.tasks.gvgai.zelda.level.graph.HumanSubjectStudy2019Graph;
 import edu.southwestern.util.random.GaussianGenerator;
 import edu.southwestern.util.stats.Average;
 import edu.southwestern.util.stats.Max;
@@ -914,8 +916,7 @@ public class Parameters {
 		// Class options
 		classOptions.add("zeldaGrammarRules", ZeldaHumanSubjectStudy2019GraphGrammar.class, "Determines what ruleset we're using");
 		classOptions.add("zeldaGraphBackBone", HumanSubjectStudy2019Graph.class, "Constructs the graph for the rules of the ZeldaGraphGrammar");
-		classOptions.add("behaviorCharacterization", DomainSpecificCharacterization.class, "Type of behavior characterization used for Behavioral Diversity calculation");
-		classOptions.add("imageFitness", RandomImageFitness.class, "Fitness function for evaluating images");
+		//classOptions.add("behaviorCharacterization", DomainSpecificCharacterization.class, "Type of behavior characterization used for Behavioral Diversity calculation");
 		classOptions.add("crossover", TWEANNCrossover.class, "Crossover operator to use if mating is used");
 		classOptions.add("directionalSafetyFunction", null, "Function that decides if CheckEach agent bothers to consider a direction");
 		classOptions.add("doomSmudgeStat", Average.class, "Class for the smudge factor in VizDoom");
