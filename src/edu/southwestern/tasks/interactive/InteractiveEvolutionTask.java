@@ -12,6 +12,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -136,7 +137,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 * Gets button width, but has alternate setting if large-font buttons are desired.
 	 * @return Width of interface buttons in pixels
 	 */
-	private static int getActionButtonWidth() {
+	protected static int getActionButtonWidth() {
 		return (int)(ACTION_BUTTON_WIDTH * (Parameters.parameters.booleanParameter("bigInteractiveButtons") ? 1.6 : 1));
 	}
 
@@ -144,7 +145,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 * Gets button height, but has alternate setting if large-font buttons are desired.
 	 * @return Height of interface buttons in pixels
 	 */
-	private static int getActionButtonHeight() {
+	protected static int getActionButtonHeight() {
 		return (int)(ACTION_BUTTON_HEIGHT * (Parameters.parameters.booleanParameter("bigInteractiveButtons") ? 1.6 : 1));
 	}
 
@@ -393,6 +394,10 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 				effectsCheckboxes.add(inputEffect);
 			}		
 		}
+//		JCheckBox puzzleDoor = new JCheckBox("zeldaCPPNtoGANAllowsPuzzleDoors", true);
+//		puzzleDoor.setName("Allow Puzzle Doors?");
+//		puzzleDoor.setForeground(new Color(0,0,0));
+//		effectsCheckboxes.add(puzzleDoor);
 		top.add(effectsCheckboxes);
 	}
 
@@ -586,6 +591,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 	 * @param height height of input
 	 * @param inputMultipliers determines whether CPPN inputs are turned on or off
 	 * @return BufferedImage representation of created item
+	 * @throws IOException 
 	 */
 	protected abstract BufferedImage getButtonImage(T phenotype, int width, int height, double[] inputMultipliers);
 
@@ -716,6 +722,7 @@ public abstract class InteractiveEvolutionTask<T> implements SinglePopulationTas
 		Parameters.parameters.setInteger("ftype", CommonConstants.ftype);
 		ArrayList<Genotype<T>> newPop = ((SinglePopulationGenerationalEA<T>) MMNEAT.ea).initialPopulation(scores.get(0).individual);
 		scores = new ArrayList<Score<T>>();
+		selectedItems.clear();
 		ActivationFunctionRandomReplacement frr = new ActivationFunctionRandomReplacement();
 		for(int i = 0; i < newPop.size(); i++) {
 			if(newPop.get(i) instanceof TWEANNGenotype) frr.mutate((Genotype<TWEANN>) newPop.get(i));

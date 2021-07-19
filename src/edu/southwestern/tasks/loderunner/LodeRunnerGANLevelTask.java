@@ -1,11 +1,17 @@
 package edu.southwestern.tasks.loderunner;
 
 
-import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Scanner;
 
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.genotypes.Genotype;
+import edu.southwestern.parameters.Parameters;
+import edu.southwestern.tasks.mario.gan.GANProcess;
+import edu.southwestern.tasks.mario.gan.reader.JsonReader;
 import edu.southwestern.util.datastructures.ArrayUtil;
 
 /**
@@ -45,8 +51,7 @@ public class LodeRunnerGANLevelTask extends LodeRunnerLevelTask<List<Double>> {
 	 * @return List<List<Integer>> that represents a level 
 	 */
 	@Override
-	public List<List<Integer>> getLodeRunnerLevelListRepresentationFromGenotype(
-			Genotype<List<Double>> individual) {
+	public List<List<Integer>> getLodeRunnerLevelListRepresentationFromGenotype(Genotype<List<Double>> individual) {
 		List<Double> latentVector = individual.getPhenotype();
 		return getLodeRunnerLevelListRepresentationFromGenotypeStatic(latentVector);
 	}

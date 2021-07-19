@@ -33,7 +33,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import distance.convolution.ConvNTuple;
 import distance.kl.KLDiv;
 import distance.test.KLDivTest;
-import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype;
 import edu.southwestern.evolution.genotypes.Genotype;
 import edu.southwestern.parameters.Parameters;
@@ -444,9 +443,9 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 
 			JPanel buttons = new JPanel();
 
-			JButton repalceLeft = new JButton("ReplaceLeft");
-			repalceLeft.setToolTipText("Replace the level on the left with the center result.");
-			repalceLeft.addActionListener(new ActionListener() {
+			JButton replaceLeft = new JButton("ReplaceLeft"); //TODO typo
+			replaceLeft.setToolTipText("Replace the level on the left with the center result.");
+			replaceLeft.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					// Set each position in left phenotype to interpolated phenotype value
@@ -460,9 +459,9 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 				}
 			});
 
-			JButton repalceRight = new JButton("ReplaceRight");
-			repalceRight.setToolTipText("Replace the level on the right with the center result.");
-			repalceRight.addActionListener(new ActionListener() {
+			JButton replaceRight = new JButton("ReplaceRight");
+			replaceRight.setToolTipText("Replace the level on the right with the center result.");
+			replaceRight.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					// Set each position in right phenotype to interpolated phenotype value
@@ -476,7 +475,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 				}
 			});
 
-			buttons.add(repalceLeft);
+			buttons.add(replaceLeft);
 			if(isPlayable) {
 				// Play the modified level
 				JButton play = new JButton("Play");
@@ -489,7 +488,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 				play.setToolTipText("Play the interpolated level in the middle");
 				buttons.add(play);
 			}
-			buttons.add(repalceRight);
+			buttons.add(replaceRight);
 
 			// Then the option to play the interpolated level
 			interpolatedLevel.add(buttons);
@@ -587,6 +586,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 			vectorValue.setMinorTickSpacing(1);
 			vectorValue.setPaintTicks(true);
 			Hashtable<Integer,JLabel> labels = new Hashtable<>();
+			labels.put(-SLIDER_RANGE, new JLabel("-1.0"));
 			labels.put(0, new JLabel("0.0"));
 			labels.put(SLIDER_RANGE, new JLabel("1.0"));
 			vectorValue.setLabelTable(labels);
@@ -634,7 +634,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 					if(e.getKeyCode() == KeyEvent.VK_ENTER) {
 						String typed = vectorInput.getText();
 						vectorValue.setValue(0);
-						if(!typed.matches("\\d+(\\.\\d*)?")) {
+						if(!typed.matches("-*\\d+(\\.\\d*)?")) {
 							return;
 						}
 						double value = Double.parseDouble(typed) * SLIDER_RANGE;
@@ -808,7 +808,7 @@ public abstract class InteractiveGANLevelEvolutionTask extends InteractiveEvolut
 				} else { // Possible when switching between different models with same latent vector length
 					throw new IllegalArgumentException("Should not be possible");
 				}
-				s.individual = new BoundedRealValuedGenotype(newPhenotype,MMNEAT.getLowerBounds(),MMNEAT.getUpperBounds());
+				s.individual = new BoundedRealValuedGenotype(newPhenotype);
 			}
 		}
 	}

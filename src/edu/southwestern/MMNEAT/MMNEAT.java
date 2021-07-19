@@ -2,6 +2,7 @@ package edu.southwestern.MMNEAT;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
@@ -17,14 +18,22 @@ import edu.southwestern.evolution.genotypes.CombinedGenotype;
 import edu.southwestern.evolution.genotypes.Genotype;
 import edu.southwestern.evolution.genotypes.TWEANNGenotype;
 import edu.southwestern.evolution.lineage.Offspring;
+import edu.southwestern.evolution.mapelites.Archive;
+import edu.southwestern.evolution.mapelites.BinLabels;
+import edu.southwestern.evolution.mapelites.MAPElites;
+import edu.southwestern.evolution.mulambda.MuLambda;
 import edu.southwestern.experiment.Experiment;
 import edu.southwestern.log.EvalLog;
 import edu.southwestern.log.MMNEATLog;
 import edu.southwestern.networks.ActivationFunctions;
+import edu.southwestern.networks.NetworkTask;
 import edu.southwestern.parameters.CommonConstants;
 import edu.southwestern.parameters.Parameters;
+import edu.southwestern.scores.Score;
+import edu.southwestern.tasks.LonerTask;
 import edu.southwestern.tasks.MultiplePopulationTask;
 import edu.southwestern.tasks.Task;
+import edu.southwestern.tasks.functionoptimization.FunctionOptimizationTask;
 import edu.southwestern.tasks.gvgai.GVGAISinglePlayerTask;
 import edu.southwestern.tasks.gvgai.zelda.ZeldaGANLevelTask;
 import edu.southwestern.tasks.gvgai.zelda.ZeldaLevelTask;
@@ -57,6 +66,7 @@ import edu.southwestern.tasks.zelda.ZeldaCPPNtoGANDungeonTask;
 import edu.southwestern.tasks.zelda.ZeldaDungeonTask;
 import edu.southwestern.tasks.zelda.ZeldaGANDungeonTask;
 import edu.southwestern.util.ClassCreation;
+import edu.southwestern.util.PopulationUtil;
 import edu.southwestern.util.datastructures.ArrayUtil;
 import edu.southwestern.util.file.FileUtilities;
 import edu.southwestern.util.random.RandomGenerator;
@@ -81,6 +91,10 @@ public class MMNEAT {
 	public static int modesToTrack = 0;
 	public static double[] lowerInputBounds;
 	public static double[] upperInputBounds;
+	// Real-valued bounds
+	public static double[] lower = null; // Lowest allowable value for each gene position
+	public static double[] upper = null; // Highest allowable value for each gene position
+	
 	public static int[] discreteCeilings;
 	public static Experiment experiment;
 	public static Task task;
@@ -103,21 +117,43 @@ public class MMNEAT {
 	
 //	public static PerformanceLog performanceLog;
 //	public static MsPacManControllerInputOutputMediator pacmanInputOutputMediator;
-//	public static GhostControllerInputOutputMediator ghostsInputOutputMediator;
-//	public static MsPacManControllerInputOutputMediator[] coevolutionMediators = null;
-//	public static MsPacManEnsembleArbitrator ensembleArbitrator = null;
 	private static ArrayList<Integer> actualFitnessFunctions;
 //	public static MsPacManModeSelector pacmanMultitaskScheme = null;
 //	public static VariableDirectionBlock directionalSafetyFunction;
-	public static TWEANNGenotype sharedMultitaskNetwork = null;
-	public static TWEANNGenotype sharedPreferenceNetwork = null;
 	public static EvalLog evalReport = null;
 	public static RandomGenerator weightPerturber = null;
 	public static MMNEATLog ghostLocationsOnPowerPillEaten = null;
 	public static boolean browseLineage = false;
 //	public static SubstrateCoordinateMapping substrateMapping = null;
+	@SuppressWarnings("rawtypes")
+	public static Archive pseudoArchive;
+	public static boolean usingDiversityBinningScheme = false;
+	
 	public static MMNEAT mmneat;
 
+	@SuppressWarnings("rawtypes")
+	public static BinLabels getArchiveBinLabelsClass() {
+		if (pseudoArchive != null) {
+			return pseudoArchive.getBinLabelsClass();
+		} else if (ea instanceof MAPElites) {
+			return ((MAPElites) ea).getBinLabelsClass();
+		}
+		throw new IllegalStateException("Attempted to get archive bin label class without using MAP Elites or a psuedo-archive");
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static Archive getArchive() {
+		if (pseudoArchive != null) {
+			return pseudoArchive;
+		} else if (ea instanceof MAPElites) {
+			return ((MAPElites) ea).getArchive();
+		}
+		throw new IllegalStateException("Attempted to get archive without using MAP Elites or a psuedo-archive");
+		
+	}
+	
+	
+	@SuppressWarnings("rawtypes")
 	public static ArrayList<String> fitnessPlusMetaheuristics(int pop) {
 		@SuppressWarnings("unchecked")
 		ArrayList<String> result = (ArrayList<String>) fitnessFunctions.get(pop).clone();
@@ -181,15 +217,6 @@ public class MMNEAT {
 			}
 			System.out.println("---------------------------------------------");
 		}
-	}
-
-	/**
-	 * Currently, this check only applies to Ms Pac-Man tasks, but could
-	 * be used for other coevolution experiments in the future.
-	 * @return Whether task involves agents cooperating with subnetworks
-	 */
-	public static boolean taskHasSubnetworks() {
-		return false;
 	}
 
 	/**
@@ -285,7 +312,7 @@ public class MMNEAT {
 	 * variables of this class so they are easily accessible
 	 * from all parts of the code.
 	 */
-	@SuppressWarnings({ "rawtypes" })
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void loadClasses() {
 		try {
 			ActivationFunctions.resetFunctionSet();
@@ -305,15 +332,11 @@ public class MMNEAT {
 			// A task is always required
 			System.out.println("Set Task");
 			// modesToTrack has to be set before task initialization
-			if (taskHasSubnetworks()) {
-				modesToTrack = Parameters.parameters.integerParameter("numCoevolutionSubpops");
-			} else {
-				int multitaskModes = CommonConstants.multitaskModules;
-				if (!CommonConstants.hierarchicalMultitask && multitaskModes > 1) {
-					modesToTrack = multitaskModes;
-				}
+			int multitaskModes = CommonConstants.multitaskModules;
+			if (multitaskModes > 1) {
+				modesToTrack = multitaskModes;
 			}
-
+			
 			task = (Task) ClassCreation.createObject("task");
 			System.out.println("Load task: " + task);
 			boolean multiPopulationCoevolution = false;
@@ -396,7 +419,22 @@ public class MMNEAT {
 				seedExample = true;
 			}
 			setupTWEANNGenotypeDataTracking(multiPopulationCoevolution);
-			// An Experiment is always needed
+			
+			if (Parameters.parameters.booleanParameter("trackPseudoArchive")) {
+				usingDiversityBinningScheme = true;
+				// Create a pseudo archive for use with objective evolution TODO
+				pseudoArchive = new Archive<>(Parameters.parameters.booleanParameter("netio"), Parameters.parameters.stringParameter("archiveSubDirectoryName"));
+				int startSize = Parameters.parameters.integerParameter("mu");
+				ArrayList<Genotype> startingPopulation = PopulationUtil.initialPopulation(genotype.newInstance(),startSize);
+				for (Genotype g : startingPopulation) {
+					System.out.println("genotype: " + g);
+					Score s = ((LonerTask) task).evaluate(g);
+					System.out.println("score: " + s);
+					pseudoArchive.add(s); // Fill the archive with random starting individuals
+				}
+				if (ea instanceof MuLambda)
+					((MuLambda) ea).setUpPseudoArchive();
+			}
 			System.out.println("Create Experiment");
 			experiment = (Experiment) ClassCreation.createObject("experiment");
 			experiment.init();
@@ -648,10 +686,6 @@ public class MMNEAT {
 		networkInputs = numIn;
 		networkOutputs = numOut;
 		int multitaskModes = CommonConstants.multitaskModules;
-		if (CommonConstants.hierarchicalMultitask) {
-			multitaskModes = 1; // Initialize the network like a preference
-			// neuron net instead
-		}
 		networkOutputs *= multitaskModes;
 		System.out.println("Networks will have " + networkInputs + " inputs and " + networkOutputs + " outputs.");
 
@@ -689,15 +723,34 @@ public class MMNEAT {
 	 * @return
 	 */
 	public static double[] getUpperBounds() {
-		if(task instanceof MarioGANLevelTask || task instanceof MarioGANLevelBreederTask||task instanceof MarioCPPNOrDirectToGANLevelTask) return ArrayUtil.doubleOnes(GANProcess.latentVectorLength() * Parameters.parameters.integerParameter("marioGANLevelChunks")); // all ones
-		else if(task instanceof ZeldaGANLevelBreederTask || task instanceof ZeldaGANLevelTask) return ArrayUtil.doubleOnes(GANProcess.latentVectorLength()); // all ones
-		else if(task instanceof ZeldaGANDungeonTask) return ArrayUtil.doubleOnes(ZeldaGANDungeonTask.genomeLength()); // all ones
-		else if(task instanceof ZeldaCPPNOrDirectToGANDungeonTask) return ArrayUtil.doubleOnes(ZeldaGANDungeonTask.genomeLength()); // all ones
-		else if(task instanceof LodeRunnerGANLevelBreederTask || task instanceof LodeRunnerGANLevelTask) return ArrayUtil.doubleOnes(GANProcess.latentVectorLength());
-		else if(task instanceof LodeRunnerGANLevelSequenceTask) return ArrayUtil.doubleOnes(GANProcess.latentVectorLength() * Parameters.parameters.integerParameter("lodeRunnerNumOfLevelsInSequence")); 
-		else if(task instanceof MegaManGANLevelBreederTask || task instanceof MegaManGANLevelTask || task instanceof MegaManCPPNtoGANLevelBreederTask|| task instanceof MegaManCPPNtoGANLevelTask) return ArrayUtil.doubleOnes((Parameters.parameters.integerParameter("GANInputSize") + MegaManGANGenerator.numberOfAuxiliaryVariables()) * Parameters.parameters.integerParameter("megaManGANLevelChunks"));
+		if(upper != null) return upper;
+		
+		if(fos != null) 
+			upper = fos.getUpperBounds();
+		else if(task instanceof ShapeInnovationTask) 
+			upper = new double[]{1,1,1,1,1}; // Background color (first three) and pitch, heading
+		else if(task instanceof ImageMatchTask || task instanceof PictureTargetTask || task instanceof PicbreederTask || task instanceof AnimationBreederTask) 
+			upper = new double[] {Parameters.parameters.doubleParameter("maxScale"), 2*Math.PI, Parameters.parameters.doubleParameter("imageCenterTranslationRange"), Parameters.parameters.doubleParameter("imageCenterTranslationRange")};
+		else if(task instanceof FunctionOptimizationTask) 
+			upper = ArrayUtil.doubleSpecified(Parameters.parameters.integerParameter("foVectorLength"), Parameters.parameters.doubleParameter("foUpperBounds")); 
+		else if(task instanceof MarioGANLevelTask || task instanceof MarioGANLevelBreederTask||task instanceof MarioCPPNOrDirectToGANLevelTask) 
+			upper = ArrayUtil.doubleOnes(GANProcess.latentVectorLength() * Parameters.parameters.integerParameter("marioGANLevelChunks")); // all ones
+		else if(task instanceof ZeldaGANLevelBreederTask || task instanceof ZeldaGANLevelTask) 
+			upper = ArrayUtil.doubleOnes(GANProcess.latentVectorLength()); // all ones
+		else if(task instanceof ZeldaGANDungeonTask) 
+			upper = ArrayUtil.doubleOnes(ZeldaGANDungeonTask.genomeLength()); // all ones
+		else if(task instanceof ZeldaCPPNOrDirectToGANDungeonTask) 
+			upper = ArrayUtil.doubleOnes(ZeldaGANDungeonTask.genomeLength()); // all ones
+		else if(task instanceof LodeRunnerGANLevelBreederTask || task instanceof LodeRunnerGANLevelTask) 
+			upper = ArrayUtil.doubleOnes(GANProcess.latentVectorLength());
+		else if(task instanceof LodeRunnerGANLevelSequenceTask) 
+			upper = ArrayUtil.doubleOnes(GANProcess.latentVectorLength() * Parameters.parameters.integerParameter("lodeRunnerNumOfLevelsInSequence")); 
+		else if(task instanceof MegaManGANLevelBreederTask || task instanceof MegaManGANLevelTask || task instanceof MegaManCPPNtoGANLevelBreederTask|| task instanceof MegaManCPPNtoGANLevelTask) 
+			upper = ArrayUtil.doubleOnes((Parameters.parameters.integerParameter("GANInputSize") + MegaManGANGenerator.numberOfAuxiliaryVariables()) * Parameters.parameters.integerParameter("megaManGANLevelChunks"));
 		else {
 			throw new IllegalArgumentException("BoundedRealValuedGenotypes only supported for Function Optimization and Mario/Zelda/LodeRunner/MegaMan GAN");
 		}
+		
+		return upper;
 	}
 }

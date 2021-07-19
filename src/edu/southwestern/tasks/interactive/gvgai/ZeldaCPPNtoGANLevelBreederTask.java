@@ -368,7 +368,7 @@ public class ZeldaCPPNtoGANLevelBreederTask extends InteractiveEvolutionTask<TWE
 	 * @returns String path to GAN model
 	 */
 	public String getGANModelDirectory() {
-		return "python"+File.separator+"GAN"+File.separator+"ZeldaGAN";
+		return GANProcess.PYTHON_BASE_PATH+"ZeldaGAN";
 	}
 
 	/**

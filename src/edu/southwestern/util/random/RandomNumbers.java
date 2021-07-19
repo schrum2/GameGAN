@@ -1,11 +1,13 @@
 package edu.southwestern.util.random;
 
-import edu.southwestern.parameters.Parameters;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+
+import edu.southwestern.parameters.Parameters;
 
 /**
  * A central point for all random number generation to go through. 
@@ -17,7 +19,7 @@ public class RandomNumbers {
 
 	public static Random randomGenerator = new Random();
 
-	/*
+	/**
 	 * Reset random generator based on seed from parameter file
 	 */
 	public static void reset() {
@@ -283,6 +285,55 @@ public class RandomNumbers {
 		int index = randomGenerator.nextInt(list.size());
 		return list.get(index);
 	}
+	
+	/**
+	 * Return new list of num randomly selected, distinct items from the list,
+	 * without changing the original order of elements in list.
+	 * 
+	 * @param list List of items to select
+	 * @param num Number of items to select
+	 * @return List of num random items from list
+	 */
+	public static <T> ArrayList<T> randomChoose(List<T> list, int num) {
+		return randomChoose(list,num,randomGenerator);
+	}
+	
+	/**
+	 * Same as above, but allows a Random generator other than the static one 
+	 * in this class to be used.
+	 * @param list List of values
+	 * @param num Number of items to select
+	 * @param rand Random generator
+	 * @return list of num distinct elements from list 
+	 */
+	public static <T> ArrayList<T> randomChoose(List<T> list, int num, Random rand) {
+		if(num > list.size()) throw new IllegalArgumentException("Number of items "+num+" greater than size "+list.size());
+		ArrayList<T> result = new ArrayList<T>(num);
+		ArrayList<Integer> indices = new ArrayList<>(num);
+		for(int i = 0; i < num; i++) {
+			indices.add(i); // All indices in the list
+		}
+		// Shuffle the list of indices, not the original list
+		Collections.shuffle(indices, rand);
+		for(int i = 0; i < num; i++) {
+			// Randomly shuffled indices leads to a random selection from the list
+			result.add(list.get(indices.get(i)));
+		}
+		return result;
+	}
+	
+	/**
+	 * Same as above, but allows a Set as input.
+	 * @param set Set of elements
+	 * @param num Number of elements to select
+	 * @param rand Random generator
+	 * @return List of num elements from set
+	 */
+	public static <T> ArrayList<T> randomChoose(Set<T> set, int num, Random rand) {
+		ArrayList<T> temp = new ArrayList<>(set.size());
+		temp.addAll(set);
+		return randomChoose(temp, num, rand);
+	}
 
 	/**
 	 * Takes in an array and selects a random index. 
@@ -321,18 +372,9 @@ public class RandomNumbers {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		int size = 1000;
-		double[] cauchies = new double[size];
-		double[] gaussians = new double[size];
-		for (int i = 0; i < size; i++) {
-			cauchies[i] = randomCauchyValue();
-			gaussians[i] = randomGenerator.nextGaussian();
-		}
-		Arrays.sort(cauchies);
-		Arrays.sort(gaussians);
-		System.out.println("Cauchy\tGaussian");
-		for (int i = 0; i < size; i++) {
-			System.out.println(cauchies[i] + "\t" + gaussians[i]);
+		RandomNumbers.reset(0);
+		for(int i = 0; i < 100; i++) {
+			RandomNumbers.randomGenerator.nextInt(100);
 		}
 	}
 }

@@ -152,7 +152,7 @@ public class SelectiveBreedingEA<T> implements SinglePopulationGenerationalEA<T>
 			}
 			if(i < size) {
 				for(int z = InteractiveEvolutionTask.MPG_DEFAULT; z < MUTATION_RATE; z++) {
-				g1.mutate();
+					g1.mutate();
 				}
 				children.add(g1);
 				if (parentId2 == -1) {
