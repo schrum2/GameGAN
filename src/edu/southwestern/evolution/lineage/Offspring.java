@@ -16,11 +16,9 @@ import java.util.logging.Logger;
 
 import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.evolution.genotypes.Genotype;
-import edu.southwestern.evolution.genotypes.MLPGenotype;
 import edu.southwestern.evolution.genotypes.TWEANNGenotype;
 import edu.southwestern.evolution.mulambda.MuLambda;
 import edu.southwestern.evolution.selectiveBreeding.SelectiveBreedingEA;
-import edu.southwestern.networks.MLP;
 import edu.southwestern.networks.Network;
 import edu.southwestern.networks.NetworkTask;
 import edu.southwestern.networks.TWEANN;
@@ -263,12 +261,6 @@ public class Offspring {
 									o.modeUsage = moduleUsage;
 									System.out.println("Score: " + s);
 									System.out.println("Module Usage: " + Arrays.toString(moduleUsage));
-								
-							} else if (MMNEAT.genotype instanceof MLPGenotype) {
-								// Evaluate mechanism is limited to Loner Tasks
-								@SuppressWarnings("unchecked")
-								Score<MLP> s = ((LonerTask<MLP>) MMNEAT.task).evaluate((MLPGenotype) g);
-								System.out.println("Score: " + s);
 							} else {
 								System.out.println("Evaluation only available for TWEANNs and MLPs");
 							}

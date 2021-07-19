@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 
-import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -137,7 +136,9 @@ public class MegaManConvertMMLVToJSON {
 	private static void showJsonContents(File inputFile) {
     	String fileContents = "";
 		try {
-			fileContents = Files.readFirstLine(inputFile, Charset.defaultCharset());
+			Scanner s = new Scanner(inputFile);
+			fileContents = s.nextLine(); // Read first line of file
+			s.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

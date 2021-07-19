@@ -17,6 +17,7 @@ import edu.southwestern.MMNEAT.MMNEAT;
 import edu.southwestern.data.SaveThread;
 import edu.southwestern.evolution.EvolutionaryHistory;
 import edu.southwestern.evolution.GenerationalEA;
+import edu.southwestern.evolution.genotypes.BoundedRealValuedGenotype;
 import edu.southwestern.evolution.genotypes.CPPNOrDirectToGANGenotype;
 import edu.southwestern.evolution.genotypes.CombinedGenotype;
 import edu.southwestern.evolution.genotypes.Genotype;
@@ -239,7 +240,7 @@ public class PopulationUtil {
 			if(CommonConstants.netChangeActivationRate > 0) {
 				ActivationFunctionRandomReplacement afrr = new ActivationFunctionRandomReplacement();
 				if(parents.get(0) instanceof CombinedGenotype) {
-					// If a combined genotye, assume the first of the pair is a network
+					// If a combined genotype, assume the first of the pair is a network
 					for (int i = 0; i < size; i++) {
 						afrr.mutate((Genotype<TWEANN>) ((Pair) parents.get(i)).t1);
 					}	
@@ -858,4 +859,17 @@ public class PopulationUtil {
 		return genos;
 	}
 	
+	
+	/**
+	 * Converts a double[][] population into an ArrayList<Genotype<ArrayList<Double>>>
+	 * @param Population to be converted
+	 * @return A converted population
+	 */
+	public static ArrayList<Genotype<ArrayList<Double>>> genotypeArrayListFromDoubles(double[][] population) {
+		ArrayList<Genotype<ArrayList<Double>>> children = new ArrayList<Genotype<ArrayList<Double>>>(population.length);
+		for (double[] geneSet : population) {
+			children.add(new BoundedRealValuedGenotype(geneSet));
+		}
+		return children;
+	}
 }

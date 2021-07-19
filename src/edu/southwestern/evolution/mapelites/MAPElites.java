@@ -19,7 +19,6 @@ import edu.southwestern.evolution.genotypes.CPPNOrDirectToGANGenotype;
 import edu.southwestern.evolution.genotypes.Genotype;
 import edu.southwestern.evolution.genotypes.RealValuedGenotype;
 import edu.southwestern.log.MMNEATLog;
-import edu.southwestern.networks.Network;
 import edu.southwestern.parameters.CommonConstants;
 import edu.southwestern.parameters.Parameters;
 import edu.southwestern.scores.Score;
@@ -53,9 +52,8 @@ public class MAPElites<T> implements SteadyStateEA<T> {
 	private MMNEATLog emitterMeanLog = null;
 	private MMNEATLog cppnThenDirectLog = null;
 	private MMNEATLog cppnVsDirectFitnessLog = null;
-	private LonerTask<T> task;
+	public LonerTask<T> task;
 	protected MMNEATLog[] emitterIndividualsLogs = null;
-	protected LonerTask<T> task;
 	protected Archive<T> archive;
 	private boolean mating;
 	private double crossoverRate;
@@ -287,7 +285,7 @@ public class MAPElites<T> implements SteadyStateEA<T> {
 	 * according to where they best fit.
 	 * @param example Starting genotype used to derive new instances
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked" })
 	@Override
 	public void initialize(Genotype<T> example) {	
 		if (this instanceof CMAME && MMNEAT.genotype instanceof RealValuedGenotype) {
@@ -335,11 +333,10 @@ public class MAPElites<T> implements SteadyStateEA<T> {
 				evaluatedPopulation.add(s);
 			});
 			CommonConstants.netio = backupNetIO;
-				// Add initial population to archive
-				evaluatedPopulation.parallelStream().forEach( (s) -> {
-					archive.add(s); // Fill the archive with random starting individuals
-				});	
-			}
+			// Add initial population to archive
+			evaluatedPopulation.parallelStream().forEach( (s) -> {
+				archive.add(s); // Fill the archive with random starting individuals
+			});	
 		}
 	}
 

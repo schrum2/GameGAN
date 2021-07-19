@@ -689,9 +689,9 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
 				&& (!CommonConstants.onlyModeMutationWhenModesSame
 						|| EvolutionaryHistory.minModes == EvolutionaryHistory.maxModes)
 				&& // Make sure modes are different
-				(CommonConstants.distanceForNewMode == -1
+				(CommonConstants.distanceForNewMode == -1)
 				&& // If using niche restriction
-				(!CommonConstants.nicheRestrictionOnModeMutation
+				true) {
 			// System.out.println("In Mode Mutation Block");
 			new MMP().go(this, sb);
 			new MMR().go(this, sb);

@@ -174,7 +174,6 @@ public class Parameters {
 		integerOptions.add("bdArchiveSize", 0, "Maximum allowable size of archive for BD");
 		integerOptions.add("cascadeExpansionGenerationInterval", 50, "HyperNEAT will expand at each generation interval if the parameter cascadeExpansion is true");
 		integerOptions.add("cleanFrequency", 10, "How frequently the archetype needs to be cleaned out");
-		integerOptions.add("clipLength", Keyboard.NOTE_LENGTH_DEFAULT, "Length of clip played in Breedesizer");
 		integerOptions.add("closeGhostDistance", 35, "Distance at which threat ghosts are considered too close for safety");
 		integerOptions.add("consistentEdibleTimeGens", 50, "Number of gens at end of evolution when edible time is settled");
 		integerOptions.add("consistentLairTimeGens", 50, "Number of gens at end of evolution when lair time is settled");
@@ -188,7 +187,6 @@ public class Parameters {
 		integerOptions.add("disabledMode", -1, "If non-negative, then the designated mode can never be used");
 		integerOptions.add("klDivBinDimension", -1, "Amount of bins in a dimension when using a KL Divergence binning scheme");
 		integerOptions.add("edibleTaskTimeLimit", 2000, "Time steps per level for edible ghost only subtask");
-		integerOptions.add("edibleTime", Constants.EDIBLE_TIME, "Initial edible ghost time in Ms. Pac-Man");
 		integerOptions.add("endTUGGeneration", Integer.MAX_VALUE, "Generation at which TUG will stop being used");
 		integerOptions.add("escapeNodeDepth", 0, "How deep to forward simulate with escape nodes");
 		integerOptions.add("freezeMeltAlternateFrequency", 25, "Generations between freezing/melting pref/policy neurons");
@@ -233,9 +231,7 @@ public class Parameters {
 		integerOptions.add("maxAnimationLength", 250, "Maximum length of animation in AnimationBreeder");
 		integerOptions.add("maxCampTrials", -1, "Number of trials based on training camps");
 		integerOptions.add("maxClipLength", 100000, "Maximum length of clip played in Breedesizer");
-		integerOptions.add("maxEdibleTime", 3 * Constants.EDIBLE_TIME, "What edible time starts at from the beginning of evolution");
 		integerOptions.add("maxGens", 500, "Maximum generations allowed for a LimitedGenerationalEAExperiment");
-		integerOptions.add("maxLairTime", 3 * Constants.COMMON_LAIR_TIME, "What lair time starts at from the beginning of evolution");
 		integerOptions.add("maxModes", 1000, "Mode mutation cannot add more than this many modes");
 		integerOptions.add("maxNumLinks", 100, "The maximum number of links to be used in the neurons/links binning scheme for PictureTargetTask.");
 		integerOptions.add("maxNumNeurons", 50, "The maximum number of neurons to be used in the neurons/links binning scheme for PictureTargetTask.");
@@ -244,8 +240,6 @@ public class Parameters {
 		integerOptions.add("maxTrials", Integer.MAX_VALUE, "Max trials allowed by individual when using increasing trials");
 		integerOptions.add("minAnimationLength", 10, "Minimum length of animation in AnimationBreeder");
 		integerOptions.add("minAnimationLength", 10, "Minimum length of animation in AnimationBreeder");
-		integerOptions.add("minEdibleTime", Constants.EDIBLE_TIME, "What edible time is reduced to across generations");
-		integerOptions.add("minLairTime", Constants.COMMON_LAIR_TIME, "What lair time is reduced to across generations");
 		integerOptions.add("minPause", 10, "Minimum pause length between each iteraton of animation in AnimationBreeder");
 		integerOptions.add("minRemixImageWindow", 2, "Minimum size of window being remixed by CPPN in Picture Remixer");
 		integerOptions.add("mu", 50, "Size of parent population in mu +/, lambda scheme");
@@ -871,8 +865,6 @@ public class Parameters {
 		stringOptions.add("pacmanSaveFile", "", "Filename to save a pacman game recording to");
 		stringOptions.add("pinballConfig", "pinball_simple_single.cfg", "Configuration file for the PinballTask");
 		stringOptions.add("regressionTargetColumn", "poly", "Name of column in CSV file to match for regression problems");
-		stringOptions.add("remixMIDIFile", SoundUtilExamples.FUR_ELISE_MID, "Input MIDI file to be played with CPPN in Breedesizer");
-		stringOptions.add("remixWAVFile", SoundUtilExamples.PORTAL2_WAV, "Input WAV file to be remixed in Remixbreeder");
 		stringOptions.add("replayNetwork", "", "Network displayed while replaying pacman eval");
 		stringOptions.add("saveTo", "", "Prefix for subdirectory where output from one run will be saved");
 		stringOptions.add("seedGenotype", "", "Path to xml file with seed genotype for population");
@@ -903,8 +895,6 @@ public class Parameters {
 		// Class options
 		classOptions.add("zeldaGrammarRules", ZeldaHumanSubjectStudy2019GraphGrammar.class, "Determines what ruleset we're using");
 		classOptions.add("zeldaGraphBackBone", HumanSubjectStudy2019Graph.class, "Constructs the graph for the rules of the ZeldaGraphGrammar");
-		classOptions.add("behaviorCharacterization", DomainSpecificCharacterization.class, "Type of behavior characterization used for Behavioral Diversity calculation");
-		classOptions.add("imageFitness", RandomImageFitness.class, "Fitness function for evaluating images");
 		classOptions.add("crossover", TWEANNCrossover.class, "Crossover operator to use if mating is used");
 		classOptions.add("directionalSafetyFunction", null, "Function that decides if CheckEach agent bothers to consider a direction");
 		classOptions.add("ea", NSGA2.class, "A subclass for the evolutionary algorithm to run");
@@ -912,11 +902,9 @@ public class Parameters {
 		classOptions.add("fos", null, "Function Optimization Set to use for simple tests");
 		classOptions.add("foFunction", null, "Specific function to be used with function optimization");
 		classOptions.add("genotype", TWEANNGenotype.class, "A subclass defining the genotype to evolve with");
-		classOptions.add("ghostTeam", Legacy.class, "Ghost team in new version of Ms. Pac-Man code");
 		classOptions.add("gvgaiPlayer", GVGAIOneStepNNPlayer.class, "GVGAI Player to be used");
 		classOptions.add("hyperNEATSeedTask", null, "HyperNEAT task that seeds a standard NEAT task");
 		classOptions.add("hyperNEATCustomArchitecture", null, "Custom substrate architecture for a HyperNEAT task (overrides HNProcessDepth and HNProcessWidth)");
-		classOptions.add("imageNetModel", VGG19Wrapper.class, "DL4J model that was trained on ImageNet to classify images");
 		classOptions.add("mapElitesBinLabels", null, "class containing way of putting genotypes in bins of the MAP Elites archive");
 		classOptions.add("marioLevelAgent", AStarAgent.class, "Agent that plays evolved Mario levels");
 		classOptions.add("nicheDefinition", null, "Method for getting the niche of an individual for local competition");
@@ -925,27 +913,9 @@ public class Parameters {
 		classOptions.add("pacManMediatorClass2", null, "Sensors and actuators for 2nd network of multinetwork");
 		classOptions.add("pacManMediatorClass3", null, "Sensors and actuators for 3rd network of multinetwork");
 		classOptions.add("pacManMediatorClass4", null, "Sensors and actuators for 4th network of multinetwork");
-		classOptions.add("pacmanEscapeNodeCollection", JunctionNodes.class, "Type of node that pacman agent considers to escape to");
-		classOptions.add("pacmanFitnessModeMap", GhostsPillsMap.class, "What subpops get what fitness in cooperative coevolution");
-		classOptions.add("pacmanInputOutputMediator", FullTaskMediator.class, "Defines pacman controllers sensors and actuators");
-		classOptions.add("pacmanMultitaskScheme", GhostsThenPillsModeSelector.class, "Class defining multitask division in Ms. Pac-Man");
-		classOptions.add("rlGlueAgent", RLGlueAgent.class, "Agent used in RLGlue tasks");
-		classOptions.add("rlGlueEnvironment", null, "Environment/domain for an RL-Glue problem");
-		classOptions.add("rlGlueExtractor", StateVariableExtractor.class, "Feature extractor to get input features from RL-Glue observations");
-		classOptions.add("staticPacMan", StarterPacMan.class, "Pac-Man used to evolve ghosts against");
-		//popacman.examples.StarterPacMan.MyPacMan.class 
-		classOptions.add("staticPacManPO", popacman.examples.StarterPacMan.MyPacMan.class, "Pac-Man used to evolve PO ghosts against");
-		classOptions.add("staticPredatorController", AggressivePredatorController.class, "This parameter specifies the predator controller that prey evolve against");
-		classOptions.add("staticPreyController", PreyFleeClosestPredatorController.class, "This parameter specifies the prey controller that predators evolve against");
-		classOptions.add("substrateMapping", CenteredSubstrateMapping.class, "Determines the type of subtrate coordinate mapping we want to use");
 		classOptions.add("task", null, "A subclass defining the task to solve");
 		classOptions.add("tugGoalTargetStat", Max.class, "The stat used by TUG to determine what value objective goals should work towards reaching");
 		classOptions.add("tugPerformanceStat", Average.class, "The stat used by TUG to calculate the performance of the population");
-		classOptions.add("utGameBotsOpponent", null, "Bot to fight against while evolving");
-		classOptions.add("utMapList", null, "Gives the clas with the list of maps for the bot to evolve on");
-		classOptions.add("utOutputModel", OpponentRelativeMovementOutputModel.class, "Outputs for UT2004 bot");
-		classOptions.add("utSensorModel", OpponentRelativeSensorModel.class, "Sensors for UT2004 bot");
-		classOptions.add("utWeaponManager", SimpleWeaponManager.class, "Weapon management for UT2004 bot");
 		classOptions.add("weightPerturber", GaussianGenerator.class, "Random generator used to perturb mutated weights");
 		classOptions.add("zeldaLevelLoader", SimpleLoader.class, "Loader to use when the dungeon is picking levels");
 	}
